@@ -115,7 +115,7 @@ setup(onNext){
 
 }
 
-```js
+```
 
 ## this
 
