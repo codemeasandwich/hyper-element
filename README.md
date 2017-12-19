@@ -88,6 +88,34 @@ setup(onNext){
 }
 ```
 
+#### How to cleanup when
+
+Any logic you wish to run when the **element** is removed from the page should be returned as a function from the `setup` call
+
+```js
+setup(onNext){
+   const next = onNext(user);
+   socket.addEventListener('message', next);
+   const teardown = function(){
+     socket.removeEventListener('message', next);
+   }
+   return teardown
+}
+```
+
+#### ✎ To subscribe to 2 events
+
+```js
+setup(onNext){
+
+  const next = onNext(user);
+
+  mobx.autorun(next);       // update when changed (real-time feedback)
+  setInterval(next, 1000);  // update every second (update "the time is now ...")
+
+}
+
+```js
 
 ## this
 

@@ -25,7 +25,6 @@
         render(this.store)
       }
 
-
       return this.render;
   }
 
@@ -46,6 +45,7 @@
     }
 
     connectedCallback() {
+      // Called when the element is inserted into a document, including into a shadow tree
     }
 
     attachProps(attributes){
@@ -72,7 +72,7 @@
      this.render = this.render.bind(this,Html)
 
      if(this.setup)
-     this.setup(onNext.bind(this))
+     this.teardown = this.setup(onNext.bind(this)) || ()=>{}
      this.render()
     }
 
@@ -86,6 +86,9 @@
     }
 
     disconnectedCallback(){
+      this.teardown && this.teardown()
+      this.teardown = null
+      //Called when the element is removed from a document
     }
   }
 
