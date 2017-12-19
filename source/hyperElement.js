@@ -17,14 +17,28 @@
 
 }(function () {
 
+  function onNext(store){
+
+      const storeFn = ("function" == typeof store) ? store : ()=> store
+
+      const render = this.render
+
+      this.render = ()=>{
+        this.store = storeFn();
+        render(this.store)
+      }
+
+
+      return this.render;
+  }
+
   class hyperElement extends HTMLElement{
 
     bindLocalFn(){
       Object.getOwnPropertyNames(this.__proto__)
             .filter(name => ! (
               "constructor" === name ||
-              "readStore"   === name ||
-              "watch"       === name ||
+              "setup"       === name ||
               "render"      === name
             ))
             .forEach( name => this[name] = this[name].bind(this) )
@@ -58,29 +72,22 @@
      }
      this.props = this.attachProps(this.attributes);
 
-     const store = this.readStore || (()=>{});
+     this.render = this.render.bind(this,Html)
 
-     const render = this.render
-
-     this.render = ()=>{
-       this.store = store()
-       render.call(this,Html,this.store);
-     }
+     if(this.setup)
+     this.setup(onNext.bind(this))
      this.render()
-
-     if(this.watch){
-       const autoRunMeOnChange = this.watch()
-       autoRunMeOnChange(this.render)
-     }
-
     }
+
     detachedCallback(){
       this.disposer && this.disposer()
     }
+
     attributeChangedCallback(name,oldVal,newVal){
       this.props[name] = newVal;
       this.render();
     }
+
     disconnectedCallback(){
     }
   }
