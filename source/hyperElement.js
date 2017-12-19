@@ -4,18 +4,15 @@
 
     if (typeof define === 'function' && define.amd) {
         // AMD
-        define([], factory);
-        //define(['mobx'], factory);
+        define(['hyperhtml'], factory);
     } else if (typeof exports === 'object') {
         // Node, CommonJS-like
-        module.exports = factory();
-        //module.exports = factory(require('mobx'));
+        module.exports = factory(require('npm install hyperhtml'));
     } else {
-        //window.hyperElement = factory(window.mobx);
-        window.hyperElement = factory();
+        window.hyperElement = factory(window.hyperHTML);
     }
 
-}(function () {
+}(function (hyperHTML) {
 
   function onNext(store){
 
