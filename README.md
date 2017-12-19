@@ -1,4 +1,4 @@
-# hyperElement
+# hyper-element
 
 A combining the best of [hyperHTML] and [Custom Elements]!
 
@@ -26,7 +26,7 @@ To use your Custom Element
 
 ## funtions
 
-There are 3 functions. `render` is *required* and `watch` & `readStore` are *optional*
+There are 2 functions. `render` is *required* and `setup` is *optional*
 
 ### render
 
@@ -43,29 +43,39 @@ render(Html,store){
 }
 ```
 
-### watch
+### setup
 
-The `watch` function should returns an onNext function to fire a render
+The `setup` function wires up an external data-set
 
-Example of re-rendering every second
+#### Only a data source and re-rendering on event
+
+Example to re-rendering when the mouse moves and get the current values
 
 ```js
-watch(){
-    return (next)=>{
-      setInterval(next, 1000);
-    }
+/// getMouseValues(){ ... }
+
+setup(onNext){
+    onMouseMove(onNext(getMouseValues))
 }
 ```
 
-### readStore
-
-The `readStore` function should returns the current data-set
+#### Only re-rendering
 
 Example of re-rendering every second
 
 ```js
-readStore(){
-    return app.store
+setup(onNext){
+    setInterval(onNext(), 1000);
+}
+```
+
+#### Only bind some data
+
+Example of attach an object that will be used on evey render
+
+```js
+setup(onNext){
+    onNext({max_levels:3})
 }
 ```
 
@@ -79,7 +89,7 @@ readStore(){
 
 # Example
 
-## Backbone
+## backbone
 
 ```js
 var user = new (Backbone.Model.extend({
@@ -88,10 +98,13 @@ var user = new (Backbone.Model.extend({
     }
 }));
 
+
 document.registerElement("my-profile", class extends hyperElement{
 
-  watch(){ return user.on.bind(user,"change")  }
-  store(){ return user.toJSON() }
+  setup(onNext){
+    user.on("change",onNext(user.toJSON.bind(user)));
+    // OR user.on("change",onNext(()=>user.toJSON()));
+  }
 
   render(Html,{name}){
     Html`Profile: ${name}`
@@ -106,13 +119,30 @@ const user = observable({
   name: 'Guest User'
 })
 
+
 document.registerElement("my-profile", class extends hyperElement{
 
-  watch(){ return mobx.autorun  }
-  store(){ return user }
+  setup(onNext){
+    mobx.autorun(onNext(user));
+  }
 
   render(Html,{name}){
     Html`Profile: ${name}`
+  }
+})
+```
+
+## redux
+
+```js
+document.registerElement("my-profile", class extends hyperElement{
+
+  setup(onNext){
+    store.subcribe(onNext(store.getState)
+  }
+
+  render(Html,{user}){
+    Html`Profile: ${user.name}`
   }
 })
 ```

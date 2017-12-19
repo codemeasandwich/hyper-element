@@ -1,39 +1,57 @@
 'use strict';
 (()=>{
-// hyperHTMLElement
-// hyperElement
+
+//=====================================================
+//============================= Example: simple element
+//=====================================================
 
     document.registerElement("the-max", class extends hyperElement{
-
       render(Html){
         Html`MAX:${this.props.max}`
       }
-
     })
 
+//=====================================================
+//============================= Example: using backbone
+//=====================================================
 
-
-
+//+++++++++++++++++++++++++++++++++++++ Backbone Model
+//++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     var person = new (Backbone.Model.extend({
         defaults: {
             name: 'Guest User',
         }
     }));
+
+    // to change from console !!!!!
     window.person = person;
+
+//++++++++++++++++++++++++++++++++++++++++ The Element
+//++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     document.registerElement("my-profile", class extends hyperElement{
 
-      watch(){ return person.on.bind(person,"change")  }
-      readStore(){ return person.toJSON() }
+      setup(onNext){
+        person.on("change",onNext(person.toJSON.bind(person)));
+        // OR person.on("change",onNext(()=>person.toJSON()));
+      }
 
       render(Html,{name}){
         Html`Profile: ${name}`
       }
     })
+
+
+//=====================================================
+//================================= Example: using mobx
+//======================================== using a wire
+
     document.registerElement("alex-rocks", class extends hyperElement{
 
-      watch(){ return mobx.autorun    }
-      readStore(){ return window.appState }
+      setup(onNext){
+        mobx.autorun(onNext(window.appState));
+      }
 
       render(Html,{devices}){
 
@@ -51,12 +69,15 @@
       }
     })
 
+//=====================================================
+//================================= Example: using mobx
+//========================================= with inputs
 
   document.registerElement("test-elem", class extends hyperElement{
 
-
-    watch(){ return mobx.autorun    }
-    readStore(){ return window.appState }
+    setup(onNext){
+      mobx.autorun(onNext(window.appState));
+    }
 
     render(Html,store){
 
@@ -78,14 +99,17 @@
           <alex-rocks />
 
       `}
+
       onkeyup({key}){
         if("Enter" === key)
         this.save()
       }
+
       save(){
           this.store.devices.push(this.store.form);
           this.store.form = "";
       }
+
       oninput(event){
         this.store.form = event.target.value
       }
