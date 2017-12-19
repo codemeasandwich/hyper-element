@@ -10,7 +10,7 @@ To define a Custom Element
 document.registerElement("my-elem", class extends hyperElement{
 
   render(Html){
-    Html`hello world`
+    Html`hello ${this.props.who}`
   }
 
 })
@@ -19,7 +19,16 @@ document.registerElement("my-elem", class extends hyperElement{
 To use your Custom Element
 
 ```html
-<my-elem/>
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/hyperhtml@latest/min.js"></script>
+  <script src="https://unpkg.com/hyper-element@latest/source/hyperElement.js"></script>
+</head>
+<body>
+  <my-elem who="world"/>
+</body>
+<html>
 ```
 
 # Api
