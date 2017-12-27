@@ -2,13 +2,13 @@
 
 (function (factory) {
 
-    if (typeof define === 'function' && define.amd) {
+    if (typeof exports === 'object') {        
+        // Node, CommonJS-like
+        module.exports = factory(require('hyperhtml/cjs'));
+    } else if (typeof define === 'function' && define.amd) {
         // AMD
         define(['hyperhtml'], factory);
-    } else if (typeof exports === 'object') {
-        // Node, CommonJS-like
-        module.exports = factory(require('npm install hyperhtml'));
-    } else {
+    }  else {
         window.hyperElement = factory(window.hyperHTML);
     }
 
@@ -41,7 +41,23 @@
     }
 
     createdCallback(){
+        // an instance of the element is created
+    
       this.bindLocalFn()
+
+     const Html = this.Html = hyperHTML.bind(this.attachShadow({mode: 'closed'}));
+     Html.wire = hyperHTML.wire
+     Html.lite = hyperHTML
+     if(this.props){
+       throw new Error("'props' is defined!!")
+     }
+     this.props = this.attachProps(this.attributes) || {};
+
+     this.render = this.render.bind(this,Html)
+
+     if(this.setup)
+     this.teardown = this.setup(onNext.bind(this))
+     this.render()
     }
 
     connectedCallback() {
@@ -60,24 +76,12 @@
     }
 
     attachedCallback(){
-
-     const Html = this.Html = hyperHTML.bind(this.attachShadow({mode: 'closed'}));
-     Html.wire = hyperHTML.wire
-     Html.lite = hyperHTML
-     if(this.props){
-       throw new Error("'props' is defined!!")
-     }
-     this.props = this.attachProps(this.attributes);
-
-     this.render = this.render.bind(this,Html)
-
-     if(this.setup)
-     this.teardown = this.setup(onNext.bind(this)) || ()=>{}
-     this.render()
+        //an instance was inserted into the document
     }
 
     detachedCallback(){
       this.disposer && this.disposer()
+      this.disconnectedCallback()
     }
 
     attributeChangedCallback(name,oldVal,newVal){
@@ -95,3 +99,4 @@
   return hyperElement;
 
 }));
+
