@@ -1,13 +1,25 @@
 {
-  "name": "hyper-element",
   "version": "0.1.1",
+  "name": "hyper-element",
+  "author": "Brian Shannon (git://github.com/codemeasandwich)",
   "description": "hyperHTML + WebComponents",
   "main": "source/hyperElement.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/codemeasandwich/hyper-element.git"
+  },
+  "bugs": {
+    "url": "https://github.com/codemeasandwich/hyper-element/issues"
+  },
+  "keywords":[
+    "hyperhtml",
+    "web-components",
+    "webcomponents"
+  ],
   "dependencies": {
     "hyperhtml": "^2.4.3"
   }
