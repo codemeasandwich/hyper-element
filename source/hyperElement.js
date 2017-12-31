@@ -44,8 +44,8 @@
         // an instance of the element is created
     
       this.bindLocalFn()
-
-     const Html = this.Html = hyperHTML.bind(this.attachShadow({mode: 'closed'}));
+                                                       // use shadow DOM, else fallback to render to element
+     const Html = this.Html = hyperHTML.bind(this.attachShadow ? this.attachShadow({mode: 'closed'}) : this);
      Html.wire = hyperHTML.wire
      Html.lite = hyperHTML
      if(this.props){
