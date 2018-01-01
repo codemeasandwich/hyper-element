@@ -3,7 +3,7 @@
 A combining the best of [hyperHTML] and [Custom Elements]!
 
 [![npm version](https://badge.fury.io/js/hyper-element.svg)](https://www.npmjs.com/package/hyper-element)
-[![CDN link](https://img.shields.io/badge/CDN_link-hyper--element-red.svg)](https://unpkg.com/hyper-element@latest/source/hyperElement.js)
+[![CDN link](https://img.shields.io/badge/CDN_link-hyper--element-red.svg)](https://unpkg.com/hyper-element@latest/source/bundle.js)
 
 Your new custom-elements are build with [hyperHTML] and will be re-rendered on attribute and store change.
 
@@ -28,7 +28,7 @@ To use your Custom Element
 <html>
 <head>
   <script src="https://unpkg.com/hyperhtml@latest/min.js"></script>
-  <script src="https://unpkg.com/hyper-element@latest/source/hyperElement.js"></script>
+  <script src="https://unpkg.com/hyper-element@latest/source/bundle.js"></script>
 </head>
 <body>
   <my-elem who="world"/>
