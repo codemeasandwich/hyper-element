@@ -122,6 +122,19 @@ setup(onNext){
 
 ```
 
+### Render to string
+
+You can use the `innerShadow` property to get the [innerHTML] of the [shadow-dom]
+
+```js
+// create an element
+const elem = document.createElement("profile-elem")
+      elem.setAttribute('name', 'ashlyn');
+
+// view hidden markup
+console.log(elem,elem.innerShadow)
+```
+
 ## this
 
 * this.props : the attribute on the tage `<my-elem min="0" max="10" />`
@@ -188,6 +201,7 @@ document.registerElement("my-profile", class extends hyperElement{
   }
 })
 ```
-
+[shadow-dom]:https://developers.google.com/web/fundamentals/web-components/shadowdom
+[innerHTML]:https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML
 [hyperHTML]:https://viperhtml.js.org/hyper.html
 [Custom Elements]:https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements

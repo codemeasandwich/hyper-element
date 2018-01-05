@@ -1,8 +1,6 @@
-'use strict';
-
 (function (factory) {
 
-    if (typeof exports === 'object') {        
+    if (typeof exports === 'object') {
         // Node, CommonJS-like
         module.exports = factory(require('hyperhtml/cjs'));
     } else if (typeof define === 'function' && define.amd) {
@@ -13,6 +11,8 @@
     }
 
 }(function (hyperHTML) {
+
+  const manager = {   }
 
   function onNext(store){
 
@@ -30,22 +30,27 @@
 
   class hyperElement extends HTMLElement{
 
-    bindLocalFn(){
-      Object.getOwnPropertyNames(this.__proto__)
-            .filter(name => ! (
-              "constructor" === name ||
-              "setup"       === name ||
-              "render"      === name
-            ))
-            .forEach( name => this[name] = this[name].bind(this) )
+    get innerShadow(){
+      return manager[this.identifier].shadow.innerHTML
     }
 
     createdCallback(){
         // an instance of the element is created
-    
-      this.bindLocalFn()
+        this.identifier = Symbol(this.localName);
+    const ref = manager[this.identifier] = {}
+
+    Object.getOwnPropertyNames(this.__proto__)
+          .filter(name => ! (
+            "constructor" === name ||
+            "setup"       === name ||
+            "render"      === name
+          ))
+          .forEach( name => this[name] = this[name].bind(this) )
                                                        // use shadow DOM, else fallback to render to element
-     const Html = this.Html = hyperHTML.bind(this.attachShadow ? this.attachShadow({mode: 'closed'}) : this);
+     ref.shadow =  this.attachShadow ? this.attachShadow({mode: 'closed'}) : this
+
+     const Html = ref.Html = hyperHTML.bind(ref.shadow);
+
      Html.wire = hyperHTML.wire
      Html.lite = hyperHTML
      if(this.props){
@@ -56,8 +61,10 @@
      this.render = this.render.bind(this,Html)
 
      if(this.setup)
-     this.teardown = this.setup(onNext.bind(this))
+     ref.teardown = this.setup(onNext.bind(this))
+
      this.render()
+
     }
 
     connectedCallback() {
@@ -90,8 +97,8 @@
     }
 
     disconnectedCallback(){
-      this.teardown && this.teardown()
-      this.teardown = null
+      ref.teardown && ref.teardown()
+      //ref.teardown = null
       //Called when the element is removed from a document
     }
   }
@@ -99,4 +106,3 @@
   return hyperElement;
 
 }));
-
