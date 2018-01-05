@@ -23,6 +23,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
   }
 })(function (hyperHTML) {
 
+  var manager = {};
+
   function onNext(store) {
     var _this = this;
 
@@ -50,24 +52,24 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
     }
 
     _createClass(hyperElement, [{
-      key: 'bindLocalFn',
-      value: function bindLocalFn() {
+      key: 'createdCallback',
+      value: function createdCallback() {
         var _this3 = this;
+
+        // an instance of the element is created
+        this.identifier = Symbol(this.localName);
+        var ref = manager[this.identifier] = {};
 
         Object.getOwnPropertyNames(this.__proto__).filter(function (name) {
           return !("constructor" === name || "setup" === name || "render" === name);
         }).forEach(function (name) {
           return _this3[name] = _this3[name].bind(_this3);
         });
-      }
-    }, {
-      key: 'createdCallback',
-      value: function createdCallback() {
-        // an instance of the element is created
-
-        this.bindLocalFn();
         // use shadow DOM, else fallback to render to element
-        var Html = this.Html = hyperHTML.bind(this.attachShadow ? this.attachShadow({ mode: 'closed' }) : this);
+        ref.shadow = this.attachShadow ? this.attachShadow({ mode: 'closed' }) : this;
+
+        var Html = ref.Html = hyperHTML.bind(ref.shadow);
+
         Html.wire = hyperHTML.wire;
         Html.lite = hyperHTML;
         if (this.props) {
@@ -77,7 +79,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
         this.render = this.render.bind(this, Html);
 
-        if (this.setup) this.teardown = this.setup(onNext.bind(this));
+        if (this.setup) ref.teardown = this.setup(onNext.bind(this));
+
         this.render();
       }
     }, {
@@ -108,9 +111,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         this.disposer && this.disposer();
         this.disconnectedCallback();
       }
-
-      // The behavior occurs when an attribute of the element is added, removed, updated, or replaced.
-
     }, {
       key: 'attributeChangedCallback',
       value: function attributeChangedCallback(name, oldVal, newVal) {
@@ -120,9 +120,14 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
     }, {
       key: 'disconnectedCallback',
       value: function disconnectedCallback() {
-        this.teardown && this.teardown();
-        this.teardown = null;
+        ref.teardown && ref.teardown();
+        //ref.teardown = null
         //Called when the element is removed from a document
+      }
+    }, {
+      key: 'innerShadow',
+      get: function get() {
+        return manager[this.identifier].shadow.innerHTML;
       }
     }]);
 
