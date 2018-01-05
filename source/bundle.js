@@ -56,6 +56,22 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
       value: function createdCallback() {
         var _this3 = this;
 
+        var mutationObserver = new MutationObserver(function (mutations) {
+          /*    mutations.forEach(function(mutation) {
+                      console.log(mutation);
+                });*/
+          _this3.render();
+        });
+
+        mutationObserver.observe(this, {
+          //attributes: true,
+          characterData: true, // re-render on content change
+          childList: true,
+          subtree: true,
+          //attributeOldValue: true,
+          characterDataOldValue: true
+        });
+
         // an instance of the element is created
         this.identifier = Symbol(this.localName);
         var ref = manager[this.identifier] = {};

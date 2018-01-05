@@ -35,6 +35,25 @@
     }
 
     createdCallback(){
+
+      var mutationObserver = new MutationObserver((mutations)=> {
+        /*    mutations.forEach(function(mutation) {
+                    console.log(mutation);
+              });*/
+          this.render()
+      });
+
+      mutationObserver.observe(this, {
+          //attributes: true,
+          characterData: true, // re-render on content change
+          childList: true,
+          subtree: true,
+          //attributeOldValue: true,
+          characterDataOldValue: true
+      });
+
+
+
         // an instance of the element is created
         this.identifier = Symbol(this.localName);
     const ref = manager[this.identifier] = {}
