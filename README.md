@@ -139,10 +139,44 @@ console.log(elem,elem.innerShadow)
 
 * this.props : the attribute on the tage `<my-elem min="0" max="10" />`
 * this.store : the value returned from the store function. !only update before each render
-* this.textContent : the content between the tags `<my-elem>Hi!</my-elem>`
+* this.wrapedContent : the content between the tags `<my-elem>Hi!</my-elem>`
 
 
-# Example
+## partial templates
+
+You can declare markup to be used as a template within the custom element
+
+```Html
+<my-list template data-json='[{"name":"ann","url":""},{"name":"bob","url":""}]' >
+<div><a href="{url}">{name}</a></div>
+</my-list>
+```
+
+```js
+document.registerElement("my-list",class extends hyperElement{
+
+      render(Html){
+        Html`
+        ${this.props["data-json"].map(user => Html.template(user))}
+        `
+      }
+ })
+```
+
+Output:
+```Html
+<my-list template data-json='[{"name":"ann","url":""},{"name":"bob","url":""}]' >
+    <div>
+      <a href="">ann</a>
+    </div>
+    <div>
+      <a href="">bob</a>
+    </div>
+</my-list>
+```
+
+
+# Example of connecting to a data store
 
 ## backbone
 
