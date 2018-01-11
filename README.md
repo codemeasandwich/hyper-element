@@ -5,11 +5,28 @@ A combining the best of [hyperHTML] and [Custom Elements]!
 [![npm version](https://badge.fury.io/js/hyper-element.svg)](https://www.npmjs.com/package/hyper-element)
 [![CDN link](https://img.shields.io/badge/CDN_link-hyper--element-red.svg)](https://unpkg.com/hyper-element@latest/source/bundle.js)
 
-Your new custom-elements are build with [hyperHTML] and will be re-rendered on attribute and store change.
+Your new custom-elements are built with [hyperHTML] and will be re-rendered on attribute and store change.
 
 # [Live Demo](https://jsfiddle.net/codemeasandwich/k25e6ufv/)
 
-To define a Custom Element
+---
+
+- [Define a Custom Element](#define-a-custom-element)
+- [Api](#api)
+  * [Define your element](#define-your-element)
+    + [render](#render)
+    + [setup](#setup)
+    + [this](#this)
+  * [Templates](#templates)
+  * [Render to string](#render-to-string)
+- [Connecting to a data store](#example-of-connecting-to-a-data-store)
+  * [backbone](#backbone)
+  * [mobx](#mobx)
+  * [redux](#redux)
+
+---
+
+# Define a Custom Element
 
 ```js
 document.registerElement("my-elem", class extends hyperElement{
@@ -21,7 +38,7 @@ document.registerElement("my-elem", class extends hyperElement{
 })
 ```
 
-To use your Custom Element
+To use your element
 
 ```html
 <!DOCTYPE html>
@@ -38,13 +55,13 @@ To use your Custom Element
 
 # Api
 
-## funtions
+## Define your element
 
 There are 2 functions. `render` is *required* and `setup` is *optional*
 
 ### render
 
-This is what will be displayed with in your element
+This is what will be displayed with in your element. Use the `Html` to define your content
 
 ```js
 render(Html,store){
@@ -59,21 +76,21 @@ render(Html,store){
 
 ### setup
 
-The `setup` function wires up an external data-set
+The `setup` function wires up an external data-source
 
-#### Only a data source and re-rendering on event
+#### Connent a data source
 
-Example to re-rendering when the mouse moves and get the current values
+Example to re-rendering when the mouse moves and pass current mouse values to render
 
 ```js
-/// getMouseValues(){ ... }
+// getMouseValues(){ ... }
 
 setup(onNext){
     onMouseMove(onNext(getMouseValues))
 }
 ```
 
-#### Only re-rendering
+#### re-rendering with out a data source
 
 Example of re-rendering every second
 
@@ -83,7 +100,7 @@ setup(onNext){
 }
 ```
 
-#### Only bind some data
+#### Set initial values to pass to every render
 
 Example of attach an object that will be used on evey render
 
@@ -93,7 +110,7 @@ setup(onNext){
 }
 ```
 
-#### How to cleanup when
+#### How to cleanup
 
 Any logic you wish to run when the **element** is removed from the page should be returned as a function from the `setup` call
 
@@ -122,29 +139,21 @@ setup(onNext){
 
 ```
 
-### Render to string
+### this
 
-You can use the `innerShadow` property to get the [innerHTML] of the [shadow-dom]
-
-```js
-// create an element
-const elem = document.createElement("profile-elem")
-      elem.setAttribute('name', 'ashlyn');
-
-// view hidden markup
-console.log(elem,elem.innerShadow)
-```
-
-## this
-
-* this.props : the attribute on the tage `<my-elem min="0" max="10" />`
+* this.props : the attribute on the tage `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
 * this.store : the value returned from the store function. !only update before each render
 * this.wrapedContent : the content between the tags `<my-elem>Hi!</my-elem>`
 
 
-## partial templates
+## Templates
 
 You can declare markup to be used as a template within the custom element
+
+To enable templates
+
+1. Add an attribute "templates" to you custom element
+2. Define the template markup within your element
 
 ```Html
 <my-list template data-json='[{"name":"ann","url":""},{"name":"bob","url":""}]' >
@@ -173,6 +182,19 @@ Output:
       <a href="">bob</a>
     </div>
 </my-list>
+```
+
+## Render to string
+
+You can use the `innerShadow` property to get the [innerHTML] of the [shadow-dom]
+
+```js
+// create an element
+const elem = document.createElement("profile-elem")
+      elem.setAttribute('name', 'ashlyn');
+
+// view hidden markup
+console.log(elem,elem.innerShadow)
 ```
 
 
