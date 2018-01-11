@@ -93,6 +93,29 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
     });
   }
 
+  function parceAttribute(key,value){
+    if("template" === key && "" === value){
+      return true
+    }
+    if("data-json"===key){
+      return JSON.parse(value)
+    }
+
+    if((+value)+"" === value){
+      return +value; // to number
+    }
+
+    const lowerCaseValue = value.toLowerCase()
+
+    if("true" === lowerCaseValue){
+      return true
+    } else if("false" === lowerCaseValue){
+      return false
+    }
+
+    return value
+  }
+
 //=====================================================
 //======================================= All the magic
 //=====================================================
@@ -193,10 +216,8 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
             }
             accumulator[name] = true;
 
-         } else if("data-json"===name){
-            accumulator[name] = JSON.parse(value)
          } else  {
-            accumulator[name] = value;
+           accumulator[name] = parceAttribute(name,value)
          }
      }
      return accumulator;
@@ -218,14 +239,13 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 */
     attributeChangedCallback(name,oldVal,newVal){
 
+      newVal = parceAttribute(name,newVal)
+
     	if( newVal === this.props[name]) {
-      	return
-      } else if("template" === name){
-      	this.props[name] = true
       	return
       }
 
-      this.props[name] = ("data-json"===name)?JSON.parse(newVal):newVal
+      this.props[name] = newVal
 
       this.render();
     }

@@ -115,6 +115,29 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     });
   }
 
+  function parceAttribute(key, value) {
+    if ("template" === key && "" === value) {
+      return true;
+    }
+    if ("data-json" === key) {
+      return JSON.parse(value);
+    }
+
+    if (+value + "" === value) {
+      return +value; // to number
+    }
+
+    var lowerCaseValue = value.toLowerCase();
+
+    if ("true" === lowerCaseValue) {
+      return true;
+    } else if ("false" === lowerCaseValue) {
+      return false;
+    }
+
+    return value;
+  }
+
   //=====================================================
   //======================================= All the magic
   //=====================================================
@@ -226,10 +249,8 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
               };
               accumulator[name] = true;
             })();
-          } else if ("data-json" === name) {
-            accumulator[name] = JSON.parse(value);
           } else {
-            accumulator[name] = value;
+            accumulator[name] = parceAttribute(name, value);
           }
         }
         return accumulator;
@@ -254,14 +275,13 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
       key: 'attributeChangedCallback',
       value: function attributeChangedCallback(name, oldVal, newVal) {
 
+        newVal = parceAttribute(name, newVal);
+
         if (newVal === this.props[name]) {
-          return;
-        } else if ("template" === name) {
-          this.props[name] = true;
           return;
         }
 
-        this.props[name] = "data-json" === name ? JSON.parse(newVal) : newVal;
+        this.props[name] = newVal;
 
         this.render();
       }
