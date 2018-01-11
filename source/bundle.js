@@ -83,8 +83,8 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
       ref.innerHTML = _this2.innerHTML;
       _this2.wrapedContent = textContent;
-      if (_this2.props.template) {
-        _this2.attachProps(_this2.attributes);
+      if (_this2.attrs.template) {
+        _this2.attachAttrs(_this2.attributes);
       }
 
       //reset the element
@@ -177,14 +177,22 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         // use shadow DOM, else fallback to render to element
         ref.shadow = this; //.attachShadow ? this.attachShadow({mode: 'closed'}) : this
 
-        ref.Html = hyperHTML.bind(ref.shadow);
+        // Restrict access to hyperHTML
+        var hyperHTMLbind = hyperHTML.bind(ref.shadow);
+        ref.Html = function Html() {
+          return hyperHTMLbind.apply(undefined, arguments);
+        };
+        ref.Html.wire = function wire() {
+          return hyperHTML.wire.apply(hyperHTML, arguments);
+        };
+        ref.Html.lite = function lite() {
+          return hyperHTML.apply(undefined, arguments);
+        };
 
-        ref.Html.wire = hyperHTML.wire;
-        ref.Html.lite = hyperHTML;
-        if (this.props) {
-          throw new Error("'props' is defined!!");
+        if (this.attrs) {
+          throw new Error("'attrs' is defined!!");
         }
-        this.props = this.attachProps(this.attributes) || {};
+        this.attrs = this.attachAttrs(this.attributes) || {};
         var render = this.render;
         this.render = function (data) {
           ref.observe = false;
@@ -205,12 +213,12 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
             // Called when the element is inserted into a document, including into a shadow tree
           }
           */
-      //+++++++++++++++++++++++++++++++++++++++ attach Props
+      //+++++++++++++++++++++++++++++++++++++++ attach Attrs
       //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     }, {
-      key: 'attachProps',
-      value: function attachProps(attributes) {
+      key: 'attachAttrs',
+      value: function attachAttrs(attributes) {
         var _this5 = this;
 
         var accumulator = {};
@@ -245,7 +253,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
               }, { markup: [], keys: [] });
 
               ref.Html.template = function template(data) {
-                return ref.Html.wire().apply(undefined, _toConsumableArray(fragment(data)));
+                return ref.Html.wire(data).apply(undefined, _toConsumableArray(fragment(data)));
               };
               accumulator[name] = true;
             })();
@@ -277,11 +285,11 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
         newVal = parceAttribute(name, newVal);
 
-        if (newVal === this.props[name]) {
+        if (newVal === this.attrs[name]) {
           return;
         }
 
-        this.props[name] = newVal;
+        this.attrs[name] = newVal;
 
         this.render();
       }

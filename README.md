@@ -32,7 +32,7 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
 document.registerElement("my-elem", class extends hyperElement{
 
   render(Html){
-    Html`hello ${this.props.who}`
+    Html`hello ${this.attrs.who}`
   }
 
 })
@@ -141,7 +141,7 @@ setup(onNext){
 
 ### this
 
-* this.props : the attribute on the tage `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
+* this.attrs : the attributes on the tage `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
 * this.store : the value returned from the store function. !only update before each render
 * this.wrapedContent : the content between the tags `<my-elem>Hi!</my-elem>`
 
@@ -166,7 +166,7 @@ document.registerElement("my-list",class extends hyperElement{
 
       render(Html){
         Html`
-        ${this.props["data-json"].map(user => Html.template(user))}
+        ${this.attrs["data-json"].map(user => Html.template(user))}
         `
       }
  })
