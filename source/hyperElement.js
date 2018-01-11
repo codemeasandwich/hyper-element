@@ -61,8 +61,8 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 
       ref.innerHTML = this.innerHTML
         this.wrapedContent = textContent
-			if(this.props.template){
-      this.attachProps(this.attributes)
+			if(this.attrs.template){
+      this.attachAttrs(this.attributes)
       }
 
         //reset the element
@@ -152,14 +152,16 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
                                                        // use shadow DOM, else fallback to render to element
      ref.shadow =  this//.attachShadow ? this.attachShadow({mode: 'closed'}) : this
 
-     ref.Html = hyperHTML.bind(ref.shadow);
+     // Restrict access to hyperHTML
+     const hyperHTMLbind = hyperHTML.bind(ref.shadow);
+     ref.Html = function Html(...args){return hyperHTMLbind(...args)}
+     ref.Html.wire = function wire(...args){return hyperHTML.wire(...args)}
+     ref.Html.lite = function lite(...args){return hyperHTML(...args)}
 
-     ref.Html.wire = hyperHTML.wire
-     ref.Html.lite = hyperHTML
-     if(this.props){
-       throw new Error("'props' is defined!!")
+     if(this.attrs){
+       throw new Error("'attrs' is defined!!")
      }
-     this.props = this.attachProps(this.attributes) || {};
+     this.attrs = this.attachAttrs(this.attributes) || {};
 			const render = this.render
      this.render = (data)=>{
         ref.observe = false
@@ -180,10 +182,10 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
       // Called when the element is inserted into a document, including into a shadow tree
     }
     */
-//+++++++++++++++++++++++++++++++++++++++ attach Props
+//+++++++++++++++++++++++++++++++++++++++ attach Attrs
 //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    attachProps(attributes){
+    attachAttrs(attributes){
       const accumulator = {};
       for (let i = 0; i < attributes.length; i++) {
          const { value, name } = attributes[i];
@@ -212,7 +214,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
             }
 
             ref.Html.template = function template(data){
-              return ref.Html.wire()(...fragment(data))
+              return ref.Html.wire(data)(...fragment(data))
             }
             accumulator[name] = true;
 
@@ -241,11 +243,11 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 
       newVal = parceAttribute(name,newVal)
 
-    	if( newVal === this.props[name]) {
+    	if( newVal === this.attrs[name]) {
       	return
       }
 
-      this.props[name] = newVal
+      this.attrs[name] = newVal
 
       this.render();
     }
