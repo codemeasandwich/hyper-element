@@ -35,8 +35,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
   //=========================== re-render on store change
   //=====================================================
 
-  function onNext(store) {
-    var _this = this;
+  function onNext(that, store) {
 
     var storeFn = "function" == typeof store ? store : function () {
       return store;
@@ -44,12 +43,13 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
     var render = this.render;
 
-    this.render = function () {
-      _this.store = storeFn();
-      render(_this.store);
+    var render2 = function render2() {
+      that.store = storeFn();
+      render(that.store);
     };
+    this.render = render2;
 
-    return this.render;
+    return render2;
   }
 
   //=====================================================
@@ -57,8 +57,9 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
   //=====================================================
 
   function observer(ref) {
-    var _this2 = this;
+    var _this = this;
 
+    var that = ref.this;
     var mutationObserver = new MutationObserver(function (mutations) {
       /*
       //if(!this.textContent){
@@ -67,7 +68,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
       console.log(this,addedNodes,ref.observe)
       //}
       */
-      var textContent = _this2.textContent;
+      var textContent = _this.textContent;
       /*
       				//if("" === textContent){
               //  const mutation = mutations[mutations.length - 1]
@@ -76,22 +77,23 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
                 textContent = addedNodes.data
              // }
       
-      console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAPED_CONTENT:",this.wrapedContent)
+      console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAPED_CONTENT:",this.wrappedContent)
             */
 
       if (!ref.observe) return;
 
-      ref.innerHTML = _this2.innerHTML;
-      _this2.wrapedContent = textContent;
-      if (_this2.attrs.template) {
-        _this2.attachAttrs(_this2.attributes);
+      ref.innerHTML = _this.innerHTML;
+      // that.wrappedContent = textContent
+      if (that.attrs.template) {
+        //this.attachAttrs(this.attributes)
+        that.attrs = _this.attachAttrs(_this.attributes) || {};
       }
 
       //reset the element
       hyperHTML.bind(ref.shadow)(_templateObject); // HACK, dont know why this works?
 
-      _this2.wrapedContent = textContent;
-      _this2.render();
+      that.wrappedContent = textContent;
+      _this.render();
     });
 
     mutationObserver.observe(this, {
@@ -159,21 +161,27 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
       //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
       value: function createdCallback() {
-        var _this4 = this;
+        var _this3 = this;
 
         // an instance of the element is created
         this.identifier = Symbol(this.localName);
         var ref = manager[this.identifier] = {};
-        this.wrapedContent = this.textContent;
         ref.innerHTML = this.innerHTML;
+        var that = ref.this = { element: this };
+        that.wrappedContent = this.textContent;
 
         observer.call(this, ref); // observer change to innerHTML
 
         Object.getOwnPropertyNames(this.__proto__).filter(function (name) {
           return !("constructor" === name || "setup" === name || "render" === name);
         }).forEach(function (name) {
-          return _this4[name] = _this4[name].bind(_this4);
+          that[name] = _this3[name].bind(that);
+          delete _this3[name];
         });
+        function toString() {
+          return "hyper-element: " + this.localName;
+        }
+        Object.defineProperty(that, "toString", { value: toString.bind(this), writable: false });
         // use shadow DOM, else fallback to render to element
         ref.shadow = this; //.attachShadow ? this.attachShadow({mode: 'closed'}) : this
 
@@ -192,7 +200,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         if (this.attrs) {
           throw new Error("'attrs' is defined!!");
         }
-        this.attrs = this.attachAttrs(this.attributes) || {};
+        that.attrs = this.attachAttrs(this.attributes) || {};
         var render = this.render;
         this.render = function (data) {
           ref.observe = false;
@@ -200,10 +208,10 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
             ref.observe = true;
           }, 0);
 
-          render.call(_this4, ref.Html, data);
+          render.call(that, ref.Html, data);
         };
 
-        if (this.setup) ref.teardown = this.setup(onNext.bind(this));
+        if (this.setup) ref.teardown = this.setup.call(that, onNext.bind(this, that));
 
         this.render();
       }
@@ -219,7 +227,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     }, {
       key: 'attachAttrs',
       value: function attachAttrs(attributes) {
-        var _this5 = this;
+        var _this4 = this;
 
         var accumulator = {};
         for (var i = 0; i < attributes.length; i++) {
@@ -228,7 +236,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
               name = _attributes$i.name;
 
 
-          if ("template" === name && "" === value) {
+          if ("template" === name && !value) {
             (function () {
               var fragment = function fragment(data, render) {
 
@@ -239,7 +247,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
                 return output;
               };
 
-              var ref = manager[_this5.identifier];
+              var ref = manager[_this4.identifier];
               var re = /\s*(\{[\w]+\})\s*/g;
               var templateVals = ref.innerHTML.split(re).reduce(function (vals, item) {
 
@@ -253,7 +261,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
               }, { markup: [], keys: [] });
 
               ref.Html.template = function template(data) {
-                return ref.Html.wire(data).apply(undefined, _toConsumableArray(fragment(data)));
+                return hyperHTML.wire(data).apply(undefined, _toConsumableArray(fragment(data)));
               };
               accumulator[name] = true;
             })();
@@ -282,14 +290,15 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     }, {
       key: 'attributeChangedCallback',
       value: function attributeChangedCallback(name, oldVal, newVal) {
+        var that = manager[this.identifier].this;
 
         newVal = parceAttribute(name, newVal);
 
-        if (newVal === this.attrs[name]) {
+        if (newVal === that.attrs[name]) {
           return;
         }
 
-        this.attrs[name] = newVal;
+        that.attrs[name] = newVal;
 
         this.render();
       }

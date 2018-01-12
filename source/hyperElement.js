@@ -18,18 +18,19 @@
 //=========================== re-render on store change
 //=====================================================
 
-  function onNext(store){
+  function onNext(that,store){
 
       const storeFn = ("function" == typeof store) ? store : () => store
 
       const render = this.render
 
-      this.render = ()=>{
-        this.store = storeFn();
-        render(this.store)
+       const render2 = ()=>{
+        that.store = storeFn();
+        render(that.store)
       }
+       this.render = render2;
 
-      return this.render;
+      return render2;
   }
 
 //=====================================================
@@ -37,6 +38,7 @@
 //=====================================================
 
   function observer(ref){
+   const that = ref.this
     const mutationObserver = new MutationObserver((mutations)=> {
     /*
 //if(!this.textContent){
@@ -54,21 +56,22 @@ console.log(this,addedNodes,ref.observe)
           textContent = addedNodes.data
        // }
 
-console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAPED_CONTENT:",this.wrapedContent)
+console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAPED_CONTENT:",this.wrappedContent)
       */
 
       if(!ref.observe) return;
 
       ref.innerHTML = this.innerHTML
-        this.wrapedContent = textContent
-			if(this.attrs.template){
-      this.attachAttrs(this.attributes)
+        // that.wrappedContent = textContent
+			if(that.attrs.template){
+      //this.attachAttrs(this.attributes)
+      that.attrs = this.attachAttrs(this.attributes) || {};
       }
 
         //reset the element
         hyperHTML.bind(ref.shadow)`` // HACK, dont know why this works?
 
-        this.wrapedContent = textContent
+        that.wrappedContent = textContent
         this.render()
     });
 
@@ -136,9 +139,10 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 
       // an instance of the element is created
       this.identifier = Symbol(this.localName);
-    	const ref = manager[this.identifier] = {}
-      this.wrapedContent = this.textContent
+    const ref = manager[this.identifier] = {}
       ref.innerHTML = this.innerHTML
+      const that = ref.this = {element:this}
+       that.wrappedContent = this.textContent
 
       observer.call(this,ref) // observer change to innerHTML
 
@@ -148,7 +152,12 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
             "setup"       === name ||
             "render"      === name
           ))
-          .forEach( name => this[name] = this[name].bind(this) )
+          .forEach( name => {
+             that[name] = this[name].bind(that)
+             delete this[name]
+           })
+           function toString(){ return "hyper-element: "+this.localName }
+           Object.defineProperty(that,"toString",{ value: toString.bind(this), writable: false })
                                                        // use shadow DOM, else fallback to render to element
      ref.shadow =  this//.attachShadow ? this.attachShadow({mode: 'closed'}) : this
 
@@ -161,17 +170,17 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
      if(this.attrs){
        throw new Error("'attrs' is defined!!")
      }
-     this.attrs = this.attachAttrs(this.attributes) || {};
+     that.attrs = this.attachAttrs(this.attributes) || {};
 			const render = this.render
      this.render = (data)=>{
         ref.observe = false
          setTimeout(()=>{ref.observe = true},0)
 
-         render.call(this,ref.Html,data)
+         render.call(that,ref.Html,data)
      }
 
      if(this.setup)
-     ref.teardown = this.setup(onNext.bind(this))
+     ref.teardown = this.setup.call(that,onNext.bind(this,that))
 
      this.render()
 
@@ -190,7 +199,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
       for (let i = 0; i < attributes.length; i++) {
          const { value, name } = attributes[i];
 
-         if("template" === name && "" === value){
+         if("template" === name && !value){
 
          		const ref = manager[this.identifier]
             const re = /\s*(\{[\w]+\})\s*/g
@@ -214,7 +223,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
             }
 
             ref.Html.template = function template(data){
-              return ref.Html.wire(data)(...fragment(data))
+              return hyperHTML.wire(data)(...fragment(data))
             }
             accumulator[name] = true;
 
@@ -240,14 +249,15 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
     }
 */
     attributeChangedCallback(name,oldVal,newVal){
+   const that = manager[this.identifier].this
 
       newVal = parceAttribute(name,newVal)
 
-    	if( newVal === this.attrs[name]) {
-      	return
+    if( newVal === that.attrs[name]) {
+      return
       }
 
-      this.attrs[name] = newVal
+      that.attrs[name] = newVal
 
       this.render();
     }
