@@ -48,9 +48,17 @@ To use your element
   <script src="https://unpkg.com/hyper-element@latest/source/bundle.js"></script>
 </head>
 <body>
-  <my-elem who="world"/>
+  <my-elem who="world"></my-elem>
 </body>
 <html>
+```
+
+Output
+
+```html
+<my-elem who="world">
+    hello world
+</my-elem>
 ```
 
 # Api
@@ -125,6 +133,10 @@ setup(onNext){
 }
 ```
 
+Returning a "teardown function" from `setup` address the problem of needing a reference to the resource you what to release. If the "teardown function" was a public function. We would need to store the reference to the resource some, that the teardown can access it when call.
+
+With this approach there is no leaking of references.
+
 #### ✎ To subscribe to 2 events
 
 ```js
@@ -142,8 +154,10 @@ setup(onNext){
 ### this
 
 * this.attrs : the attributes on the tage `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
-* this.store : the value returned from the store function. !only update before each render
-* this.wrapedContent : the content between the tags `<my-elem>Hi!</my-elem>`
+    * Attributes will be parsed to try and cast them to Javascript types
+    * Casting types supported: `Boolean` & `Number`
+* this.store : the value returned from the store function. *!only update before each render*
+* this.wrapedContent : the text content embedded between your tag `<my-elem>Hi!</my-elem>` = `"Hi!"`
 
 
 ## Templates
