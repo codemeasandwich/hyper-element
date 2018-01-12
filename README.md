@@ -19,6 +19,7 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
     + [this](#this)
   * [Templates](#templates)
   * [Render to string](#render-to-string)
+  * [Styling](#styling)
 - [Connecting to a data store](#example-of-connecting-to-a-data-store)
   * [backbone](#backbone)
   * [mobx](#mobx)
@@ -157,7 +158,7 @@ setup(onNext){
     * Attributes will be parsed to try and cast them to Javascript types
     * Casting types supported: `Boolean` & `Number`
 * this.store : the value returned from the store function. *!only update before each render*
-* this.wrapedContent : the text content embedded between your tag `<my-elem>Hi!</my-elem>` = `"Hi!"`
+* this.wrappedContent : the text content embedded between your tag `<my-elem>Hi!</my-elem>` = `"Hi!"`
 
 
 ## Templates
@@ -210,7 +211,24 @@ const elem = document.createElement("profile-elem")
 // view hidden markup
 console.log(elem,elem.innerShadow)
 ```
+## Styling
 
+Supports objects as style attribute, fully compatible with Preact implementation.
+
+Example of centering an element
+```js
+
+  render(Html){
+    const style= {
+      position: "absolute",
+      top: "50%", left: "50%",  
+      marginRight: "-50%",  
+      transform: "translate(-50%, -50%)"
+    }
+    Html`<div style=${style}> center </div>`
+  }
+
+```
 
 # Example of connecting to a data store
 
