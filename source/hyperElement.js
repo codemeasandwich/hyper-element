@@ -1,3 +1,5 @@
+
+
 (function (factory) {
 
     if (typeof exports === 'object') {
@@ -24,9 +26,15 @@
 
       const render = this.render
 
-       const render2 = ()=>{
-        that.store = storeFn();
-        render(that.store)
+       const render2 = (...data)=>{
+         
+        if(undefined === store){
+          that.store = undefined;
+          render(...data)
+        } else {
+          that.store = storeFn()
+          render(that.store,...data)
+        }
       }
        this.render = render2;
 
@@ -172,11 +180,11 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
      }
      that.attrs = this.attachAttrs(this.attributes) || {};
 			const render = this.render
-     this.render = (data)=>{
+     this.render = (...data)=>{
         ref.observe = false
          setTimeout(()=>{ref.observe = true},0)
 
-         render.call(that,ref.Html,data)
+         render.call(that,ref.Html,...data)
      }
 
      if(this.setup)
