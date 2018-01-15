@@ -44,8 +44,17 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     var render = this.render;
 
     var render2 = function render2() {
-      that.store = storeFn();
-      render(that.store);
+      for (var _len = arguments.length, data = Array(_len), _key = 0; _key < _len; _key++) {
+        data[_key] = arguments[_key];
+      }
+
+      if (undefined === store) {
+        that.store = undefined;
+        render.apply(undefined, data);
+      } else {
+        that.store = storeFn();
+        render.apply(undefined, [that.store].concat(data));
+      }
     };
     this.render = render2;
 
@@ -202,13 +211,17 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         }
         that.attrs = this.attachAttrs(this.attributes) || {};
         var render = this.render;
-        this.render = function (data) {
+        this.render = function () {
+          for (var _len2 = arguments.length, data = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            data[_key2] = arguments[_key2];
+          }
+
           ref.observe = false;
           setTimeout(function () {
             ref.observe = true;
           }, 0);
 
-          render.call(that, ref.Html, data);
+          render.call.apply(render, [that, ref.Html].concat(data));
         };
 
         if (this.setup) ref.teardown = this.setup.call(that, onNext.bind(this, that));

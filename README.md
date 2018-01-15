@@ -7,6 +7,18 @@ A combining the best of [hyperHTML] and [Custom Elements]!
 
 Your new custom-elements are built with [hyperHTML] and will be re-rendered on attribute and store change.
 
+## why hyper-element
+
+
+* hyper-element is built on ECMAScript & DOM standards
+    * With only 1 dependency: The super fast renderer [hyperHTML]
+* With a completely stateless approach, setting and reseting the view is trivial
+* Simple with a powerful [Api](#api)
+* Built in [template](#templates) system to define markup fragments
+* Inline style objects supported (similar to React)
+* First class support for [data stores](#example-of-connecting-to-a-data-store)
+* Small: under 3k (minify + gzip)
+
 # [Live Demo](https://jsfiddle.net/codemeasandwich/k25e6ufv/)
 
 ---
@@ -85,7 +97,7 @@ render(Html,store){
 
 ### setup
 
-The `setup` function wires up an external data-source
+The `setup` function wires up an external data-source. This is done with the `onNext`  argument that binds a data source to your renderer.
 
 #### Connent a data source
 
@@ -95,7 +107,15 @@ Example to re-rendering when the mouse moves and pass current mouse values to re
 // getMouseValues(){ ... }
 
 setup(onNext){
-    onMouseMove(onNext(getMouseValues))
+
+    // the getMouseValues function will be call before each render and pass to render
+    const next = onNext(getMouseValues)
+
+    // call next on every mouse event
+    onMouseMove(next)
+
+    // cleanup logic
+    return ()=>{ console.warn("On remove, do component cleanup here") }
 }
 ```
 
@@ -124,13 +144,17 @@ setup(onNext){
 Any logic you wish to run when the **element** is removed from the page should be returned as a function from the `setup` call
 
 ```js
+// listen to a WebSocket
 setup(onNext){
-   const next = onNext(user);
-   socket.addEventListener('message', next);
-   const teardown = function(){
-     socket.removeEventListener('message', next);
-   }
-   return teardown
+
+  const next = onNext();
+  const ws = new WebSocket("ws://127.0.0.1:58000/data");
+
+  ws.onmessage = ({data}) => next(JSON.parse(data))
+
+  // Return way to unsubscribe
+  const teardown = ws.close.bind(ws);
+  return teardown
 }
 ```
 
