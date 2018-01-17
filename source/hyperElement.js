@@ -27,7 +27,7 @@
       const render = this.render
 
        const render2 = (...data)=>{
-         
+
         if(undefined === store){
           that.store = undefined;
           render(...data)
@@ -230,8 +230,11 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
               return output
             }
 
-            ref.Html.template = function template(data){
-              return hyperHTML.wire(data)(...fragment(data))
+            ref.Html.template = function template(data,id){
+              if(id){
+                id = ":"+id
+              }
+              return hyperHTML.wire(data,id)(...fragment(data))
             }
             accumulator[name] = true;
 

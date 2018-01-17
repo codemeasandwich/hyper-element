@@ -131,7 +131,7 @@ setup(onNext){
 
 #### Set initial values to pass to every render
 
-Example of attach an object that will be used on evey render
+Example of attaching an object, that will be used on every render
 
 ```js
 setup(onNext){
@@ -141,7 +141,7 @@ setup(onNext){
 
 #### How to cleanup
 
-Any logic you wish to run when the **element** is removed from the page should be returned as a function from the `setup` call
+Any logic you wish to run when the **element** is removed from the page should be returned as a function from the `setup` function
 
 ```js
 // listen to a WebSocket
@@ -189,9 +189,9 @@ setup(onNext){
 
 You can declare markup to be used as a template within the custom element
 
-To enable templates
+To enable templates:
 
-1. Add an attribute "templates" to you custom element
+1. Add an attribute "templates" to your custom element
 2. Define the template markup within your element
 
 ```Html
@@ -223,6 +223,18 @@ Output:
 </my-list>
 ```
 
+For better performance, you can pass an identifier as the 2nd value to template
+
+Example:
+```js
+Html.template(user,user.id)
+```
+
+***Under the hood***
+
+*Using an "identifier" is ideal if you are making any changes to the order of the array. This allows the render to inject & remove elements in the element list without rebuilding the list from the first changed index on, which would happen otherwise.*
+
+
 ## Render to string
 
 You can use the `innerShadow` property to get the [innerHTML] of the [shadow-dom]
@@ -237,7 +249,8 @@ console.log(elem,elem.innerShadow)
 ```
 ## Styling
 
-Supports objects as style attribute, fully compatible with Preact implementation.
+Supports an object as the style attribute. 
+Compatible with React's implementation.
 
 Example of centering an element
 ```js
