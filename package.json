@@ -1,7 +1,7 @@
 {
-  "version": "0.5.0",
+  "version": "0.5.1",
   "name": "hyper-element",
-  "author": "Brian Shannon (git://github.com/codemeasandwich)",
+  "author": "Brian Shannon (github.com/codemeasandwich)",
   "description": "hyperHTML + WebComponents",
   "main": "source/hyperElement.js",
   "scripts": {
