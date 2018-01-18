@@ -58,8 +58,8 @@ To use your element
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://unpkg.com/hyperhtml@latest/min.js"></script>
-  <script src="https://unpkg.com/hyper-element@latest/source/bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js"></script>
 </head>
 <body>
   <my-elem who="world"></my-elem>
