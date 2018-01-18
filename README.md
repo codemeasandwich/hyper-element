@@ -10,14 +10,13 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
 ## why hyper-element
 
 
-* hyper-element is built on ECMAScript & DOM standards
+* hyper-element is fast & small: under 3k (minify + gzip)
     * With only 1 dependency: The super fast renderer [hyperHTML]
 * With a completely stateless approach, setting and reseting the view is trivial
 * Simple with a powerful [Api](#api)
 * Built in [template](#templates) system to define markup fragments
 * Inline style objects supported (similar to React)
 * First class support for [data stores](#example-of-connecting-to-a-data-store)
-* Small: under 3k (minify + gzip)
 
 # [Live Demo](https://jsfiddle.net/codemeasandwich/k25e6ufv/)
 
@@ -236,13 +235,17 @@ Html.template(user,user.id)
 
 ## Fragments
 
-Fragments are pieces of content that can be loaded *asynchronously*. An class property defined with a **capital letter** will be treated as a fragment.
+Fragments are pieces of content that can be loaded *asynchronously*.
 
-**⚠ Note that the fragment function will be run on every render!**
+You define one with a class property starting with a **capital letter**.
+
+To use one with in you render. Pass an object with a property matching the fragment name and any value needed.
 
 The fragment function should return an object with the following properties
 
 * **placeholder:** the placeholder to show while resolving the fragment
+* **once:** Only generate the fragment once.
+    * The default is to `false`. The fragment function will be run on every render!
 
 and **one** of the following as the fragment's result:
 
@@ -251,14 +254,16 @@ and **one** of the following as the fragment's result:
 * **html:** A html string to output,
 
 ```js
-document.registerElement("my-list",class extends hyperElement{
+document.registerElement("my-friends",class extends hyperElement{
 
       FriendCount(user){
         return {
 
+          once:true,
+
           placeholder: "loading your number of friends",
 
-          text:fetch("/user/friends")
+          text:fetch("/user/"+user.userId+"/friends")
               .then(b => b.json())
               .then(friends => {
                 if (friends) return `you have ${friends.count} friends`;
@@ -268,9 +273,25 @@ document.registerElement("my-list",class extends hyperElement{
       }
 
       render(Html){
-        Html`<h2> ${{FriendCount:{userId:1234}}} </h2>`
+        const userId = this.attrs.myId
+        Html`<h2> ${{FriendCount:{userId}}} </h2>`
       }
  })
+```
+
+Ouput:
+
+```html
+<my-friends myId="1234">
+  <h2> loading your number of friends </h2>
+<my-friends>
+```
+then
+
+```html
+<my-friends myId="1234">
+  <h2> you have 635 friends </h2>
+<my-friends>
 ```
 
 ## Render to string

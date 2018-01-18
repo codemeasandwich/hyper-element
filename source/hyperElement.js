@@ -162,7 +162,16 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
           ))
           .forEach( name => {
           	if(/^[A-Z]/.test(name)){
-            	hyperHTML.define(name,this[name])
+              let result;
+            	const wrapFragment = (data)=>{
+
+              	if(undefined !== result && result.once)
+                return result
+
+                result = this[name](data)
+                return result
+              }
+            	hyperHTML.define(name,wrapFragment)
             }else{
              that[name] = this[name].bind(that)
             }
