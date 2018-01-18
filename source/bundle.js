@@ -185,7 +185,15 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
           return !("constructor" === name || "setup" === name || "render" === name);
         }).forEach(function (name) {
           if (/^[A-Z]/.test(name)) {
-            hyperHTML.define(name, _this3[name]);
+            var result = void 0;
+            var wrapFragment = function wrapFragment(data) {
+
+              if (undefined !== result && result.once) return result;
+
+              result = _this3[name](data);
+              return result;
+            };
+            hyperHTML.define(name, wrapFragment);
           } else {
             that[name] = _this3[name].bind(that);
           }
