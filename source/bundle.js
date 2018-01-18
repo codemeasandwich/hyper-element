@@ -184,7 +184,11 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         Object.getOwnPropertyNames(this.__proto__).filter(function (name) {
           return !("constructor" === name || "setup" === name || "render" === name);
         }).forEach(function (name) {
-          that[name] = _this3[name].bind(that);
+          if (/^[A-Z]/.test(name)) {
+            hyperHTML.define(name, _this3[name]);
+          } else {
+            that[name] = _this3[name].bind(that);
+          }
           delete _this3[name];
         });
         function toString() {

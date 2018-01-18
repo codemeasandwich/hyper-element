@@ -30,6 +30,7 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
     + [setup](#setup)
     + [this](#this)
   * [Templates](#templates)
+  * [Fragments](#fragments)
   * [Render to string](#render-to-string)
   * [Styling](#styling)
 - [Connecting to a data store](#example-of-connecting-to-a-data-store)
@@ -225,7 +226,6 @@ Output:
 
 For better performance, you can pass an identifier as the 2nd value to template
 
-Example:
 ```js
 Html.template(user,user.id)
 ```
@@ -234,6 +234,44 @@ Html.template(user,user.id)
 
 *Using an "identifier" is ideal if you are making any changes to the order of the array. This allows the render to inject & remove elements in the element list without rebuilding the list from the first changed index on, which would happen otherwise.*
 
+## Fragments
+
+Fragments are pieces of content that can be loaded *asynchronously*. An class property defined with a **capital letter** will be treated as a fragment.
+
+**⚠ Note that the fragment function will be run on every render!**
+
+The fragment function should return an object with the following properties
+
+* **placeholder:** the placeholder to show while resolving the fragment
+
+and **one** of the following as the fragment's result:
+
+* **text:** An escaped string to output  
+* **any:** An type of content
+* **html:** A html string to output,
+
+```js
+document.registerElement("my-list",class extends hyperElement{
+
+      FriendCount(user){
+        return {
+
+          placeholder: "loading your number of friends",
+
+          text:fetch("/user/friends")
+              .then(b => b.json())
+              .then(friends => {
+                if (friends) return `you have ${friends.count} friends`;
+                else return "problem loading friends";
+              })
+        }
+      }
+
+      render(Html){
+        Html`<h2> ${{FriendCount:{userId:1234}}} </h2>`
+      }
+ })
+```
 
 ## Render to string
 
@@ -249,7 +287,7 @@ console.log(elem,elem.innerShadow)
 ```
 ## Styling
 
-Supports an object as the style attribute. 
+Supports an object as the style attribute.
 Compatible with React's implementation.
 
 Example of centering an element
