@@ -224,16 +224,6 @@ Output:
 </my-list>
 ```
 
-For better performance, you can pass an identifier as the 2nd value to template
-
-```js
-Html.template(user,user.id)
-```
-
-***Under the hood***
-
-*Using an "identifier" is ideal if you are making any changes to the order of the array. This allows the render to inject & remove elements in the element list without rebuilding the list from the first changed index on, which would happen otherwise.*
-
 ## Fragments
 
 Fragments are pieces of content that can be loaded *asynchronously*.

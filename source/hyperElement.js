@@ -235,7 +235,8 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
             return vals
          },{markup:[],keys:[]})
 
-
+            templateVals.id = ":"+templateVals.markup.join().trim()
+            
             function fragment(data,render){
 
               const output = [templateVals.markup,...templateVals.keys.map( key => data[key] )]
@@ -243,11 +244,8 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
               return output
             }
 
-            ref.Html.template = function template(data,id){
-              if(id){
-                id = ":"+id
-              }
-              return hyperHTML.wire(data,id)(...fragment(data))
+            ref.Html.template = function template(data){
+              return hyperHTML.wire(data,templateVals.id)(...fragment(data))
             }
             accumulator[name] = true;
 
