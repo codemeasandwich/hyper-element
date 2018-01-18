@@ -161,7 +161,11 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
             "render"      === name
           ))
           .forEach( name => {
+          	if(/^[A-Z]/.test(name)){
+            	hyperHTML.define(name,this[name])
+            }else{
              that[name] = this[name].bind(that)
+            }
              delete this[name]
            })
            function toString(){ return "hyper-element: "+this.localName }
