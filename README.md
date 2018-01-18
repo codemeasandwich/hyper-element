@@ -30,6 +30,7 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
     + [this](#this)
   * [Templates](#templates)
   * [Fragments](#fragments)
+    + [Inline fragments](#inline-fragments)
   * [Render to string](#render-to-string)
   * [Styling](#styling)
 - [Connecting to a data store](#example-of-connecting-to-a-data-store)
@@ -284,28 +285,53 @@ Ouput:
 ```html
 <my-friends myId="1234">
   <h2> loading your number of friends </h2>
-<my-friends>
+</my-friends>
 ```
 then
 
 ```html
 <my-friends myId="1234">
   <h2> you have 635 friends </h2>
-<my-friends>
+</my-friends>
 ```
 
-## Render to string
+### Inline fragments
 
-You can use the `innerShadow` property to get the [innerHTML] of the [shadow-dom]
+The fragment function will be run on every render!
+
+Example of dynamically loading markup
 
 ```js
-// create an element
-const elem = document.createElement("profile-elem")
-      elem.setAttribute('name', 'ashlyn');
+document.registerElement("profile-widget",class extends hyperElement{
 
-// view hidden markup
-console.log(elem,elem.innerShadow)
+      render(Html){
+        Html`${{
+            html: fetch('/widgets/profile/'+this.attrs.profileId).then(b => b.text())
+            placeholder: 'Loading your profile ...'
+          }}`
+      }
+ })
 ```
+
+Ouput:
+
+```html
+<profile-widget profileId="1234">
+  Loading your profile ...
+</profile-widget>
+```
+then
+
+```html
+<profile-widget profileId="1234">
+  <div>
+    <img>...</img>
+    ...
+  </div>
+</profile-widget>
+```
+
+
 ## Styling
 
 Supports an object as the style attribute.
