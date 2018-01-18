@@ -10,7 +10,7 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
 ## why hyper-element
 
 
-* hyper-element is fast & small: under 3k (minify + gzip)
+* hyper-element is fast & small: under 5k (minify + gzip)
     * With only 1 dependency: The super fast renderer [hyperHTML]
 * With a completely stateless approach, setting and reseting the view is trivial
 * Simple with a powerful [Api](#api)
