@@ -285,11 +285,10 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
                 return vals;
               }, { markup: [], keys: [] });
 
-              ref.Html.template = function template(data, id) {
-                if (id) {
-                  id = ":" + id;
-                }
-                return hyperHTML.wire(data, id).apply(undefined, _toConsumableArray(fragment(data)));
+              templateVals.id = ":" + templateVals.markup.join().trim();
+
+              ref.Html.template = function template(data) {
+                return hyperHTML.wire(data, templateVals.id).apply(undefined, _toConsumableArray(fragment(data)));
               };
               accumulator[name] = true;
             })();
