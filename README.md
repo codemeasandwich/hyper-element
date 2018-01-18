@@ -3,7 +3,7 @@
 A combining the best of [hyperHTML] and [Custom Elements]!
 
 [![npm version](https://badge.fury.io/js/hyper-element.svg)](https://www.npmjs.com/package/hyper-element)
-[![CDN link](https://img.shields.io/badge/CDN_link-hyper--element-red.svg)](https://unpkg.com/hyper-element@latest/source/bundle.js)
+[![CDN link](https://img.shields.io/badge/CDN_link-hyper--element-red.svg)](https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js)
 
 Your new custom-elements are built with [hyperHTML] and will be re-rendered on attribute and store change.
 
