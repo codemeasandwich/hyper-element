@@ -13,7 +13,7 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
 * hyper-element is fast & small: under 5k (minify + gzip)
     * With only 1 dependency: The super fast renderer [hyperHTML]
 * With a completely stateless approach, setting and reseting the view is trivial
-* Simple with a powerful [Api](#api)
+* Simple yet powerful [Api](#api)
 * Built in [template](#templates) system to define markup fragments
 * Inline style objects supported (similar to React)
 * First class support for [data stores](#example-of-connecting-to-a-data-store)
@@ -149,13 +149,17 @@ Any logic you wish to run when the **element** is removed from the page should b
 setup(onNext){
 
   const next = onNext();
-  const ws = new WebSocket("ws://127.0.0.1:58000/data");
+  const ws = new WebSocket("ws://127.0.0.1/data");
 
   ws.onmessage = ({data}) => next(JSON.parse(data))
 
   // Return way to unsubscribe
   const teardown = ws.close.bind(ws);
   return teardown
+}
+
+render(Html,incomingMessage){
+  // ...
 }
 ```
 
@@ -180,11 +184,13 @@ setup(onNext){
 ### this
 
 * this.attrs : the attributes on the tage `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
-    * Attributes will be parsed to try and cast them to Javascript types
-    * Casting types supported: `Boolean` & `Number`
+    * Casting types supported: `Number`
 * this.store : the value returned from the store function. *!only update before each render*
 * this.wrappedContent : the text content embedded between your tag `<my-elem>Hi!</my-elem>` = `"Hi!"`
-
+* this.dataset: This allows reading and writing to all the custom data attributes `data-*` set on the element.
+    * Data will be parsed to try and cast them to Javascript types
+    * Casting types supported: `Object`, `Array`, `Number` & `Boolean`
+    * e.g. `<my-elem data-users="['ann','bob']"></my-elem>` to `this.dataset.users // ["ann","bob"]`
 
 ## Templates
 
@@ -195,18 +201,24 @@ To enable templates:
 1. Add an attribute "templates" to your custom element
 2. Define the template markup within your element
 
+In you document:
+
 ```Html
 <my-list template data-json='[{"name":"ann","url":""},{"name":"bob","url":""}]' >
-<div><a href="{url}">{name}</a></div>
+  <div>
+    <a href="{url}">{name}</a>
+  </div>
 </my-list>
 ```
+
+Implementation:
 
 ```js
 document.registerElement("my-list",class extends hyperElement{
 
       render(Html){
         Html`
-        ${this.attrs["data-json"].map(user => Html.template(user))}
+        ${this.dataset.json.map(user => Html.template(user))}
         `
       }
  })
@@ -296,7 +308,8 @@ document.registerElement("profile-widget",class extends hyperElement{
 
       render(Html){
         Html`${{
-            html: fetch('/widgets/profile/'+this.attrs.profileId).then(b => b.text())
+            html: fetch('/widgets/profile/'+this.attrs.profileId)
+                  .then(recivedMarkup => recivedMarkup.text())
             placeholder: 'Loading your profile ...'
           }}`
       }
