@@ -130,24 +130,26 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     if ("template" === key && "" === value) {
       return true;
     }
-    if ("data-json" === key) {
-      return JSON.parse(value);
-    }
 
-    if (+value + "" === value) {
+    if (+value + "" === value.trim()) {
       return +value; // to number
     }
 
-    var lowerCaseValue = value.toLowerCase();
+    var lowerCaseValue = value.toLowerCase().trim();
 
     if ("true" === lowerCaseValue) {
       return true;
     } else if ("false" === lowerCaseValue) {
       return false;
+    } // END boolean check
+
+    //if("data-json"===key){
+    if (lowerCaseValue[0] === "[" && lowerCaseValue.slice(-1) === "]" || lowerCaseValue[0] === "{" && lowerCaseValue.slice(-1) === "}") {
+      return JSON.parse(value);
     }
 
     return value;
-  }
+  } // END parceAttribute
 
   //=====================================================
   //======================================= All the magic
@@ -222,6 +224,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
           throw new Error("'attrs' is defined!!");
         }
         that.attrs = this.attachAttrs(this.attributes) || {};
+        that.dataset = this.getDataset();
         var render = this.render;
         this.render = function () {
           for (var _len2 = arguments.length, data = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
@@ -234,9 +237,21 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
           }, 0);
 
           render.call.apply(render, [that, ref.Html].concat(data));
+
+          //after render check if dataset has chacked
+          Object.getOwnPropertyNames(that.dataset).filter(function (key) {
+            return !_this3.dataset[key];
+          }).forEach(function (key) {
+
+            var value = that.dataset[key];
+            _this3.addDataset(that.dataset, key);
+            that.dataset[key] = value;
+          });
         };
 
-        if (this.setup) ref.teardown = this.setup.call(that, onNext.bind(this, that));
+        if (this.setup) {
+          ref.teardown = this.setup.call(that, onNext.bind(this, that));
+        }
 
         this.render();
       }
@@ -250,11 +265,44 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
       //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     }, {
-      key: 'attachAttrs',
-      value: function attachAttrs(attributes) {
+      key: 'addDataset',
+      value: function addDataset(dataset, dash_key) {
         var _this4 = this;
 
+        var camel_key = dash_key.replace(/-([a-z])/g, function (g) {
+          return g[1].toUpperCase();
+        });
+        debugger;
+        Object.defineProperty(dataset, camel_key, {
+          enumerable: true, // can be selected
+          configurable: true, // can be delete
+          get: function get() {
+            return parceAttribute(camel_key, _this4.dataset[camel_key]);
+          },
+          set: function set(value) {
+            return _this4.dataset[camel_key] = "string" === typeof value ? value : JSON.stringify(value);
+          }
+
+        }); // END defineProperty
+      }
+    }, {
+      key: 'getDataset',
+      value: function getDataset() {
+        var _this5 = this;
+
+        var dataset = {};
+        Object.keys(this.dataset).forEach(function (key) {
+          return _this5.addDataset(dataset, key);
+        }); // END forEach
+        return dataset;
+      }
+    }, {
+      key: 'attachAttrs',
+      value: function attachAttrs(attributes) {
+        var _this6 = this;
+
         var accumulator = {};
+
         for (var i = 0; i < attributes.length; i++) {
           var _attributes$i = attributes[i],
               value = _attributes$i.value,
@@ -272,7 +320,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
                 return output;
               };
 
-              var ref = manager[_this4.identifier];
+              var ref = manager[_this6.identifier];
               var re = /\s*(\{[\w]+\})\s*/g;
               var templateVals = ref.innerHTML.split(re).reduce(function (vals, item) {
 
@@ -293,7 +341,11 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
               accumulator[name] = true;
             })();
           } else {
-            accumulator[name] = parceAttribute(name, value);
+            if (+value + "" === (value + "").trim()) {
+              accumulator[name] = +value;
+            } else {
+              accumulator[name] = value; //parceAttribute(name,value)
+            }
           }
         }
         return accumulator;
@@ -317,17 +369,33 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     }, {
       key: 'attributeChangedCallback',
       value: function attributeChangedCallback(name, oldVal, newVal) {
-        var that = manager[this.identifier].this;
-
-        newVal = parceAttribute(name, newVal);
+        var ref = manager[this.identifier];
+        var that = ref.this;
+        if (0 <= name.indexOf("data-")) {
+          // we have data
+          var dataSetName = name.slice("data-".length);
+          if (null === oldVal) {
+            //if(undefined === that.dataset[dataSetName]){
+            this.addDataset(that.dataset, dataSetName);
+          } else if (null === newVal) {
+            //  Object.defineProperty(that.dataset, dataSetName, {  }) // END defineProperty
+            var camel_key = dataSetName.replace(/-([a-z])/g, function (g) {
+              return g[1].toUpperCase();
+            });
+            delete that.dataset[camel_key];
+          }
+        }
+        //newVal = parceAttribute(name,newVal)
 
         if (newVal === that.attrs[name]) {
           return;
         }
-
-        that.attrs[name] = newVal;
-
-        this.render();
+        if (null === newVal) {
+          delete that.attrs[name];
+        } else {
+          that.attrs[name] = newVal;
+        }
+        ref.observe && this.render();
       }
     }, {
       key: 'disconnectedCallback',

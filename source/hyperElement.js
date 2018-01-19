@@ -108,24 +108,27 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
     if("template" === key && "" === value){
       return true
     }
-    if("data-json"===key){
-      return JSON.parse(value)
-    }
 
-    if((+value)+"" === value){
+    if((+value)+"" === value.trim()){
       return +value; // to number
     }
 
-    const lowerCaseValue = value.toLowerCase()
+    const lowerCaseValue = value.toLowerCase().trim()
 
     if("true" === lowerCaseValue){
       return true
     } else if("false" === lowerCaseValue){
       return false
+    } // END boolean check
+
+    //if("data-json"===key){
+    if(lowerCaseValue[0] === "[" && lowerCaseValue.slice(-1) === "]"
+    || lowerCaseValue[0] === "{" && lowerCaseValue.slice(-1) === "}"){
+      return JSON.parse(value)
     }
 
     return value
-  }
+  } // END parceAttribute
 
 //=====================================================
 //======================================= All the magic
@@ -192,16 +195,28 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
        throw new Error("'attrs' is defined!!")
      }
      that.attrs = this.attachAttrs(this.attributes) || {};
+     that.dataset = this.getDataset()
 			const render = this.render
      this.render = (...data)=>{
         ref.observe = false
          setTimeout(()=>{ref.observe = true},0)
 
          render.call(that,ref.Html,...data)
+
+         //after render check if dataset has chacked
+         Object.getOwnPropertyNames(that.dataset)
+              .filter(key => !this.dataset[key])
+              .forEach( key => {
+
+                  const value = that.dataset[key]
+                  this.addDataset(that.dataset, key)
+                  that.dataset[key] = value
+              })
      }
 
-     if(this.setup)
-     ref.teardown = this.setup.call(that,onNext.bind(this,that))
+     if(this.setup){
+       ref.teardown = this.setup.call(that,onNext.bind(this,that))
+     }
 
      this.render()
 
@@ -215,8 +230,29 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 //+++++++++++++++++++++++++++++++++++++++ attach Attrs
 //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    addDataset(dataset, dash_key){
+        const camel_key = dash_key.replace(/-([a-z])/g, g => g[1].toUpperCase())
+        debugger
+        Object.defineProperty(dataset, camel_key, {
+          enumerable:true, // can be selected
+          configurable: true, // can be delete
+          get: ()=> parceAttribute(camel_key,this.dataset[camel_key]),
+          set: (value)=> this.dataset[camel_key] = "string" === typeof value ? value : JSON.stringify(value),
+
+        }) // END defineProperty
+    }
+
+    getDataset(){
+      const dataset = {}
+      Object.keys(this.dataset)
+            .forEach(key => this.addDataset(dataset, key) )// END forEach
+        return dataset
+    }
+
     attachAttrs(attributes){
-      const accumulator = {};
+
+     	const accumulator = { };
+
       for (let i = 0; i < attributes.length; i++) {
          const { value, name } = attributes[i];
 
@@ -226,7 +262,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
             const re = /\s*(\{[\w]+\})\s*/g
         const templateVals = ref.innerHTML.split(re).reduce((vals,item)=>{
 
-            if("{"===item[0] && "}" === item.slice(-1)){
+            if("{" === item[0] && "}" === item.slice(-1)){
                 vals.keys.push(item.slice(1,-1))
             } else {
                 vals.markup.push(item)
@@ -236,7 +272,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
          },{markup:[],keys:[]})
 
             templateVals.id = ":"+templateVals.markup.join().trim()
-            
+
             function fragment(data,render){
 
               const output = [templateVals.markup,...templateVals.keys.map( key => data[key] )]
@@ -250,7 +286,11 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
             accumulator[name] = true;
 
          } else  {
-           accumulator[name] = parceAttribute(name,value)
+         	   if((+value)+"" === (value+"").trim()){
+           			accumulator[name] = +value
+            } else{
+           			accumulator[name] = value//parceAttribute(name,value)
+            }
          }
      }
      return accumulator;
@@ -271,17 +311,32 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
     }
 */
     attributeChangedCallback(name,oldVal,newVal){
-   const that = manager[this.identifier].this
-
-      newVal = parceAttribute(name,newVal)
+      const ref = manager[this.identifier]
+      const that = ref.this
+      if(0 <= name.indexOf("data-")){
+        // we have data
+        const dataSetName = name.slice("data-".length)
+        if(null === oldVal){
+        //if(undefined === that.dataset[dataSetName]){
+             this.addDataset(that.dataset, dataSetName)
+        } else if(null === newVal){
+          //  Object.defineProperty(that.dataset, dataSetName, {  }) // END defineProperty
+          const camel_key = dataSetName.replace(/-([a-z])/g, g => g[1].toUpperCase())
+          delete that.dataset[camel_key]
+        }
+      }
+      //newVal = parceAttribute(name,newVal)
 
     if( newVal === that.attrs[name]) {
       return
+    }
+      if(null === newVal){
+        delete that.attrs[name]
       }
-
-      that.attrs[name] = newVal
-
-      this.render();
+      else{
+        that.attrs[name] = newVal
+      }
+      ref.observe && this.render();
     }
 
     disconnectedCallback(){
