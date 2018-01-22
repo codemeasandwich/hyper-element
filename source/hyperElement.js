@@ -1,5 +1,4 @@
 
-
 (function (factory) {
 
     if (typeof exports === 'object') {
@@ -232,7 +231,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 
     addDataset(dataset, dash_key){
         const camel_key = dash_key.replace(/-([a-z])/g, g => g[1].toUpperCase())
-        debugger
+
         Object.defineProperty(dataset, camel_key, {
           enumerable:true, // can be selected
           configurable: true, // can be delete
@@ -336,7 +335,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
       else{
         that.attrs[name] = newVal
       }
-      ref.observe && this.render();
+      this.render();
     }
 
     disconnectedCallback(){
