@@ -272,7 +272,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         var camel_key = dash_key.replace(/-([a-z])/g, function (g) {
           return g[1].toUpperCase();
         });
-        debugger;
+
         Object.defineProperty(dataset, camel_key, {
           enumerable: true, // can be selected
           configurable: true, // can be delete
@@ -395,7 +395,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         } else {
           that.attrs[name] = newVal;
         }
-        ref.observe && this.render();
+        this.render();
       }
     }, {
       key: 'disconnectedCallback',

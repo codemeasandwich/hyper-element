@@ -190,7 +190,8 @@ setup(onNext){
 * this.dataset: This allows reading and writing to all the custom data attributes `data-*` set on the element.
     * Data will be parsed to try and cast them to Javascript types
     * Casting types supported: `Object`, `Array`, `Number` & `Boolean`
-    * e.g. `<my-elem data-users="['ann','bob']"></my-elem>` to `this.dataset.users // ["ann","bob"]`
+    * `dataset` is a **live reflection**. Changes on this object will update matching data attribute on its element.
+    * e.g. `<my-elem data-users='["ann","bob"]'></my-elem>` to `this.dataset.users // ["ann","bob"]`
 
 ## Templates
 
@@ -418,3 +419,4 @@ document.registerElement("my-profile", class extends hyperElement{
 [innerHTML]:https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML
 [hyperHTML]:https://viperhtml.js.org/hyper.html
 [Custom Elements]:https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
+[Test system]:https://jsfiddle.net/codemeasandwich/k25e6ufv/26/
