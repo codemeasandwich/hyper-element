@@ -244,7 +244,9 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
           }).forEach(function (key) {
 
             var value = that.dataset[key];
-            _this3.addDataset(that.dataset, key);
+            _this3.addDataset(that.dataset, key.replace(/([A-Z])/g, function (g) {
+              return '-' + g[0].toLowerCase();
+            }));
             that.dataset[key] = value;
           });
         };
@@ -280,7 +282,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
             return parceAttribute(camel_key, _this4.dataset[camel_key]);
           },
           set: function set(value) {
-            manager[_this4.identifier].attrsToIgnore["data-" + camel_key] = true;
+            manager[_this4.identifier].attrsToIgnore["data-" + dash_key] = true;
             if ("string" === typeof value) {
               _this4.dataset[camel_key] = value;
             } else {
@@ -298,7 +300,9 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
         var dataset = {};
         Object.keys(this.dataset).forEach(function (key) {
-          return _this5.addDataset(dataset, key);
+          return _this5.addDataset(dataset, key.replace(/([A-Z])/g, function (g) {
+            return '-' + g[0].toLowerCase();
+          }));
         }); // END forEach
         return dataset;
       } // END getDataset

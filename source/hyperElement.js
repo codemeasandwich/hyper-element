@@ -208,7 +208,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
               .forEach( key => {
 
                   const value = that.dataset[key]
-                  this.addDataset(that.dataset, key)
+                  this.addDataset(that.dataset, key.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`))
                   that.dataset[key] = value
               })
      }
@@ -238,7 +238,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
           configurable: true, // can be delete
           get: ()=> parceAttribute(camel_key,this.dataset[camel_key]),
           set: (value)=> {
-              manager[this.identifier].attrsToIgnore["data-"+camel_key] = true
+              manager[this.identifier].attrsToIgnore["data-"+dash_key] = true
               if("string" === typeof value){
                   this.dataset[camel_key] = value
               } else {
@@ -252,7 +252,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
     getDataset(){
       const dataset = {}
       Object.keys(this.dataset)
-            .forEach(key => this.addDataset(dataset, key) )// END forEach
+            .forEach(key => this.addDataset(dataset, key.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`) ))// END forEach
         return dataset
     } // END getDataset
 
