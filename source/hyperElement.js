@@ -149,7 +149,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 
       // an instance of the element is created
       this.identifier = Symbol(this.localName);
-    const ref = manager[this.identifier] = {}
+    const ref = manager[this.identifier] = {attrsToIgnore:{}}
       ref.innerHTML = this.innerHTML
       const that = ref.this = {element:this}
        that.wrappedContent = this.textContent
@@ -230,23 +230,31 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     addDataset(dataset, dash_key){
+
         const camel_key = dash_key.replace(/-([a-z])/g, g => g[1].toUpperCase())
 
         Object.defineProperty(dataset, camel_key, {
           enumerable:true, // can be selected
           configurable: true, // can be delete
           get: ()=> parceAttribute(camel_key,this.dataset[camel_key]),
-          set: (value)=> this.dataset[camel_key] = "string" === typeof value ? value : JSON.stringify(value),
+          set: (value)=> {
+              manager[this.identifier].attrsToIgnore["data-"+camel_key] = true
+              if("string" === typeof value){
+                  this.dataset[camel_key] = value
+              } else {
+                  this.dataset[camel_key] = JSON.stringify(value)
+              }// END else
+          } // END set
 
         }) // END defineProperty
-    }
+    } // END addDataset
 
     getDataset(){
       const dataset = {}
       Object.keys(this.dataset)
             .forEach(key => this.addDataset(dataset, key) )// END forEach
         return dataset
-    }
+    } // END getDataset
 
     attachAttrs(attributes){
 
@@ -311,6 +319,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 */
     attributeChangedCallback(name,oldVal,newVal){
       const ref = manager[this.identifier]
+      const { attrsToIgnore } = ref;
       const that = ref.this
       if(0 <= name.indexOf("data-")){
         // we have data
@@ -335,14 +344,20 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
       else{
         that.attrs[name] = newVal
       }
-      this.render();
-    }
+      if(!!attrsToIgnore[name]){
+        delete attrsToIgnore[name]
+        return
+      } else{
+        this.render();
+      } // END else
+
+    } // END attributeChangedCallback
 
     disconnectedCallback(){
       ref.teardown && ref.teardown()
       //ref.teardown = null
       //Called when the element is removed from a document
-    }
+    } // END disconnectedCallback
   }
 
 //=====================================================

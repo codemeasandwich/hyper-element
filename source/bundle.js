@@ -176,7 +176,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
         // an instance of the element is created
         this.identifier = Symbol(this.localName);
-        var ref = manager[this.identifier] = {};
+        var ref = manager[this.identifier] = { attrsToIgnore: {} };
         ref.innerHTML = this.innerHTML;
         var that = ref.this = { element: this };
         that.wrappedContent = this.textContent;
@@ -280,11 +280,17 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
             return parceAttribute(camel_key, _this4.dataset[camel_key]);
           },
           set: function set(value) {
-            return _this4.dataset[camel_key] = "string" === typeof value ? value : JSON.stringify(value);
-          }
+            manager[_this4.identifier].attrsToIgnore["data-" + camel_key] = true;
+            if ("string" === typeof value) {
+              _this4.dataset[camel_key] = value;
+            } else {
+              _this4.dataset[camel_key] = JSON.stringify(value);
+            } // END else
+          } // END set
 
         }); // END defineProperty
-      }
+      } // END addDataset
+
     }, {
       key: 'getDataset',
       value: function getDataset() {
@@ -295,7 +301,8 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
           return _this5.addDataset(dataset, key);
         }); // END forEach
         return dataset;
-      }
+      } // END getDataset
+
     }, {
       key: 'attachAttrs',
       value: function attachAttrs(attributes) {
@@ -370,6 +377,8 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
       key: 'attributeChangedCallback',
       value: function attributeChangedCallback(name, oldVal, newVal) {
         var ref = manager[this.identifier];
+        var attrsToIgnore = ref.attrsToIgnore;
+
         var that = ref.this;
         if (0 <= name.indexOf("data-")) {
           // we have data
@@ -395,15 +404,22 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         } else {
           that.attrs[name] = newVal;
         }
-        this.render();
-      }
+        if (!!attrsToIgnore[name]) {
+          delete attrsToIgnore[name];
+          return;
+        } else {
+          this.render();
+        } // END else
+      } // END attributeChangedCallback
+
     }, {
       key: 'disconnectedCallback',
       value: function disconnectedCallback() {
         ref.teardown && ref.teardown();
         //ref.teardown = null
         //Called when the element is removed from a document
-      }
+      } // END disconnectedCallback
+
     }, {
       key: 'innerShadow',
 
