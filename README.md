@@ -192,6 +192,7 @@ setup(onNext){
     * Casting types supported: `Object`, `Array`, `Number` & `Boolean`
     * `dataset` is a **live reflection**. Changes on this object will update matching data attribute on its element.
     * e.g. `<my-elem data-users='["ann","bob"]'></my-elem>` to `this.dataset.users // ["ann","bob"]`
+    * ⚠ For performance! The `dataset` works by reference. To update the attribute you must use **assignment** `this.dataset.user = {name:""}`
 
 ## Templates
 
