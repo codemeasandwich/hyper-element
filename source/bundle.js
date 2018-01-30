@@ -6,13 +6,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _templateObject = _taggedTemplateLiteral([''], ['']);
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
@@ -126,6 +126,37 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     });
   }
 
+  function buildTemplate(innerHTML) {
+
+    var re = /\s*(\{[\w]+\})\s*/g;
+    var templateVals = innerHTML.split(re).reduce(function (vals, item) {
+
+      if ("{" === item[0] && "}" === item.slice(-1)) {
+        vals.keys.push(item.slice(1, -1));
+      } else {
+        vals.markup.push(item);
+      }
+
+      return vals;
+    }, { markup: [], keys: [] });
+
+    templateVals.id = ":" + templateVals.markup.join().trim();
+
+    function fragment(data, render) {
+
+      var output = [templateVals.markup].concat(_toConsumableArray(templateVals.keys.map(function (key) {
+        return data[key];
+      })));
+      output.raw = { value: templateVals.markup };
+      return output;
+    }
+
+    return function template(data) {
+
+      return hyperHTML.wire(data, templateVals.id).apply(undefined, _toConsumableArray(fragment(data)));
+    };
+  } // END buildTemplate
+
   function parceAttribute(key, value) {
     if ("template" === key && "" === value) {
       return true;
@@ -188,11 +219,23 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         }).forEach(function (name) {
           if (/^[A-Z]/.test(name)) {
             var result = void 0;
+            var templatestrings = {};
             var wrapFragment = function wrapFragment(data) {
 
               if (undefined !== result && result.once) return result;
 
               result = _this3[name](data);
+              if ("string" === typeof result.template) {
+                /* if(undefined === result.values){
+                   throw new Error("'values' was not defined for a 'template' in "+name)
+                 }*/
+                if (!templatestrings[result.template]) {
+                  templatestrings[result.template] = buildTemplate(result.template);
+                }
+                result = { any: templatestrings[result.template](result.values || data)
+                };
+              }
+
               return result;
             };
             hyperHTML.define(name, wrapFragment);
@@ -310,7 +353,6 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     }, {
       key: 'attachAttrs',
       value: function attachAttrs(attributes) {
-        var _this6 = this;
 
         var accumulator = {};
 
@@ -321,36 +363,10 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
 
           if ("template" === name && !value) {
-            (function () {
-              var fragment = function fragment(data, render) {
 
-                var output = [templateVals.markup].concat(_toConsumableArray(templateVals.keys.map(function (key) {
-                  return data[key];
-                })));
-                output.raw = { value: templateVals.markup };
-                return output;
-              };
-
-              var ref = manager[_this6.identifier];
-              var re = /\s*(\{[\w]+\})\s*/g;
-              var templateVals = ref.innerHTML.split(re).reduce(function (vals, item) {
-
-                if ("{" === item[0] && "}" === item.slice(-1)) {
-                  vals.keys.push(item.slice(1, -1));
-                } else {
-                  vals.markup.push(item);
-                }
-
-                return vals;
-              }, { markup: [], keys: [] });
-
-              templateVals.id = ":" + templateVals.markup.join().trim();
-
-              ref.Html.template = function template(data) {
-                return hyperHTML.wire(data, templateVals.id).apply(undefined, _toConsumableArray(fragment(data)));
-              };
-              accumulator[name] = true;
-            })();
+            var _ref = manager[this.identifier];
+            _ref.Html.template = buildTemplate(_ref.innerHTML);
+            accumulator[name] = true;
           } else {
             if (+value + "" === (value + "").trim()) {
               accumulator[name] = +value;

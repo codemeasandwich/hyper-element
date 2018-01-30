@@ -103,6 +103,36 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
     });
   }
 
+  function buildTemplate(innerHTML){
+
+        const re = /\s*(\{[\w]+\})\s*/g
+        const templateVals = innerHTML.split(re).reduce((vals,item)=>{
+
+           if("{" === item[0] && "}" === item.slice(-1)){
+               vals.keys.push(item.slice(1,-1))
+           } else {
+               vals.markup.push(item)
+           }
+
+          return vals
+        },{markup:[],keys:[]})
+
+           templateVals.id = ":"+templateVals.markup.join().trim()
+
+           function fragment(data,render){
+
+             const output = [templateVals.markup,...templateVals.keys.map( key => data[key] )]
+             output.raw =  { value:templateVals.markup}
+             return output
+           }
+
+           return function template(data){
+
+             return hyperHTML.wire(data,templateVals.id)(...fragment(data))
+           }
+
+  } // END buildTemplate
+
   function parceAttribute(key,value){
     if("template" === key && "" === value){
       return true
@@ -165,12 +195,24 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
           .forEach( name => {
           	if(/^[A-Z]/.test(name)){
               let result;
+             const templatestrings = {};
             	const wrapFragment = (data)=>{
 
               	if(undefined !== result && result.once)
                 return result
 
                 result = this[name](data)
+                if("string" === typeof result.template){
+                 /* if(undefined === result.values){
+                    throw new Error("'values' was not defined for a 'template' in "+name)
+                  }*/
+                  if(!templatestrings[result.template]){
+                    templatestrings[result.template] = buildTemplate(result.template)
+                  }
+                  result = { any : templatestrings[result.template]( result.values || data )
+                   }
+                }
+
                 return result
               }
             	hyperHTML.define(name,wrapFragment)
@@ -265,32 +307,9 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 
          if("template" === name && !value){
 
-         		const ref = manager[this.identifier]
-            const re = /\s*(\{[\w]+\})\s*/g
-        const templateVals = ref.innerHTML.split(re).reduce((vals,item)=>{
-
-            if("{" === item[0] && "}" === item.slice(-1)){
-                vals.keys.push(item.slice(1,-1))
-            } else {
-                vals.markup.push(item)
-            }
-
-            return vals
-         },{markup:[],keys:[]})
-
-            templateVals.id = ":"+templateVals.markup.join().trim()
-
-            function fragment(data,render){
-
-              const output = [templateVals.markup,...templateVals.keys.map( key => data[key] )]
-              output.raw =  { value:templateVals.markup}
-              return output
-            }
-
-            ref.Html.template = function template(data){
-              return hyperHTML.wire(data,templateVals.id)(...fragment(data))
-            }
-            accumulator[name] = true;
+           const ref = manager[this.identifier]
+           ref.Html.template = buildTemplate(ref.innerHTML)
+           accumulator[name] = true;
 
          } else  {
          	   if((+value)+"" === (value+"").trim()){
