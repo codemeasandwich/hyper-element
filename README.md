@@ -58,6 +58,7 @@ To use your element
 <!DOCTYPE html>
 <html>
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/webcomponentsjs@latest/lite.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js"></script>
 </head>
@@ -257,6 +258,8 @@ and **one** of the following as the fragment's result:
 * **text:** An escaped string to output  
 * **any:** An type of content
 * **html:** A html string to output,
+* **template:** A template string to output,
+* **values:** A set of values to be used in the values template
 
 ```js
 document.registerElement("my-friends",class extends hyperElement{
@@ -299,21 +302,29 @@ then
 </my-friends>
 ```
 
-### Inline fragments
 
-The fragment function will be run on every render!
 
-Example of dynamically loading markup
+### fragment templates
+
+You can use the template syntax with in a fragment
+
+* The template will use the values pass to it from the render or using a "values" property to match the template string
+
+Example
 
 ```js
-document.registerElement("profile-widget",class extends hyperElement{
-
+document.registerElement("click-me",class extends hyperElement{
+      Button(){
+        return {
+          template:`<button type="button" class="btn"
+                        onclick={onclick}>{text}</button>`
+        }
+      }
       render(Html){
-        Html`${{
-            html: fetch('/widgets/profile/'+this.attrs.profileId)
-                  .then(recivedMarkup => recivedMarkup.text())
-            placeholder: 'Loading your profile ...'
-          }}`
+        Html`Try ${{Button:{
+                  text:"Click Me",
+                  onclick:()=>alert("Hello!")
+              }}}`
       }
  })
 ```
@@ -321,19 +332,9 @@ document.registerElement("profile-widget",class extends hyperElement{
 Ouput:
 
 ```html
-<profile-widget profileId="1234">
-  Loading your profile ...
-</profile-widget>
-```
-then
-
-```html
-<profile-widget profileId="1234">
-  <div>
-    <img>...</img>
-    ...
-  </div>
-</profile-widget>
+<click-me>
+  Try <button type="button" class="btn">Click Me</button>
+</click-me>
 ```
 
 
@@ -420,4 +421,4 @@ document.registerElement("my-profile", class extends hyperElement{
 [innerHTML]:https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML
 [hyperHTML]:https://viperhtml.js.org/hyper.html
 [Custom Elements]:https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
-[Test system]:https://jsfiddle.net/codemeasandwich/k25e6ufv/26/
+[Test system]:https://jsfiddle.net/codemeasandwich/k25e6ufv/36/
