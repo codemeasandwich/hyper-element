@@ -10,7 +10,7 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
 ## why hyper-element
 
 
-* hyper-element is fast & small: under 5k (minify + gzip)
+* hyper-element is fast & small at 6k
     * With only 1 dependency: The super fast renderer [hyperHTML]
 * With a completely stateless approach, setting and reseting the view is trivial
 * Simple yet powerful [Api](#api)
@@ -19,6 +19,8 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
 * First class support for [data stores](#example-of-connecting-to-a-data-store)
 
 # [Live Demo](https://jsfiddle.net/codemeasandwich/k25e6ufv/)
+
+### If you like it, please [★ it on github](https://github.com/codemeasandwich/hyper-element)
 
 ---
 
@@ -184,16 +186,17 @@ setup(onNext){
 
 ### this
 
-* this.attrs : the attributes on the tage `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
+* **this.attrs** : the attributes on the tage `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
     * Casting types supported: `Number`
-* this.store : the value returned from the store function. *!only update before each render*
-* this.wrappedContent : the text content embedded between your tag `<my-elem>Hi!</my-elem>` = `"Hi!"`
-* this.dataset: This allows reading and writing to all the custom data attributes `data-*` set on the element.
+* **this.store** : the value returned from the store function. *!only update before each render*
+* **this.wrappedContent** : the text content embedded between your tag `<my-elem>Hi!</my-elem>` = `"Hi!"`
+* **this.element** : a reference to your created element
+* **this.dataset**: this allows reading and writing to all the custom data attributes `data-*` set on the element.
     * Data will be parsed to try and cast them to Javascript types
     * Casting types supported: `Object`, `Array`, `Number` & `Boolean`
     * `dataset` is a **live reflection**. Changes on this object will update matching data attribute on its element.
     * e.g. `<my-elem data-users='["ann","bob"]'></my-elem>` to `this.dataset.users // ["ann","bob"]`
-    * ⚠ For performance! The `dataset` works by reference. To update the attribute you must use **assignment** `this.dataset.user = {name:""}`
+    * ⚠ For performance! The `dataset` works by reference. To update the attribute you must use **assignment** e.g.`this.dataset.user = {name:""}`
 
 ## Templates
 
