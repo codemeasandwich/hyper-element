@@ -1,20 +1,20 @@
 # hyper-element
 
-A combining the best of [hyperHTML] and [Custom Elements]!
+Combining the best of [hyperHTML] and [Custom Elements]!
 
 [![npm version](https://badge.fury.io/js/hyper-element.svg)](https://www.npmjs.com/package/hyper-element)
 [![CDN link](https://img.shields.io/badge/CDN_link-hyper--element-red.svg)](https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js)
 
-Your new custom-elements are built with [hyperHTML] and will be re-rendered on attribute and store change.
+Your new custom-element will be rendered with the super fast [hyperHTML] and will react to tag attribute and store changes.
 
 ## why hyper-element
 
 
 * hyper-element is fast & small at 6k
-    * With only 1 dependency: The super fast renderer [hyperHTML]
+    * With only 1 dependency: [hyperHTML]
 * With a completely stateless approach, setting and reseting the view is trivial
 * Simple yet powerful [Api](#api)
-* Built in [template](#templates) system to define markup fragments
+* Built in [template](#templates) system to customise the rendered output
 * Inline style objects supported (similar to React)
 * First class support for [data stores](#example-of-connecting-to-a-data-store)
 
@@ -32,7 +32,7 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
     + [this](#this)
   * [Templates](#templates)
   * [Fragments](#fragments)
-    + [Inline fragments](#inline-fragments)
+    + [fragment templates](#fragment-templates)
   * [Render to string](#render-to-string)
   * [Styling](#styling)
 - [Connecting to a data store](#example-of-connecting-to-a-data-store)
@@ -42,7 +42,7 @@ Your new custom-elements are built with [hyperHTML] and will be re-rendered on a
 
 ---
 
-# Define a Custom Element
+# Define a custom-element
 
 ```js
 document.registerElement("my-elem", class extends hyperElement{
@@ -103,9 +103,9 @@ render(Html,store){
 
 The `setup` function wires up an external data-source. This is done with the `onNext`  argument that binds a data source to your renderer.
 
-#### Connent a data source
+#### Connect a data source
 
-Example to re-rendering when the mouse moves and pass current mouse values to render
+Example of re-rendering when the mouse moves. Will pass mouse values to render
 
 ```js
 // getMouseValues(){ ... }
@@ -123,7 +123,7 @@ setup(onNext){
 }
 ```
 
-#### re-rendering with out a data source
+#### re-rendering without a data source
 
 Example of re-rendering every second
 
@@ -135,7 +135,7 @@ setup(onNext){
 
 #### Set initial values to pass to every render
 
-Example of attaching an object, that will be used on every render
+Example of hard coding an object that will be used on every render
 
 ```js
 setup(onNext){
@@ -166,7 +166,9 @@ render(Html,incomingMessage){
 }
 ```
 
-Returning a "teardown function" from `setup` address the problem of needing a reference to the resource you what to release. If the "teardown function" was a public function. We would need to store the reference to the resource some, that the teardown can access it when call.
+Returning a "teardown function" from `setup` address's the problem of needing a reference to the resource you want to release.
+
+> If the "teardown function" was a public function. We would need to store the reference to the resource somewhere. So the teardown can access it when needed.
 
 With this approach there is no leaking of references.
 
@@ -186,17 +188,19 @@ setup(onNext){
 
 ### this
 
-* **this.attrs** : the attributes on the tage `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
+* **this.attrs** : the attributes on the tag `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
     * Casting types supported: `Number`
-* **this.store** : the value returned from the store function. *!only update before each render*
+* **this.store** : the value returned from the store function. *!only updated before each render*
 * **this.wrappedContent** : the text content embedded between your tag `<my-elem>Hi!</my-elem>` = `"Hi!"`
 * **this.element** : a reference to your created element
 * **this.dataset**: this allows reading and writing to all the custom data attributes `data-*` set on the element.
     * Data will be parsed to try and cast them to Javascript types
     * Casting types supported: `Object`, `Array`, `Number` & `Boolean`
     * `dataset` is a **live reflection**. Changes on this object will update matching data attribute on its element.
-    * e.g. `<my-elem data-users='["ann","bob"]'></my-elem>` to `this.dataset.users // ["ann","bob"]`
-    * ⚠ For performance! The `dataset` works by reference. To update the attribute you must use **assignment** e.g.`this.dataset.user = {name:""}`
+        * e.g. `<my-elem data-users='["ann","bob"]'></my-elem>` to `this.dataset.users // ["ann","bob"]`
+    * ⚠ For performance! The `dataset` works by reference. To update the attribute you must use **assignment**
+        * Bad: `this.dataset.user.name = ""` ✗
+        * Good: `this.dataset.user = {name:""}` ✓
 
 ## Templates
 
@@ -248,7 +252,7 @@ Fragments are pieces of content that can be loaded *asynchronously*.
 
 You define one with a class property starting with a **capital letter**.
 
-To use one with in you render. Pass an object with a property matching the fragment name and any value needed.
+To use one within your renderer. Pass an object with a property matching the fragment name and any values needed.
 
 The fragment function should return an object with the following properties
 
@@ -261,8 +265,8 @@ and **one** of the following as the fragment's result:
 * **text:** An escaped string to output  
 * **any:** An type of content
 * **html:** A html string to output,
-* **template:** A template string to output,
-* **values:** A set of values to be used in the values template
+* **template:** A [template](#templates) string to output,
+    * **values:** A set of values to be used in the **template**
 
 ```js
 document.registerElement("my-friends",class extends hyperElement{
@@ -305,13 +309,15 @@ then
 </my-friends>
 ```
 
-
-
 ### fragment templates
 
-You can use the template syntax with in a fragment
+You can use the [template](#templates) syntax with in a fragment
 
 * The template will use the values pass to it from the render or using a "values" property to match the template string
+
+**e.g.** `Foo(){return{ template:"<p>{txt}</p>", values:{txt:"Ipsum"} }}` with `` Html`${{Foo:{}}}` ``
+
+**or** `Foo(){return{ template:"<p>{txt}</p>" }}` with `` Html`${{Foo:{txt:"Ipsum"}}}` ``
 
 Example
 
