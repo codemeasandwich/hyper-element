@@ -49,9 +49,9 @@ document.registerElement("my-elem", class extends hyperElement{
 
   render(Html){
     Html`hello ${this.attrs.who}`
-  }
+  }// END render
 
-})
+})// END my-elem
 ```
 
 To use your element
@@ -96,7 +96,7 @@ render(Html,store){
           Lasted updated at ${new Date().toLocaleTimeString()}
       </h1>
     `
-}
+}// END render
 ```
 
 ### setup
@@ -120,7 +120,7 @@ setup(onNext){
 
     // cleanup logic
     return ()=>{ console.warn("On remove, do component cleanup here") }
-}
+}// END setup
 ```
 
 #### re-rendering without a data source
@@ -130,7 +130,7 @@ Example of re-rendering every second
 ```js
 setup(onNext){
     setInterval(onNext(), 1000);
-}
+}// END setup
 ```
 
 #### Set initial values to pass to every render
@@ -140,7 +140,7 @@ Example of hard coding an object that will be used on every render
 ```js
 setup(onNext){
     onNext({max_levels:3})
-}
+}// END setup
 ```
 
 #### How to cleanup
@@ -159,11 +159,11 @@ setup(onNext){
   // Return way to unsubscribe
   const teardown = ws.close.bind(ws);
   return teardown
-}
+}// END setup
 
 render(Html,incomingMessage){
   // ...
-}
+}// END render
 ```
 
 Returning a "teardown function" from `setup` address's the problem of needing a reference to the resource you want to release.
@@ -182,7 +182,7 @@ setup(onNext){
   mobx.autorun(next);       // update when changed (real-time feedback)
   setInterval(next, 1000);  // update every second (update "the time is now ...")
 
-}
+}// END setup
 
 ```
 
@@ -198,7 +198,7 @@ setup(onNext){
     * Casting types supported: `Object`, `Array`, `Number` & `Boolean`
     * `dataset` is a **live reflection**. Changes on this object will update matching data attribute on its element.
         * e.g. `<my-elem data-users='["ann","bob"]'></my-elem>` to `this.dataset.users // ["ann","bob"]`
-    * ⚠ For performance! The `dataset` works by reference. To update the attribute you must use **assignment**
+    * ⚠ For performance! The `dataset` works by reference. To update an attribute you must use **assignment** on the `dataset`
         * Bad: `this.dataset.user.name = ""` ✗
         * Good: `this.dataset.user = {name:""}` ✓
 
@@ -230,8 +230,8 @@ document.registerElement("my-list",class extends hyperElement{
         Html`
         ${this.dataset.json.map(user => Html.template(user))}
         `
-      }
- })
+      }// END render
+ })// END my-list
 ```
 
 Output:
@@ -264,8 +264,8 @@ and **one** of the following as the fragment's result:
 
 * **text:** An escaped string to output  
 * **any:** An type of content
-* **html:** A html string to output,
-* **template:** A [template](#templates) string to output,
+* **html:** A html string to output, **(Not sanitised)**
+* **template:** A [template](#templates) string to output, **(Is sanitised)**
     * **values:** A set of values to be used in the **template**
 
 ```js
@@ -280,18 +280,16 @@ document.registerElement("my-friends",class extends hyperElement{
 
           text:fetch("/user/"+user.userId+"/friends")
               .then(b => b.json())
-              .then(friends => {
-                if (friends) return `you have ${friends.count} friends`;
-                else return "problem loading friends";
-              })
-        }
-      }
+              .then(friends => `you have ${friends.count} friends`)
+              .catch(err => "problem loading friends")
+        }// END return
+      }// END FriendCount
 
       render(Html){
         const userId = this.attrs.myId
         Html`<h2> ${{FriendCount:{userId}}} </h2>`
-      }
- })
+      }// END render
+ })// END my-friends
 ```
 
 Ouput:
@@ -327,15 +325,15 @@ document.registerElement("click-me",class extends hyperElement{
         return {
           template:`<button type="button" class="btn"
                         onclick={onclick}>{text}</button>`
-        }
-      }
+        }// END return
+      }// END Button
       render(Html){
         Html`Try ${{Button:{
                   text:"Click Me",
                   onclick:()=>alert("Hello!")
               }}}`
-      }
- })
+      }// END render
+ })// END click-me
 ```
 
 Ouput:
@@ -344,6 +342,50 @@ Ouput:
 <click-me>
   Try <button type="button" class="btn">Click Me</button>
 </click-me>
+```
+
+#### Asynchronous fragment templates
+
+You can also return a [promise] as your `template` property.
+
+Rewritting the *my-friends* example
+
+```js
+document.registerElement("my-friends",class extends hyperElement{
+
+      FriendCount(user){
+
+        const templatePromise = fetch("/user/"+user.userId+"/friends")
+                                  .then(b => b.json())
+                                  .then(friends => ({
+                                          template:`you have {count} friends`,
+                                          values:{count:friends.count}
+                                        })
+                                  }) // END .then
+                                  .catch(err=>({ template:`problem loading friends` })
+
+        return {
+          once: true,
+          placeholder: "loading your number of friends",
+          template: templatePromise
+        } // END return
+      }// END FriendCount
+
+      render(Html){
+        const userId = this.attrs.myId
+        Html`<h2> ${{FriendCount:{userId}}} </h2>`
+      }// END render
+ }) //END my-friends
+```
+
+In this example the values return from the promise are used. As the "values" from a fragment function(if provided) takes priority over values passed in from render.
+
+Ouput:
+
+```html
+<my-friends myId="1234">
+  <h2> you have 635 friends </h2>
+</my-friends>
 ```
 
 
@@ -361,9 +403,9 @@ Example of centering an element
       top: "50%", left: "50%",  
       marginRight: "-50%",  
       transform: "translate(-50%, -50%)"
-    }
+    }//END style
     Html`<div style=${style}> center </div>`
-  }
+  }//END render
 
 ```
 
@@ -376,7 +418,7 @@ var user = new (Backbone.Model.extend({
     defaults: {
         name: 'Guest User',
     }
-}));
+}));//END Backbone.Model.extend
 
 
 document.registerElement("my-profile", class extends hyperElement{
@@ -384,12 +426,12 @@ document.registerElement("my-profile", class extends hyperElement{
   setup(onNext){
     user.on("change",onNext(user.toJSON.bind(user)));
     // OR user.on("change",onNext(()=>user.toJSON()));
-  }
+  }//END setup
 
   render(Html,{name}){
     Html`Profile: ${name}`
-  }
-})
+  }//END render
+})//END my-profile
 ```
 
 ## mobx
@@ -397,19 +439,19 @@ document.registerElement("my-profile", class extends hyperElement{
 ```js
 const user = observable({
   name: 'Guest User'
-})
+})//END observable
 
 
 document.registerElement("my-profile", class extends hyperElement{
 
   setup(onNext){
     mobx.autorun(onNext(user));
-  }
+  }// END setup
 
   render(Html,{name}){
     Html`Profile: ${name}`
-  }
-})
+  }// END render
+})//END my-profile
 ```
 
 ## redux
@@ -419,15 +461,16 @@ document.registerElement("my-profile", class extends hyperElement{
 
   setup(onNext){
     store.subcribe(onNext(store.getState)
-  }
+  }// END setup
 
   render(Html,{user}){
     Html`Profile: ${user.name}`
-  }
-})
+  }// END render
+})// END my-profile
 ```
 [shadow-dom]:https://developers.google.com/web/fundamentals/web-components/shadowdom
 [innerHTML]:https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML
 [hyperHTML]:https://viperhtml.js.org/hyper.html
 [Custom Elements]:https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
 [Test system]:https://jsfiddle.net/codemeasandwich/k25e6ufv/36/
+[promise]:https://scotch.io/tutorials/javascript-promises-for-dummies#understanding-promises

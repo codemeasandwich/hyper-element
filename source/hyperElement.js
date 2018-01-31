@@ -202,19 +202,36 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
                 return result
 
                 result = this[name](data)
-                if("string" === typeof result.template){
-                 /* if(undefined === result.values){
-                    throw new Error("'values' was not defined for a 'template' in "+name)
-                  }*/
-                  if(!templatestrings[result.template]){
-                    templatestrings[result.template] = buildTemplate(result.template)
-                  }
-                  result = { any : templatestrings[result.template]( result.values || data )
-                   }
-                }
+                if(!!result.template){
+                  if("string" === typeof result.template){
+                   /* if(undefined === result.values){
+                      throw new Error("'values' was not defined for a 'template' in "+name)
+                    }*/
+                    if(!templatestrings[result.template]){
+                      templatestrings[result.template] = buildTemplate(result.template)
+                    }
+                    result = { any : templatestrings[result.template]( result.values || data ) }
+                  } // END "string" === typeof result.template
+                  else if("object" === typeof result.template
+                  && "function" === typeof result.template.then ){
 
+                    result = Object.assign({},result,{ any : result.template.then(({template,values}) => {
+
+                        if(!templatestrings[template]){
+                          templatestrings[template] = buildTemplate(template)
+                        }
+                        result = { any : templatestrings[template]( values || data ) }
+                        return result.any;
+                      })
+                    })// END Object.assign
+
+                  } // END result.template is promise ?
+                  else {
+                    throw new Error("unknow template type:"+typeof result.template +" | "+JSON.stringify(result.template))
+                  }
+                } // END !!result.template
                 return result
-              }
+              } // END wrapFragment
             	hyperHTML.define(name,wrapFragment)
             }else{
              that[name] = this[name].bind(that)

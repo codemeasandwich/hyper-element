@@ -225,19 +225,37 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
               if (undefined !== result && result.once) return result;
 
               result = _this3[name](data);
-              if ("string" === typeof result.template) {
-                /* if(undefined === result.values){
-                   throw new Error("'values' was not defined for a 'template' in "+name)
-                 }*/
-                if (!templatestrings[result.template]) {
-                  templatestrings[result.template] = buildTemplate(result.template);
-                }
-                result = { any: templatestrings[result.template](result.values || data)
-                };
-              }
+              if (!!result.template) {
+                if ("string" === typeof result.template) {
+                  /* if(undefined === result.values){
+                     throw new Error("'values' was not defined for a 'template' in "+name)
+                   }*/
+                  if (!templatestrings[result.template]) {
+                    templatestrings[result.template] = buildTemplate(result.template);
+                  }
+                  result = { any: templatestrings[result.template](result.values || data) };
+                } // END "string" === typeof result.template
+                else if ("object" === _typeof(result.template) && "function" === typeof result.template.then) {
 
+                    result = Object.assign({}, result, { any: result.template.then(function (_ref) {
+                        var template = _ref.template,
+                            values = _ref.values;
+
+
+                        if (!templatestrings[template]) {
+                          templatestrings[template] = buildTemplate(template);
+                        }
+                        result = { any: templatestrings[template](values || data) };
+                        return result.any;
+                      })
+                    }); // END Object.assign
+                  } // END result.template is promise ?
+                  else {
+                      throw new Error("unknow template type:" + _typeof(result.template) + " | " + JSON.stringify(result.template));
+                    }
+              } // END !!result.template
               return result;
-            };
+            }; // END wrapFragment
             hyperHTML.define(name, wrapFragment);
           } else {
             that[name] = _this3[name].bind(that);
@@ -364,8 +382,8 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
           if ("template" === name && !value) {
 
-            var _ref = manager[this.identifier];
-            _ref.Html.template = buildTemplate(_ref.innerHTML);
+            var _ref2 = manager[this.identifier];
+            _ref2.Html.template = buildTemplate(_ref2.innerHTML);
             accumulator[name] = true;
           } else {
             if (+value + "" === (value + "").trim()) {
