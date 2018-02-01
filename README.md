@@ -28,12 +28,15 @@ Your new custom-element will be rendered with the super fast [hyperHTML] and wil
 - [Api](#api)
   * [Define your element](#define-your-element)
     + [render](#render)
+      + [Html](#html)
+      + [Html.wire](#htmlwire)
+      + [Html.lite](#htmllite)
     + [setup](#setup)
     + [this](#this)
   * [Templates](#templates)
   * [Fragments](#fragments)
     + [fragment templates](#fragment-templates)
-  * [Render to string](#render-to-string)
+    + [Async fragment templates](#asynchronous-fragment-templates)
   * [Styling](#styling)
 - [Connecting to a data store](#example-of-connecting-to-a-data-store)
   * [backbone](#backbone)
@@ -54,7 +57,13 @@ document.registerElement("my-elem", class extends hyperElement{
 })// END my-elem
 ```
 
-To use your element
+If using **webpack**
+
+```
+const hyperElement from "hyper-element"
+```
+
+To use your element in brower
 
 ```html
 <!DOCTYPE html>
@@ -99,9 +108,93 @@ render(Html,store){
 }// END render
 ```
 
+---
+
+#### Html
+
+The `Html` has a primary operation and two utilities
+
+The primary operation is to describe the complete inner content of the element.
+
+```js
+    Html`
+      <h1>
+          Lasted updated at ${new Date().toLocaleTimeString()}
+      </h1>
+    `
+```
+
+The Html also can be used to create element to help build up your inner content.
+
+---
+
+#### Html.wire
+
+The `.wire` is for creating reusable sub-element
+
+The wire can take two arguments `Html.wire(obj,id)`
+1. a refrive object to match with the create node. Allowing for reuse of the exiting node.
+2. a string to identify the markup used. Allowing the markup template to be generated only once.
+
+Example of displaying a list of users from an array
+
+```js
+    Html`
+      <ul>
+          ${users.map(user => Html.wire(user,":user_list_item")`<li>${user.name}</li>`)}
+      </ul>
+    `
+```
+
+An **anti-pattern** is to inline the markup as a string
+
+BAD example: ✗
+
+```js
+    Html`
+      <ul>
+          ${users.map(user => `<li>${user.name}</li>`)}
+      </ul>
+    `
+```
+
+This will create a new node for every element on every render. The is have a **Negative impact on performance** and output will **Not be sanitized**. So DONT do this!
+
+---
+
+#### Html.lite
+
+The `.lite` is for creating once off sub-element
+
+Example of wrapping the [jQuary date picker](https://jqueryui.com/datepicker/)
+
+```js
+
+onSelect(dateText, inst){
+  console.log("selected time "+dateText)
+} // END onSelect
+
+Date(lite){
+  const inputElem = lite`<input type="text"/>`
+  $(inputElem).datepicker({onSelect:this.onSelect});
+  return {
+    any: inputElem,
+    once:true
+  }
+} // END Date
+
+render(Html){
+  Html` Pick a date ${{Date:Html.lite}} `
+} // END render
+
+```
+
+---
+
+
 ### setup
 
-The `setup` function wires up an external data-source. This is done with the `onNext`  argument that binds a data source to your renderer.
+The `setup` function wires up an external data-source. This is done with the `onNext` argument that binds a data source to your renderer.
 
 #### Connect a data source
 
@@ -186,6 +279,8 @@ setup(onNext){
 
 ```
 
+---
+
 ### this
 
 * **this.attrs** : the attributes on the tag `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
@@ -265,7 +360,7 @@ and **one** of the following as the fragment's result:
 * **text:** An escaped string to output  
 * **any:** An type of content
 * **html:** A html string to output, **(Not sanitised)**
-* **template:** A [template](#templates) string to output, **(Is sanitised)**
+* **template:** A [template](#fragment-templates) string to use, **(Is sanitised)**
     * **values:** A set of values to be used in the **template**
 
 ```js
@@ -313,11 +408,21 @@ You can use the [template](#templates) syntax with in a fragment
 
 * The template will use the values pass to it from the render or using a "values" property to match the template string
 
-**e.g.** `Foo(){return{ template:"<p>{txt}</p>", values:{txt:"Ipsum"} }}` with `` Html`${{Foo:{}}}` ``
+**e.g.** assigning values to template from with in the **fragment function**
+* `Foo(values){ return{ template:"<p>{txt}</p>", values:{txt:"Ipsum"} }}`
+* with `` Html`${{Foo:{}}}` ``
 
-**or** `Foo(){return{ template:"<p>{txt}</p>" }}` with `` Html`${{Foo:{txt:"Ipsum"}}}` ``
+**or** assigning values to template from with in the **render function**
+* `Foo(values){ return{ template:"<p>{txt}</p>" }}`
+* with `` Html`${{Foo:{txt:"Ipsum"}}}` ``
 
-Example
+*Note: the different is whether or not a "values" is returned from the fragment function*
+
+**output**
+
+`<p>Ipsum</p>`
+
+Example:
 
 ```js
 document.registerElement("click-me",class extends hyperElement{
