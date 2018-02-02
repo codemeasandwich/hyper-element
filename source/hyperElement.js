@@ -13,7 +13,18 @@
 
 }(function (hyperHTML) {
 
-  const manager = {   }
+  const manager = { }, sharedAttrs = { },  customTagMatch = /<\s*[a-z]+-[a-z][^>]*>/g, isCustomTag = /<+\w+[-]+\w/
+
+
+  function makeid() {
+    var text = "";
+    var possible = "bcdfghjklmnpqrstvwxyz";
+
+    for (var i = 0; i < 15; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+  }
 
 //=====================================================
 //=========================== re-render on store change
@@ -245,7 +256,56 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 
      // Restrict access to hyperHTML
      const hyperHTMLbind = hyperHTML.bind(ref.shadow);
-     ref.Html = function Html(...args){return hyperHTMLbind(...args)}
+     ref.Html = function Html(...args){
+
+       if( args.some(item => "function" === typeof item)
+       && args[0].some(t=>isCustomTag.test(t))){
+
+         let inCustomTag = false;
+         let localName   = ""
+         const lookup    = []
+
+         args[0].forEach((item, index, items)=>{
+
+           if(isCustomTag.test(item)){
+             inCustomTag = true
+             localName = item.substring(item.indexOf(item.match(isCustomTag))).split(" ")[0].substr(1);
+           }// END if CustomTag start
+           if(0<=item.indexOf(">")){
+             inCustomTag = false
+             localName = ""
+             return
+           }// END if CustomTag end
+           const val = args[index+1]
+
+           if("function" === typeof val){
+               const attrName = item.split(" ").pop().slice(0, -1);
+               lookup.push({ item, index, attrName, val, localName })
+           }
+
+         })// END forEach
+
+         if(lookup.length){
+           args = Array.prototype.slice.call(args);
+           args[0] = args[0].slice(0);
+         }
+
+         lookup.reverse()
+         .forEach(({item, index, attrName, val,localName})=>{
+
+           const id = makeid();
+           sharedAttrs[id] = { attrName, val, localName }
+           args[0][index] = args[0][index]+'"fn-'+id+'"'+args[0][index+1]
+           args[0] = args[0].filter((x,i)=>i !== index+1)
+           args    = args   .filter((x,i)=>i !== index+1)
+           args[0].raw = args[0].slice(0);
+         })// END forEach
+
+       }// END if
+
+
+       return hyperHTMLbind(...args)
+     } // END ref.Html
      ref.Html.wire = function wire(...args){return hyperHTML.wire(...args)}
      ref.Html.lite = function lite(...args){return hyperHTML(...args)}
 
@@ -328,7 +388,11 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
            ref.Html.template = buildTemplate(ref.innerHTML)
            accumulator[name] = true;
 
-         } else  {
+         } else if ("fn-" === value.substr(0,3)
+         && !!sharedAttrs[value.substr(3)]
+           && sharedAttrs[value.substr(3)].localName === this.localName){
+             accumulator[name] = sharedAttrs[value.substr(3)].val
+         } else {
          	   if((+value)+"" === (value+"").trim()){
            			accumulator[name] = +value
             } else{

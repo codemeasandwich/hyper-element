@@ -29,7 +29,19 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
   }
 })(function (hyperHTML) {
 
-  var manager = {};
+  var manager = {},
+      sharedAttrs = {},
+      customTagMatch = /<\s*[a-z]+-[a-z][^>]*>/g,
+      isCustomTag = /<+\w+[-]+\w/;
+
+  function makeid() {
+    var text = "";
+    var possible = "bcdfghjklmnpqrstvwxyz";
+
+    for (var i = 0; i < 15; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }return text;
+  }
 
   //=====================================================
   //=========================== re-render on store change
@@ -272,8 +284,68 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         // Restrict access to hyperHTML
         var hyperHTMLbind = hyperHTML.bind(ref.shadow);
         ref.Html = function Html() {
-          return hyperHTMLbind.apply(undefined, arguments);
-        };
+          for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            args[_key2] = arguments[_key2];
+          }
+
+          if (args.some(function (item) {
+            return "function" === typeof item;
+          }) && args[0].some(function (t) {
+            return isCustomTag.test(t);
+          })) {
+
+            var inCustomTag = false;
+            var localName = "";
+            var lookup = [];
+
+            args[0].forEach(function (item, index, items) {
+
+              if (isCustomTag.test(item)) {
+                inCustomTag = true;
+                localName = item.substring(item.indexOf(item.match(isCustomTag))).split(" ")[0].substr(1);
+              } // END if CustomTag start
+              if (0 <= item.indexOf(">")) {
+                inCustomTag = false;
+                localName = "";
+                return;
+              } // END if CustomTag end
+              var val = args[index + 1];
+
+              if ("function" === typeof val) {
+                var attrName = item.split(" ").pop().slice(0, -1);
+                lookup.push({ item: item, index: index, attrName: attrName, val: val, localName: localName });
+              }
+            }); // END forEach
+
+            if (lookup.length) {
+              args = Array.prototype.slice.call(args);
+              args[0] = args[0].slice(0);
+            }
+
+            lookup.reverse().forEach(function (_ref2) {
+              var item = _ref2.item,
+                  index = _ref2.index,
+                  attrName = _ref2.attrName,
+                  val = _ref2.val,
+                  localName = _ref2.localName;
+
+
+              var id = makeid();
+              sharedAttrs[id] = { attrName: attrName, val: val, localName: localName };
+              args[0][index] = args[0][index] + '"fn-' + id + '"' + args[0][index + 1];
+              args[0] = args[0].filter(function (x, i) {
+                return i !== index + 1;
+              });
+              args = args.filter(function (x, i) {
+                return i !== index + 1;
+              });
+              args[0].raw = args[0].slice(0);
+            }); // END forEach
+          } // END if
+
+
+          return hyperHTMLbind.apply(undefined, _toConsumableArray(args));
+        }; // END ref.Html
         ref.Html.wire = function wire() {
           return hyperHTML.wire.apply(hyperHTML, arguments);
         };
@@ -288,8 +360,8 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         that.dataset = this.getDataset();
         var render = this.render;
         this.render = function () {
-          for (var _len2 = arguments.length, data = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            data[_key2] = arguments[_key2];
+          for (var _len3 = arguments.length, data = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+            data[_key3] = arguments[_key3];
           }
 
           ref.observe = false;
@@ -382,9 +454,11 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
           if ("template" === name && !value) {
 
-            var _ref2 = manager[this.identifier];
-            _ref2.Html.template = buildTemplate(_ref2.innerHTML);
+            var _ref3 = manager[this.identifier];
+            _ref3.Html.template = buildTemplate(_ref3.innerHTML);
             accumulator[name] = true;
+          } else if ("fn-" === value.substr(0, 3) && !!sharedAttrs[value.substr(3)] && sharedAttrs[value.substr(3)].localName === this.localName) {
+            accumulator[name] = sharedAttrs[value.substr(3)].val;
           } else {
             if (+value + "" === (value + "").trim()) {
               accumulator[name] = +value;
