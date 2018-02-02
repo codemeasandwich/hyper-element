@@ -17,6 +17,7 @@ Your new custom-element will be rendered with the super fast [hyperHTML] and wil
 * Built in [template](#templates) system to customise the rendered output
 * Inline style objects supported (similar to React)
 * First class support for [data stores](#example-of-connecting-to-a-data-store)
+* Pass `functions` to other custom hyper-elements via there tag attribute
 
 # [Live Demo](https://jsfiddle.net/codemeasandwich/k25e6ufv/)
 
@@ -97,6 +98,10 @@ There are 2 functions. `render` is *required* and `setup` is *optional*
 
 This is what will be displayed with in your element. Use the `Html` to define your content
 
+#### Html
+
+The primary operation is to describe the complete inner content of the element.
+
 ```js
 render(Html,store){
 
@@ -108,23 +113,7 @@ render(Html,store){
 }// END render
 ```
 
----
-
-#### Html
-
-The `Html` has a primary operation and two utilities
-
-The primary operation is to describe the complete inner content of the element.
-
-```js
-    Html`
-      <h1>
-          Lasted updated at ${new Date().toLocaleTimeString()}
-      </h1>
-    `
-```
-
-The Html also can be used to create element to help build up your inner content.
+The `Html` has a primary operation and two utilities: `.wire` & `.lite`
 
 ---
 
@@ -483,7 +472,7 @@ document.registerElement("my-friends",class extends hyperElement{
  }) //END my-friends
 ```
 
-In this example the values return from the promise are used. As the "values" from a fragment function(if provided) takes priority over values passed in from render.
+In this example, the values returned from the promise are used. As the "values" from a fragment function(if provided) takes priority over values passed in from render.
 
 Ouput:
 
@@ -496,8 +485,7 @@ Ouput:
 
 ## Styling
 
-Supports an object as the style attribute.
-Compatible with React's implementation.
+Supports an object as the style attribute. Compatible with React's implementation.
 
 Example of centering an element
 ```js
