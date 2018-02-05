@@ -170,8 +170,171 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
     return value
   } // END parceAttribute
 
+
+
 //=====================================================
 //======================================= All the magic
+//=====================================================
+
+function  createdCallback(){
+
+    // an instance of the element is created
+    this.identifier = Symbol(this.localName);
+  const ref = manager[this.identifier] = {attrsToIgnore:{}}
+    ref.innerHTML = this.innerHTML
+    const that = ref.this = {element:this}
+     that.wrappedContent = this.textContent
+
+    observer.call(this,ref) // observer change to innerHTML
+
+  Object.getOwnPropertyNames(this.__proto__)
+        .filter(name => ! (
+          "constructor" === name ||
+          "setup"       === name ||
+          "render"      === name
+        ))
+        .forEach( name => {
+        	if(/^[A-Z]/.test(name)){
+            let result;
+           const templatestrings = {};
+          	const wrapFragment = (data)=>{
+
+            	if(undefined !== result && result.once)
+              return result
+
+              result = this[name](data)
+              if(!!result.template){
+                if("string" === typeof result.template){
+                 /* if(undefined === result.values){
+                    throw new Error("'values' was not defined for a 'template' in "+name)
+                  }*/
+                  if(!templatestrings[result.template]){
+                    templatestrings[result.template] = buildTemplate(result.template)
+                  }
+                  result = { any : templatestrings[result.template]( result.values || data ) }
+                } // END "string" === typeof result.template
+                else if("object" === typeof result.template
+                && "function" === typeof result.template.then ){
+
+                  result = Object.assign({},result,{ any : result.template.then(({template,values}) => {
+
+                      if(!templatestrings[template]){
+                        templatestrings[template] = buildTemplate(template)
+                      }
+                      result = { any : templatestrings[template]( values || data ) }
+                      return result.any;
+                    })
+                  })// END Object.assign
+
+                } // END result.template is promise ?
+                else {
+                  throw new Error("unknow template type:"+typeof result.template +" | "+JSON.stringify(result.template))
+                }
+              } // END !!result.template
+              return result
+            } // END wrapFragment
+          	hyperHTML.define(name,wrapFragment)
+          }else{
+           that[name] = this[name].bind(that)
+          }
+           delete this[name]
+         })
+         function toString(){ return "hyper-element: "+this.localName }
+         Object.defineProperty(that,"toString",{ value: toString.bind(this), writable: false })
+                                                     // use shadow DOM, else fallback to render to element
+   ref.shadow =  this//.attachShadow ? this.attachShadow({mode: 'closed'}) : this
+
+   // Restrict access to hyperHTML
+   const hyperHTMLbind = hyperHTML.bind(ref.shadow);
+   ref.Html = function Html(...args){
+
+     if( args.some(item => "function" === typeof item)
+     && args[0].some(t=>isCustomTag.test(t))){
+
+       let inCustomTag = false;
+       let localName   = ""
+       const lookup    = []
+
+       args[0].forEach((item, index, items)=>{
+
+         if(isCustomTag.test(item)){
+           inCustomTag = -1 === item.substring(item.match(isCustomTag).index).indexOf(">")
+           localName = inCustomTag && item.substring(item.indexOf(item.match(isCustomTag))).split(" ")[0].substr(1);
+         }// END if CustomTag start
+         else if(0<=item.indexOf(">")){
+           inCustomTag = false
+           localName = ""
+         }// END if CustomTag end
+
+         if( ! inCustomTag){
+           return
+         }
+         const val = args[index+1]
+
+         if("function" === typeof val){
+             const attrName = item.split(" ").pop().slice(0, -1);
+             lookup.push({ item, index:index+1, attrName, val, localName })
+         }
+
+       })// END forEach
+
+       if(lookup.length){
+         args = Array.prototype.slice.call(args);
+         args[0] = args[0].slice(0);
+       }
+
+       lookup.reverse()
+       .forEach(({item, index, attrName, val,localName})=>{
+
+         const id = makeid()
+         sharedAttrs[id] = { attrName, val, localName }
+         args[0][index-1] = args[0][index-1]+'"fn-'+id+'"'+args[0][index]
+         args[0] = args[0].filter((x,i)=>i !== index)
+         args = args.filter((x,i)=>i !== index)
+         args[0].raw = args[0].slice(0);
+       })// END forEach
+
+     }// END if
+
+
+     return hyperHTMLbind(...args)
+   } // END ref.Html
+   ref.Html.wire = function wire(...args){return hyperHTML.wire(...args)}
+   ref.Html.lite = function lite(...args){return hyperHTML(...args)}
+
+   if(this.attrs){
+     throw new Error("'attrs' is defined!!")
+   }
+   that.attrs = this.attachAttrs(this.attributes) || {};
+   that.dataset = this.getDataset()
+		const render = this.render
+   this.render = (...data)=>{
+      ref.observe = false
+       setTimeout(()=>{ref.observe = true},0)
+
+       render.call(that,ref.Html,...data)
+
+       //after render check if dataset has chacked
+       Object.getOwnPropertyNames(that.dataset)
+            .filter(key => !this.dataset[key])
+            .forEach( key => {
+
+                const value = that.dataset[key]
+                this.addDataset(that.dataset, key.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`))
+                that.dataset[key] = value
+            })
+   }
+
+   if(this.setup){
+     ref.teardown = this.setup.call(that,onNext.bind(this,that))
+   }
+
+   this.render()
+
+  }
+
+//=====================================================
+//==================================== Wrap the element
 //=====================================================
 
   class hyperElement extends HTMLElement{
@@ -185,166 +348,15 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 
 //++++++++++++++++++++++++++++++++++++++++++++++ Setup
 //++++++++++++++++++++++++++++++++++++++++++++++++++++
-
     createdCallback(){
-
-      // an instance of the element is created
-      this.identifier = Symbol(this.localName);
-    const ref = manager[this.identifier] = {attrsToIgnore:{}}
-      ref.innerHTML = this.innerHTML
-      const that = ref.this = {element:this}
-       that.wrappedContent = this.textContent
-
-      observer.call(this,ref) // observer change to innerHTML
-
-    Object.getOwnPropertyNames(this.__proto__)
-          .filter(name => ! (
-            "constructor" === name ||
-            "setup"       === name ||
-            "render"      === name
-          ))
-          .forEach( name => {
-          	if(/^[A-Z]/.test(name)){
-              let result;
-             const templatestrings = {};
-            	const wrapFragment = (data)=>{
-
-              	if(undefined !== result && result.once)
-                return result
-
-                result = this[name](data)
-                if(!!result.template){
-                  if("string" === typeof result.template){
-                   /* if(undefined === result.values){
-                      throw new Error("'values' was not defined for a 'template' in "+name)
-                    }*/
-                    if(!templatestrings[result.template]){
-                      templatestrings[result.template] = buildTemplate(result.template)
-                    }
-                    result = { any : templatestrings[result.template]( result.values || data ) }
-                  } // END "string" === typeof result.template
-                  else if("object" === typeof result.template
-                  && "function" === typeof result.template.then ){
-
-                    result = Object.assign({},result,{ any : result.template.then(({template,values}) => {
-
-                        if(!templatestrings[template]){
-                          templatestrings[template] = buildTemplate(template)
-                        }
-                        result = { any : templatestrings[template]( values || data ) }
-                        return result.any;
-                      })
-                    })// END Object.assign
-
-                  } // END result.template is promise ?
-                  else {
-                    throw new Error("unknow template type:"+typeof result.template +" | "+JSON.stringify(result.template))
-                  }
-                } // END !!result.template
-                return result
-              } // END wrapFragment
-            	hyperHTML.define(name,wrapFragment)
-            }else{
-             that[name] = this[name].bind(that)
-            }
-             delete this[name]
-           })
-           function toString(){ return "hyper-element: "+this.localName }
-           Object.defineProperty(that,"toString",{ value: toString.bind(this), writable: false })
-                                                       // use shadow DOM, else fallback to render to element
-     ref.shadow =  this//.attachShadow ? this.attachShadow({mode: 'closed'}) : this
-
-     // Restrict access to hyperHTML
-     const hyperHTMLbind = hyperHTML.bind(ref.shadow);
-     ref.Html = function Html(...args){
-
-       if( args.some(item => "function" === typeof item)
-       && args[0].some(t=>isCustomTag.test(t))){
-
-         let inCustomTag = false;
-         let localName   = ""
-         const lookup    = []
-
-         args[0].forEach((item, index, items)=>{
-
-           if(isCustomTag.test(item)){
-             inCustomTag = true
-             localName = item.substring(item.indexOf(item.match(isCustomTag))).split(" ")[0].substr(1);
-           }// END if CustomTag start
-           if(0<=item.indexOf(">")){
-             inCustomTag = false
-             localName = ""
-             return
-           }// END if CustomTag end
-           const val = args[index+1]
-
-           if("function" === typeof val){
-               const attrName = item.split(" ").pop().slice(0, -1);
-               lookup.push({ item, index, attrName, val, localName })
-           }
-
-         })// END forEach
-
-         if(lookup.length){
-           args = Array.prototype.slice.call(args);
-           args[0] = args[0].slice(0);
-         }
-
-         lookup.reverse()
-         .forEach(({item, index, attrName, val,localName})=>{
-
-           const id = makeid();
-           sharedAttrs[id] = { attrName, val, localName }
-           args[0][index] = args[0][index]+'"fn-'+id+'"'+args[0][index+1]
-           args[0] = args[0].filter((x,i)=>i !== index+1)
-           args    = args   .filter((x,i)=>i !== index+1)
-           args[0].raw = args[0].slice(0);
-         })// END forEach
-
-       }// END if
-
-
-       return hyperHTMLbind(...args)
-     } // END ref.Html
-     ref.Html.wire = function wire(...args){return hyperHTML.wire(...args)}
-     ref.Html.lite = function lite(...args){return hyperHTML(...args)}
-
-     if(this.attrs){
-       throw new Error("'attrs' is defined!!")
-     }
-     that.attrs = this.attachAttrs(this.attributes) || {};
-     that.dataset = this.getDataset()
-			const render = this.render
-     this.render = (...data)=>{
-        ref.observe = false
-         setTimeout(()=>{ref.observe = true},0)
-
-         render.call(that,ref.Html,...data)
-
-         //after render check if dataset has chacked
-         Object.getOwnPropertyNames(that.dataset)
-              .filter(key => !this.dataset[key])
-              .forEach( key => {
-
-                  const value = that.dataset[key]
-                  this.addDataset(that.dataset, key.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`))
-                  that.dataset[key] = value
-              })
-     }
-
-     if(this.setup){
-       ref.teardown = this.setup.call(that,onNext.bind(this,that))
-     }
-
-     this.render()
-
+      createdCallback.call(this)
     }
-/*
-    connectedCallback() {
-   // 	console.log("Called when the element is inserted into a document, including into a shadow tree")
-      // Called when the element is inserted into a document, including into a shadow tree
+
+    // Called when the element is inserted into a document, including into a shadow tree
+    connectedCallback(){
+      createdCallback.call(this)
     }
-    */
+
 //+++++++++++++++++++++++++++++++++++++++ attach Attrs
 //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -454,6 +466,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
     } // END attributeChangedCallback
 
     disconnectedCallback(){
+      const ref = manager[this.identifier]
       ref.teardown && ref.teardown()
       //ref.teardown = null
       //Called when the element is removed from a document

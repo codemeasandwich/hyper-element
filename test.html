@@ -267,6 +267,37 @@ document.body.appendChild(new (document.registerElement("fragments-element3",cla
         Html`fragments-element3 ${{Ok:{ data:"y" }}}`
       }
  })))
+
+
+ window.customElements.define("inner1-elem",class extends hyperElement{
+
+      render(Html){
+        Html`inner1-elem ${this.attrs.ok || "✗"}`
+      }
+ })
+
+document.body.appendChild(new (document.registerElement("outter1-elem",class extends hyperElement{
+      render(Html){
+        Html`<inner1-elem ok=${"✓"}></inner1-elem>`
+      }
+ })))
+
+ document.registerElement("inner2-elem",class extends hyperElement{
+
+       render(Html){
+      	const ok = this.attrs.ok || (()=> "✗")
+        Html`inner2-elem:${ok()}`
+       }
+  })
+
+ document.body.appendChild(new (document.registerElement("outter2-elem",class extends hyperElement{
+ 			isOk(){
+       return "✓"
+       }
+       render(Html){
+         Html`outter2-elem:<inner2-elem ok=${this.isOk}/>`
+       }
+  })))
 </script>
 
 </body>

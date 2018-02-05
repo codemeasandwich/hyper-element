@@ -194,8 +194,193 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     return value;
   } // END parceAttribute
 
+
   //=====================================================
   //======================================= All the magic
+  //=====================================================
+
+  function _createdCallback() {
+    var _this2 = this;
+
+    // an instance of the element is created
+    this.identifier = Symbol(this.localName);
+    var ref = manager[this.identifier] = { attrsToIgnore: {} };
+    ref.innerHTML = this.innerHTML;
+    var that = ref.this = { element: this };
+    that.wrappedContent = this.textContent;
+
+    observer.call(this, ref); // observer change to innerHTML
+
+    Object.getOwnPropertyNames(this.__proto__).filter(function (name) {
+      return !("constructor" === name || "setup" === name || "render" === name);
+    }).forEach(function (name) {
+      if (/^[A-Z]/.test(name)) {
+        var result = void 0;
+        var templatestrings = {};
+        var wrapFragment = function wrapFragment(data) {
+
+          if (undefined !== result && result.once) return result;
+
+          result = _this2[name](data);
+          if (!!result.template) {
+            if ("string" === typeof result.template) {
+              /* if(undefined === result.values){
+                 throw new Error("'values' was not defined for a 'template' in "+name)
+               }*/
+              if (!templatestrings[result.template]) {
+                templatestrings[result.template] = buildTemplate(result.template);
+              }
+              result = { any: templatestrings[result.template](result.values || data) };
+            } // END "string" === typeof result.template
+            else if ("object" === _typeof(result.template) && "function" === typeof result.template.then) {
+
+                result = Object.assign({}, result, { any: result.template.then(function (_ref) {
+                    var template = _ref.template,
+                        values = _ref.values;
+
+
+                    if (!templatestrings[template]) {
+                      templatestrings[template] = buildTemplate(template);
+                    }
+                    result = { any: templatestrings[template](values || data) };
+                    return result.any;
+                  })
+                }); // END Object.assign
+              } // END result.template is promise ?
+              else {
+                  throw new Error("unknow template type:" + _typeof(result.template) + " | " + JSON.stringify(result.template));
+                }
+          } // END !!result.template
+          return result;
+        }; // END wrapFragment
+        hyperHTML.define(name, wrapFragment);
+      } else {
+        that[name] = _this2[name].bind(that);
+      }
+      delete _this2[name];
+    });
+    function toString() {
+      return "hyper-element: " + this.localName;
+    }
+    Object.defineProperty(that, "toString", { value: toString.bind(this), writable: false });
+    // use shadow DOM, else fallback to render to element
+    ref.shadow = this; //.attachShadow ? this.attachShadow({mode: 'closed'}) : this
+
+    // Restrict access to hyperHTML
+    var hyperHTMLbind = hyperHTML.bind(ref.shadow);
+    ref.Html = function Html() {
+      for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      if (args.some(function (item) {
+        return "function" === typeof item;
+      }) && args[0].some(function (t) {
+        return isCustomTag.test(t);
+      })) {
+
+        var inCustomTag = false;
+        var localName = "";
+        var lookup = [];
+
+        args[0].forEach(function (item, index, items) {
+
+          if (isCustomTag.test(item)) {
+            inCustomTag = -1 === item.substring(item.match(isCustomTag).index).indexOf(">");
+            localName = inCustomTag && item.substring(item.indexOf(item.match(isCustomTag))).split(" ")[0].substr(1);
+          } // END if CustomTag start
+          else if (0 <= item.indexOf(">")) {
+              inCustomTag = false;
+              localName = "";
+            } // END if CustomTag end
+
+          if (!inCustomTag) {
+            return;
+          }
+          var val = args[index + 1];
+
+          if ("function" === typeof val) {
+            var attrName = item.split(" ").pop().slice(0, -1);
+            lookup.push({ item: item, index: index + 1, attrName: attrName, val: val, localName: localName });
+          }
+        }); // END forEach
+
+        if (lookup.length) {
+          args = Array.prototype.slice.call(args);
+          args[0] = args[0].slice(0);
+        }
+
+        lookup.reverse().forEach(function (_ref2) {
+          var item = _ref2.item,
+              index = _ref2.index,
+              attrName = _ref2.attrName,
+              val = _ref2.val,
+              localName = _ref2.localName;
+
+
+          var id = makeid();
+          sharedAttrs[id] = { attrName: attrName, val: val, localName: localName };
+          args[0][index - 1] = args[0][index - 1] + '"fn-' + id + '"' + args[0][index];
+          args[0] = args[0].filter(function (x, i) {
+            return i !== index;
+          });
+          args = args.filter(function (x, i) {
+            return i !== index;
+          });
+          args[0].raw = args[0].slice(0);
+        }); // END forEach
+      } // END if
+
+
+      return hyperHTMLbind.apply(undefined, _toConsumableArray(args));
+    }; // END ref.Html
+    ref.Html.wire = function wire() {
+      return hyperHTML.wire.apply(hyperHTML, arguments);
+    };
+    ref.Html.lite = function lite() {
+      return hyperHTML.apply(undefined, arguments);
+    };
+
+    if (this.attrs) {
+      throw new Error("'attrs' is defined!!");
+    }
+    that.attrs = this.attachAttrs(this.attributes) || {};
+    that.dataset = this.getDataset();
+    var render = this.render;
+    this.render = function () {
+      for (var _len3 = arguments.length, data = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        data[_key3] = arguments[_key3];
+      }
+
+      ref.observe = false;
+      setTimeout(function () {
+        ref.observe = true;
+      }, 0);
+
+      render.call.apply(render, [that, ref.Html].concat(data));
+
+      //after render check if dataset has chacked
+      Object.getOwnPropertyNames(that.dataset).filter(function (key) {
+        return !_this2.dataset[key];
+      }).forEach(function (key) {
+
+        var value = that.dataset[key];
+        _this2.addDataset(that.dataset, key.replace(/([A-Z])/g, function (g) {
+          return '-' + g[0].toLowerCase();
+        }));
+        that.dataset[key] = value;
+      });
+    };
+
+    if (this.setup) {
+      ref.teardown = this.setup.call(that, onNext.bind(this, that));
+    }
+
+    this.render();
+  }
+
+  //=====================================================
+  //==================================== Wrap the element
   //=====================================================
 
   var hyperElement = function (_HTMLElement) {
@@ -213,189 +398,18 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
       //++++++++++++++++++++++++++++++++++++++++++++++ Setup
       //++++++++++++++++++++++++++++++++++++++++++++++++++++
-
       value: function createdCallback() {
-        var _this3 = this;
-
-        // an instance of the element is created
-        this.identifier = Symbol(this.localName);
-        var ref = manager[this.identifier] = { attrsToIgnore: {} };
-        ref.innerHTML = this.innerHTML;
-        var that = ref.this = { element: this };
-        that.wrappedContent = this.textContent;
-
-        observer.call(this, ref); // observer change to innerHTML
-
-        Object.getOwnPropertyNames(this.__proto__).filter(function (name) {
-          return !("constructor" === name || "setup" === name || "render" === name);
-        }).forEach(function (name) {
-          if (/^[A-Z]/.test(name)) {
-            var result = void 0;
-            var templatestrings = {};
-            var wrapFragment = function wrapFragment(data) {
-
-              if (undefined !== result && result.once) return result;
-
-              result = _this3[name](data);
-              if (!!result.template) {
-                if ("string" === typeof result.template) {
-                  /* if(undefined === result.values){
-                     throw new Error("'values' was not defined for a 'template' in "+name)
-                   }*/
-                  if (!templatestrings[result.template]) {
-                    templatestrings[result.template] = buildTemplate(result.template);
-                  }
-                  result = { any: templatestrings[result.template](result.values || data) };
-                } // END "string" === typeof result.template
-                else if ("object" === _typeof(result.template) && "function" === typeof result.template.then) {
-
-                    result = Object.assign({}, result, { any: result.template.then(function (_ref) {
-                        var template = _ref.template,
-                            values = _ref.values;
-
-
-                        if (!templatestrings[template]) {
-                          templatestrings[template] = buildTemplate(template);
-                        }
-                        result = { any: templatestrings[template](values || data) };
-                        return result.any;
-                      })
-                    }); // END Object.assign
-                  } // END result.template is promise ?
-                  else {
-                      throw new Error("unknow template type:" + _typeof(result.template) + " | " + JSON.stringify(result.template));
-                    }
-              } // END !!result.template
-              return result;
-            }; // END wrapFragment
-            hyperHTML.define(name, wrapFragment);
-          } else {
-            that[name] = _this3[name].bind(that);
-          }
-          delete _this3[name];
-        });
-        function toString() {
-          return "hyper-element: " + this.localName;
-        }
-        Object.defineProperty(that, "toString", { value: toString.bind(this), writable: false });
-        // use shadow DOM, else fallback to render to element
-        ref.shadow = this; //.attachShadow ? this.attachShadow({mode: 'closed'}) : this
-
-        // Restrict access to hyperHTML
-        var hyperHTMLbind = hyperHTML.bind(ref.shadow);
-        ref.Html = function Html() {
-          for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
-          }
-
-          if (args.some(function (item) {
-            return "function" === typeof item;
-          }) && args[0].some(function (t) {
-            return isCustomTag.test(t);
-          })) {
-
-            var inCustomTag = false;
-            var localName = "";
-            var lookup = [];
-
-            args[0].forEach(function (item, index, items) {
-
-              if (isCustomTag.test(item)) {
-                inCustomTag = true;
-                localName = item.substring(item.indexOf(item.match(isCustomTag))).split(" ")[0].substr(1);
-              } // END if CustomTag start
-              if (0 <= item.indexOf(">")) {
-                inCustomTag = false;
-                localName = "";
-                return;
-              } // END if CustomTag end
-              var val = args[index + 1];
-
-              if ("function" === typeof val) {
-                var attrName = item.split(" ").pop().slice(0, -1);
-                lookup.push({ item: item, index: index, attrName: attrName, val: val, localName: localName });
-              }
-            }); // END forEach
-
-            if (lookup.length) {
-              args = Array.prototype.slice.call(args);
-              args[0] = args[0].slice(0);
-            }
-
-            lookup.reverse().forEach(function (_ref2) {
-              var item = _ref2.item,
-                  index = _ref2.index,
-                  attrName = _ref2.attrName,
-                  val = _ref2.val,
-                  localName = _ref2.localName;
-
-
-              var id = makeid();
-              sharedAttrs[id] = { attrName: attrName, val: val, localName: localName };
-              args[0][index] = args[0][index] + '"fn-' + id + '"' + args[0][index + 1];
-              args[0] = args[0].filter(function (x, i) {
-                return i !== index + 1;
-              });
-              args = args.filter(function (x, i) {
-                return i !== index + 1;
-              });
-              args[0].raw = args[0].slice(0);
-            }); // END forEach
-          } // END if
-
-
-          return hyperHTMLbind.apply(undefined, _toConsumableArray(args));
-        }; // END ref.Html
-        ref.Html.wire = function wire() {
-          return hyperHTML.wire.apply(hyperHTML, arguments);
-        };
-        ref.Html.lite = function lite() {
-          return hyperHTML.apply(undefined, arguments);
-        };
-
-        if (this.attrs) {
-          throw new Error("'attrs' is defined!!");
-        }
-        that.attrs = this.attachAttrs(this.attributes) || {};
-        that.dataset = this.getDataset();
-        var render = this.render;
-        this.render = function () {
-          for (var _len3 = arguments.length, data = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            data[_key3] = arguments[_key3];
-          }
-
-          ref.observe = false;
-          setTimeout(function () {
-            ref.observe = true;
-          }, 0);
-
-          render.call.apply(render, [that, ref.Html].concat(data));
-
-          //after render check if dataset has chacked
-          Object.getOwnPropertyNames(that.dataset).filter(function (key) {
-            return !_this3.dataset[key];
-          }).forEach(function (key) {
-
-            var value = that.dataset[key];
-            _this3.addDataset(that.dataset, key.replace(/([A-Z])/g, function (g) {
-              return '-' + g[0].toLowerCase();
-            }));
-            that.dataset[key] = value;
-          });
-        };
-
-        if (this.setup) {
-          ref.teardown = this.setup.call(that, onNext.bind(this, that));
-        }
-
-        this.render();
+        _createdCallback.call(this);
       }
-      /*
-          connectedCallback() {
-         // 	console.log("Called when the element is inserted into a document, including into a shadow tree")
-            // Called when the element is inserted into a document, including into a shadow tree
-          }
-          */
+
+      // Called when the element is inserted into a document, including into a shadow tree
+
+    }, {
+      key: 'connectedCallback',
+      value: function connectedCallback() {
+        _createdCallback.call(this);
+      }
+
       //+++++++++++++++++++++++++++++++++++++++ attach Attrs
       //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -454,8 +468,8 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
           if ("template" === name && !value) {
 
-            var _ref3 = manager[this.identifier];
-            _ref3.Html.template = buildTemplate(_ref3.innerHTML);
+            var ref = manager[this.identifier];
+            ref.Html.template = buildTemplate(ref.innerHTML);
             accumulator[name] = true;
           } else if ("fn-" === value.substr(0, 3) && !!sharedAttrs[value.substr(3)] && sharedAttrs[value.substr(3)].localName === this.localName) {
             accumulator[name] = sharedAttrs[value.substr(3)].val;
@@ -527,6 +541,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     }, {
       key: 'disconnectedCallback',
       value: function disconnectedCallback() {
+        var ref = manager[this.identifier];
         ref.teardown && ref.teardown();
         //ref.teardown = null
         //Called when the element is removed from a document

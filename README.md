@@ -10,7 +10,7 @@ Your new custom-element will be rendered with the super fast [hyperHTML] and wil
 ## why hyper-element
 
 
-* hyper-element is fast & small at 6k
+* hyper-element is fast & small at under 8k
     * With only 1 dependency: [hyperHTML]
 * With a completely stateless approach, setting and reseting the view is trivial
 * Simple yet powerful [Api](#api)
@@ -49,7 +49,7 @@ Your new custom-element will be rendered with the super fast [hyperHTML] and wil
 # Define a custom-element
 
 ```js
-document.registerElement("my-elem", class extends hyperElement{
+window.customElements.define("my-elem", class extends hyperElement{
 
   render(Html){
     Html`hello ${this.attrs.who}`
@@ -71,7 +71,7 @@ To use your element in brower
 <html>
 <head>
   <script src="https://cdn.jsdelivr.net/npm/webcomponentsjs@latest/lite.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js"></script>
 </head>
 <body>
@@ -308,7 +308,7 @@ In you document:
 Implementation:
 
 ```js
-document.registerElement("my-list",class extends hyperElement{
+window.customElements.define("my-list",class extends hyperElement{
 
       render(Html){
         Html`
@@ -353,7 +353,7 @@ and **one** of the following as the fragment's result:
     * **values:** A set of values to be used in the **template**
 
 ```js
-document.registerElement("my-friends",class extends hyperElement{
+window.customElements.define("my-friends",class extends hyperElement{
 
       FriendCount(user){
         return {
@@ -414,7 +414,7 @@ You can use the [template](#templates) syntax with in a fragment
 Example:
 
 ```js
-document.registerElement("click-me",class extends hyperElement{
+window.customElements.define("click-me",class extends hyperElement{
       Button(){
         return {
           template:`<button type="button" class="btn"
@@ -445,7 +445,7 @@ You can also return a [promise] as your `template` property.
 Rewritting the *my-friends* example
 
 ```js
-document.registerElement("my-friends",class extends hyperElement{
+window.customElements.define("my-friends",class extends hyperElement{
 
       FriendCount(user){
 
@@ -514,7 +514,7 @@ var user = new (Backbone.Model.extend({
 }));//END Backbone.Model.extend
 
 
-document.registerElement("my-profile", class extends hyperElement{
+window.customElements.define("my-profile", class extends hyperElement{
 
   setup(onNext){
     user.on("change",onNext(user.toJSON.bind(user)));
@@ -535,7 +535,7 @@ const user = observable({
 })//END observable
 
 
-document.registerElement("my-profile", class extends hyperElement{
+window.customElements.define("my-profile", class extends hyperElement{
 
   setup(onNext){
     mobx.autorun(onNext(user));
@@ -550,7 +550,7 @@ document.registerElement("my-profile", class extends hyperElement{
 ## redux
 
 ```js
-document.registerElement("my-profile", class extends hyperElement{
+window.customElements.define("my-profile", class extends hyperElement{
 
   setup(onNext){
     store.subcribe(onNext(store.getState)
