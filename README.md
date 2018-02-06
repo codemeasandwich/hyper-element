@@ -17,7 +17,7 @@ Your new custom-element will be rendered with the super fast [hyperHTML] and wil
 * Built in [template](#templates) system to customise the rendered output
 * Inline style objects supported (similar to React)
 * First class support for [data stores](#example-of-connecting-to-a-data-store)
-* Pass `functions` to other custom hyper-elements via there tag attribute
+* Pass `function` to other custom hyper-elements via there tag attribute
 
 # [Live Demo](https://jsfiddle.net/codemeasandwich/k25e6ufv/)
 
@@ -34,6 +34,7 @@ Your new custom-element will be rendered with the super fast [hyperHTML] and wil
       + [Html.lite](#htmllite)
     + [setup](#setup)
     + [this](#this)
+  * [Advanced attributes](#advanced-attributes)
   * [Templates](#templates)
   * [Fragments](#fragments)
     + [fragment templates](#fragment-templates)
@@ -49,7 +50,7 @@ Your new custom-element will be rendered with the super fast [hyperHTML] and wil
 # Define a custom-element
 
 ```js
-window.customElements.define("my-elem", class extends hyperElement{
+document.registerElement("my-elem", class extends hyperElement{
 
   render(Html){
     Html`hello ${this.attrs.who}`
@@ -286,6 +287,57 @@ setup(onNext){
         * Bad: `this.dataset.user.name = ""` ✗
         * Good: `this.dataset.user = {name:""}` ✓
 
+---
+
+## Advanced attributes
+
+### Dynamic attributes with custom-element children
+
+Being able to set attributes at run-time should be the same for dealing with a native element and ones defined by hyper-element.
+
+**⚠ To support dynamic attributes on custom elements YOU MUST USE `customElements.define` which requires native ES6 support! Use the native source `/source/hyperElement.js` NOT `/source/bundle.js`**
+
+This is what allows for the passing any dynamic attractions from parent to child custom element! You can also pass a `function` to a child element(that extends hyperElement).
+
+**Example:**
+
+In you document:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/source/hyperElement.js"></script>
+<users-elem />
+```
+
+Implementation:
+
+```js
+window.customElements.define("a-user",class extends hyperElement{
+  render(Html){
+    const onClick = () => this.attrs.hi("Hello from "+this.attrs.name);
+    Html`${this.attrs.name} <button onclick=${onClick}>Say hi!</button>`
+  }
+})
+
+window.customElements.define("users-elem",class extends hyperElement{
+  onHi(val){
+    console.log("hi was clicked",val)
+  }
+  render(Html){
+    Html`<a-user hi=${this.onHi} name="Beckett" />`
+  }
+})
+```
+
+Output:
+
+```html
+<users-elem>
+  <a-user update="fn-bgzvylhphgvpwtv" name="Beckett">
+     Beckett <button>Say hi!</button>
+  </a-user>
+</users-elem>
+```
+
 ## Templates
 
 You can declare markup to be used as a template within the custom element
@@ -294,6 +346,8 @@ To enable templates:
 
 1. Add an attribute "templates" to your custom element
 2. Define the template markup within your element
+
+**Example:**
 
 In you document:
 
@@ -308,7 +362,7 @@ In you document:
 Implementation:
 
 ```js
-window.customElements.define("my-list",class extends hyperElement{
+document.registerElement("my-list",class extends hyperElement{
 
       render(Html){
         Html`
@@ -352,8 +406,12 @@ and **one** of the following as the fragment's result:
 * **template:** A [template](#fragment-templates) string to use, **(Is sanitised)**
     * **values:** A set of values to be used in the **template**
 
+**Example:**
+
+Implementation:
+
 ```js
-window.customElements.define("my-friends",class extends hyperElement{
+document.registerElement("my-friends",class extends hyperElement{
 
       FriendCount(user){
         return {
@@ -376,7 +434,7 @@ window.customElements.define("my-friends",class extends hyperElement{
  })// END my-friends
 ```
 
-Ouput:
+Output:
 
 ```html
 <my-friends myId="1234">
@@ -411,10 +469,12 @@ You can use the [template](#templates) syntax with in a fragment
 
 `<p>Ipsum</p>`
 
-Example:
+**Example:**
+
+Implementation:
 
 ```js
-window.customElements.define("click-me",class extends hyperElement{
+document.registerElement("click-me",class extends hyperElement{
       Button(){
         return {
           template:`<button type="button" class="btn"
@@ -430,7 +490,7 @@ window.customElements.define("click-me",class extends hyperElement{
  })// END click-me
 ```
 
-Ouput:
+Output:
 
 ```html
 <click-me>
@@ -444,8 +504,12 @@ You can also return a [promise] as your `template` property.
 
 Rewritting the *my-friends* example
 
+**Example:**
+
+Implementation:
+
 ```js
-window.customElements.define("my-friends",class extends hyperElement{
+document.registerElement("my-friends",class extends hyperElement{
 
       FriendCount(user){
 
@@ -474,7 +538,7 @@ window.customElements.define("my-friends",class extends hyperElement{
 
 In this example, the values returned from the promise are used. As the "values" from a fragment function(if provided) takes priority over values passed in from render.
 
-Ouput:
+Output:
 
 ```html
 <my-friends myId="1234">
@@ -487,7 +551,8 @@ Ouput:
 
 Supports an object as the style attribute. Compatible with React's implementation.
 
-Example of centering an element
+**Example:** of centering an element
+
 ```js
 
   render(Html){
@@ -514,7 +579,7 @@ var user = new (Backbone.Model.extend({
 }));//END Backbone.Model.extend
 
 
-window.customElements.define("my-profile", class extends hyperElement{
+document.registerElement("my-profile", class extends hyperElement{
 
   setup(onNext){
     user.on("change",onNext(user.toJSON.bind(user)));
@@ -535,7 +600,7 @@ const user = observable({
 })//END observable
 
 
-window.customElements.define("my-profile", class extends hyperElement{
+document.registerElement("my-profile", class extends hyperElement{
 
   setup(onNext){
     mobx.autorun(onNext(user));
@@ -550,7 +615,7 @@ window.customElements.define("my-profile", class extends hyperElement{
 ## redux
 
 ```js
-window.customElements.define("my-profile", class extends hyperElement{
+document.registerElement("my-profile", class extends hyperElement{
 
   setup(onNext){
     store.subcribe(onNext(store.getState)
