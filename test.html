@@ -269,20 +269,38 @@ document.body.appendChild(new (document.registerElement("fragments-element3",cla
  })))
 
 
+document.body.appendChild(new (document.registerElement("fragments-element4",class extends hyperElement{
+      Ok({data}){
+        return {
+          template:`<input placeholder={placeholder} type="text"  style="display:none" oninput={oninput}/>{text}`,
+          values:{
+          placeholder:"placeholder",
+          oninput:()=>alert(123),
+          text : (data === "y")?"✓":"✗"
+          }
+        }
+      }
+      render(Html){
+        Html`fragments-element4 ${{Ok:{ data:"y" }}}`
+      }
+ })))
+
+
+
  window.customElements.define("inner1-elem",class extends hyperElement{
 
       render(Html){
-        Html`inner1-elem ${this.attrs.ok || "✗"}`
+        Html`-elem ${this.attrs.ok || "✗"}`
       }
  })
 
 document.body.appendChild(new (document.registerElement("outter1-elem",class extends hyperElement{
       render(Html){
-        Html`<inner1-elem ok=${"✓"}></inner1-elem>`
+        Html`outter1<inner1-elem ok=${"✓"}>✗</inner1-elem>`
       }
  })))
 
- document.registerElement("inner2-elem",class extends hyperElement{
+window.customElements.define("inner2-elem",class extends hyperElement{
 
        render(Html){
       	const ok = this.attrs.ok || (()=> "✗")
@@ -295,7 +313,7 @@ document.body.appendChild(new (document.registerElement("outter1-elem",class ext
        return "✓"
        }
        render(Html){
-         Html`outter2-elem:<inner2-elem ok=${this.isOk}/>`
+         Html`outter2-elem(<inner2-elem ok=${this.isOk}/>)`
        }
   })))
 </script>

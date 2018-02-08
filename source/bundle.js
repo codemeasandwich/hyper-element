@@ -140,7 +140,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
   function buildTemplate(innerHTML) {
 
-    var re = /\s*(\{[\w]+\})\s*/g;
+    var re = /(\{[\w]+\})/g; // /\s*(\{[\w]+\})\s*/g
     var templateVals = innerHTML.split(re).reduce(function (vals, item) {
 
       if ("{" === item[0] && "}" === item.slice(-1)) {
@@ -301,38 +301,17 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
           if ("function" === typeof val) {
             var attrName = item.split(" ").pop().slice(0, -1);
-            lookup.push({ item: item, index: index + 1, attrName: attrName, val: val, localName: localName });
-          }
-        }); // END forEach
-
-        if (lookup.length) {
-          args = Array.prototype.slice.call(args);
-          args[0] = args[0].slice(0);
-        }
-
-        lookup.reverse().forEach(function (_ref2) {
-          var item = _ref2.item,
-              index = _ref2.index,
-              attrName = _ref2.attrName,
-              val = _ref2.val,
-              localName = _ref2.localName;
-
-
-          var id = makeid();
-          sharedAttrs[id] = { attrName: attrName, val: val, localName: localName };
-          args[0][index - 1] = args[0][index - 1] + '"fn-' + id + '"' + args[0][index];
-          args[0] = args[0].filter(function (x, i) {
-            return i !== index;
-          });
-          args = args.filter(function (x, i) {
-            return i !== index;
-          });
-          args[0].raw = args[0].slice(0);
+            if ("on" === attrName.substring(0, 2)) {
+              throw new Error('\'on\' is reserve for native elements. Change: "' + attrName + '" for "' + localName + '" to something else');
+            }
+            var id = makeid();
+            sharedAttrs[id] = { attrName: attrName, val: val, localName: localName };
+            args[index + 1] = 'fn-' + id;
+          } // END if("function" === typeof val)
         }); // END forEach
       } // END if
 
-
-      return hyperHTMLbind.apply(undefined, _toConsumableArray(args));
+      return hyperHTMLbind.apply(undefined, args);
     }; // END ref.Html
     ref.Html.wire = function wire() {
       return hyperHTML.wire.apply(hyperHTML, arguments);

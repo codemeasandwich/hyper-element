@@ -116,7 +116,7 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
 
   function buildTemplate(innerHTML){
 
-        const re = /\s*(\{[\w]+\})\s*/g
+        const re = /(\{[\w]+\})/g// /\s*(\{[\w]+\})\s*/g
         const templateVals = innerHTML.split(re).reduce((vals,item)=>{
 
            if("{" === item[0] && "}" === item.slice(-1)){
@@ -271,33 +271,19 @@ function  createdCallback(){
          }
          const val = args[index+1]
 
-         if("function" === typeof val){
-             const attrName = item.split(" ").pop().slice(0, -1);
-             lookup.push({ item, index:index+1, attrName, val, localName })
-         }
+           if("function" === typeof val){
+               const attrName = item.split(" ").pop().slice(0, -1);
+               if("on" === attrName.substring(0,2)){
+                 throw new Error(`'on' is reserve for native elements. Change: "${attrName}" for "${localName}" to something else`)
+               }
+               const id = makeid()
+               sharedAttrs[id] = { attrName, val, localName }
+               args[index+1] = 'fn-'+id;
+           }// END if("function" === typeof val)
+          })// END forEach
+        }// END if
 
-       })// END forEach
-
-       if(lookup.length){
-         args = Array.prototype.slice.call(args);
-         args[0] = args[0].slice(0);
-       }
-
-       lookup.reverse()
-       .forEach(({item, index, attrName, val,localName})=>{
-
-         const id = makeid()
-         sharedAttrs[id] = { attrName, val, localName }
-         args[0][index-1] = args[0][index-1]+'"fn-'+id+'"'+args[0][index]
-         args[0] = args[0].filter((x,i)=>i !== index)
-         args = args.filter((x,i)=>i !== index)
-         args[0].raw = args[0].slice(0);
-       })// END forEach
-
-     }// END if
-
-
-     return hyperHTMLbind(...args)
+        return hyperHTMLbind(...args)
    } // END ref.Html
    ref.Html.wire = function wire(...args){return hyperHTML.wire(...args)}
    ref.Html.lite = function lite(...args){return hyperHTML(...args)}
