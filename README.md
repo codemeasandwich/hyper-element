@@ -4,13 +4,15 @@ Combining the best of [hyperHTML] and [Custom Elements]!
 
 [![npm version](https://badge.fury.io/js/hyper-element.svg)](https://www.npmjs.com/package/hyper-element)
 [![CDN link](https://img.shields.io/badge/CDN_link-hyper--element-red.svg)](https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js)
+[![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js?compression=gzip)](https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js)
+
 
 Your new custom-element will be rendered with the super fast [hyperHTML] and will react to tag attribute and store changes.
 
 ## why hyper-element
 
 
-* hyper-element is fast & small at under 8k
+* hyper-element is fast & small
     * With only 1 dependency: [hyperHTML]
 * With a completely stateless approach, setting and reseting the view is trivial
 * Simple yet powerful [Api](#api)
