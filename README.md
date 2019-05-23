@@ -186,7 +186,7 @@ render(Html){
 
 ### setup
 
-The `setup` function wires up an external data-source. This is done with the `onNext` argument that binds a data source to your renderer.
+The `setup` function wires up an external data-source. This is done with the `setupStore` argument that binds a data source to your renderer.
 
 #### Connect a data source
 
@@ -195,16 +195,16 @@ Example of re-rendering when the mouse moves. Will pass mouse values to render
 ```js
 // getMouseValues(){ ... }
 
-setup(onNext){
+setup(setupStore){
 
     // the getMouseValues function will be call before each render and pass to render
-    const next = onNext(getMouseValues)
+    const callMeOnStoreChange = setupStore(getMouseValues)
 
     // call next on every mouse event
-    onMouseMove(next)
+    onMouseMove(callMeOnStoreChange)
 
     // cleanup logic
-    return ()=>{ console.warn("On remove, do component cleanup here") }
+    return ()=> console.warn("On remove, do component cleanup here")
 }// END setup
 ```
 
@@ -213,18 +213,18 @@ setup(onNext){
 Example of re-rendering every second
 
 ```js
-setup(onNext){
-    setInterval(onNext(), 1000);
+setup(setupStore){
+    setInterval(setupStore(), 1000);
 }// END setup
 ```
 
 #### Set initial values to pass to every render
 
-Example of hard coding an object that will be used on every render
+Example of hard coding an object that will be used on **every** render
 
 ```js
-setup(onNext){
-    onNext({max_levels:3})
+setup(setupStore){
+    setupStore({max_levels:3})
 }// END setup
 ```
 
@@ -234,16 +234,19 @@ Any logic you wish to run when the **element** is removed from the page should b
 
 ```js
 // listen to a WebSocket
-setup(onNext){
+setup(setupStore){
 
-  const next = onNext();
+  let newSocketValue;
+  const callMeOnStoreChange = setupStore(()=> newSocketValue);
   const ws = new WebSocket("ws://127.0.0.1/data");
 
-  ws.onmessage = ({data}) => next(JSON.parse(data))
+  ws.onmessage = ({data}) => {
+    newSocketValue = JSON.parse(data);
+    callMeOnStoreChange()
+  }
 
   // Return way to unsubscribe
-  const teardown = ws.close.bind(ws);
-  return teardown
+  return ws.close.bind(ws)
 }// END setup
 
 render(Html,incomingMessage){
@@ -260,12 +263,12 @@ With this approach there is no leaking of references.
 #### ✎ To subscribe to 2 events
 
 ```js
-setup(onNext){
+setup(setupStore){
 
-  const next = onNext(user);
+  const callMeOnStoreChange = setupStore(user);
 
-  mobx.autorun(next);       // update when changed (real-time feedback)
-  setInterval(next, 1000);  // update every second (update "the time is now ...")
+  mobx.autorun(callMeOnStoreChange);       // update when changed (real-time feedback)
+  setInterval(callMeOnStoreChange, 1000);  // update every second (update "the time is now ...")
 
 }// END setup
 
@@ -431,7 +434,7 @@ document.registerElement("my-friends",class extends hyperElement{
 
       render(Html){
         const userId = this.attrs.myId
-        Html`<h2> ${{FriendCount:{userId}}} </h2>`
+        Html`<h2> ${{FriendCount:userId}} </h2>`
       }// END render
  })// END my-friends
 ```
@@ -533,7 +536,7 @@ document.registerElement("my-friends",class extends hyperElement{
 
       render(Html){
         const userId = this.attrs.myId
-        Html`<h2> ${{FriendCount:{userId}}} </h2>`
+        Html`<h2> ${{FriendCount:userId}} </h2>`
       }// END render
  }) //END my-friends
 ```
@@ -583,9 +586,9 @@ var user = new (Backbone.Model.extend({
 
 document.registerElement("my-profile", class extends hyperElement{
 
-  setup(onNext){
-    user.on("change",onNext(user.toJSON.bind(user)));
-    // OR user.on("change",onNext(()=>user.toJSON()));
+  setup(setupStore){
+    user.on("change",setupStore(user.toJSON.bind(user)));
+    // OR user.on("change",setupStore(()=>user.toJSON()));
   }//END setup
 
   render(Html,{name}){
@@ -604,8 +607,8 @@ const user = observable({
 
 document.registerElement("my-profile", class extends hyperElement{
 
-  setup(onNext){
-    mobx.autorun(onNext(user));
+  setup(setupStore){
+    mobx.autorun(setupStore(user));
   }// END setup
 
   render(Html,{name}){
@@ -619,8 +622,8 @@ document.registerElement("my-profile", class extends hyperElement{
 ```js
 document.registerElement("my-profile", class extends hyperElement{
 
-  setup(onNext){
-    store.subcribe(onNext(store.getState)
+  setup(setupStore){
+    store.subcribe(setupStore(store.getState)
   }// END setup
 
   render(Html,{user}){

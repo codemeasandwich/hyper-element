@@ -1,5 +1,5 @@
 {
-  "version": "0.9.2",
+  "version": "0.10.0",
   "name": "hyper-element",
   "author": "Brian Shannon (github.com/codemeasandwich)",
   "description": "hyperHTML + WebComponents",
@@ -8,7 +8,7 @@
     "build": "./node_modules/.bin/babel --presets es2015 source/hyperElement.js -o source/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "license": "ISC",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/codemeasandwich/hyper-element.git"

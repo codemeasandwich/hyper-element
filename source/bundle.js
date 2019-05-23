@@ -242,7 +242,12 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
                     if (!templatestrings[template]) {
                       templatestrings[template] = buildTemplate(template);
                     }
-                    result = { any: templatestrings[template](values || data) };
+                    if (Array.isArray(values)) {
+                      result = { any: values.map(templatestrings[template]) };
+                    } else {
+                      //TODO: test if values is an object
+                      result = { any: templatestrings[template](values || data) };
+                    }
                     return result.any;
                   })
                 }); // END Object.assign
