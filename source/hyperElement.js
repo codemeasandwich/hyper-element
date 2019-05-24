@@ -275,14 +275,14 @@ function  createdCallback(){
          }
          const val = args[index+1]
 
-           if("function" === typeof val){
+           if("function" === typeof val || "object" === typeof val){
                const attrName = item.split(" ").pop().slice(0, -1);
                if("on" === attrName.substring(0,2)){
                  throw new Error(`'on' is reserve for native elements. Change: "${attrName}" for "${localName}" to something else`)
                }
                const id = makeid()
                sharedAttrs[id] = { attrName, val, localName }
-               args[index+1] = 'fn-'+id;
+               args[index+1] = ("function" === typeof val ? 'fn-':'ob-')+id;
            }// END if("function" === typeof val)
           })// END forEach
         }// END if
@@ -390,7 +390,7 @@ function  createdCallback(){
            ref.Html.template = buildTemplate(ref.innerHTML)
            accumulator[name] = true;
 
-         } else if ("fn-" === value.substr(0,3)
+         } else if ("fn-" === value.substr(0,3) || "ob-" === value.substr(0,3)
          && !!sharedAttrs[value.substr(3)]
            && sharedAttrs[value.substr(3)].localName === this.localName){
              accumulator[name] = sharedAttrs[value.substr(3)].val
