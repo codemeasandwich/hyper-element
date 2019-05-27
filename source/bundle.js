@@ -164,7 +164,9 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     }
 
     return function template(data) {
-
+      if ("object" !== (typeof data === 'undefined' ? 'undefined' : _typeof(data))) {
+        throw new Error("Templates must be passed an object to be populated with. You passed " + JSON.stringify(data) + " to " + templateVals.id);
+      }
       return hyperHTML.wire(data, templateVals.id).apply(undefined, _toConsumableArray(fragment(data)));
     };
   } // END buildTemplate
@@ -234,19 +236,22 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
             } // END "string" === typeof result.template
             else if ("object" === _typeof(result.template) && "function" === typeof result.template.then) {
 
-                result = Object.assign({}, result, { any: result.template.then(function (_ref) {
-                    var template = _ref.template,
-                        values = _ref.values;
+                result = Object.assign({}, result, { any: result.template.then(function (args) {
+                    var template = args.template,
+                        values = args.values;
 
+                    if (!template && "string" === typeof args) {
+                      template = args;
+                      values = {};
+                    }
 
                     if (!templatestrings[template]) {
                       templatestrings[template] = buildTemplate(template);
                     }
                     if (Array.isArray(values)) {
-                      result = { any: values.map(templatestrings[template]) };
+                      result = { any: values.map(templatestrings[template]), once: result.once };
                     } else {
-                      //TODO: test if values is an object
-                      result = { any: templatestrings[template](values || data) };
+                      result = { any: templatestrings[template](values || data), once: result.once };
                     }
                     return result.any;
                   })
@@ -304,14 +309,14 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
           }
           var val = args[index + 1];
 
-          if ("function" === typeof val) {
+          if ("function" === typeof val || "object" === (typeof val === 'undefined' ? 'undefined' : _typeof(val))) {
             var attrName = item.split(" ").pop().slice(0, -1);
             if ("on" === attrName.substring(0, 2)) {
               throw new Error('\'on\' is reserve for native elements. Change: "' + attrName + '" for "' + localName + '" to something else');
             }
             var id = makeid();
             sharedAttrs[id] = { attrName: attrName, val: val, localName: localName };
-            args[index + 1] = 'fn-' + id;
+            args[index + 1] = ("function" === typeof val ? 'fn-' : 'ob-') + id;
           } // END if("function" === typeof val)
         }); // END forEach
       } // END if
@@ -455,7 +460,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
             var ref = manager[this.identifier];
             ref.Html.template = buildTemplate(ref.innerHTML);
             accumulator[name] = true;
-          } else if ("fn-" === value.substr(0, 3) && !!sharedAttrs[value.substr(3)] && sharedAttrs[value.substr(3)].localName === this.localName) {
+          } else if ("fn-" === value.substr(0, 3) || "ob-" === value.substr(0, 3) && !!sharedAttrs[value.substr(3)] && sharedAttrs[value.substr(3)].localName === this.localName) {
             accumulator[name] = sharedAttrs[value.substr(3)].val;
           } else {
             if (+value + "" === (value + "").trim()) {
@@ -486,6 +491,9 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     }, {
       key: 'attributeChangedCallback',
       value: function attributeChangedCallback(name, oldVal, newVal) {
+        if (+newVal + "" === newVal.trim()) {
+          newVal = +newVal; // to number
+        }
         var ref = manager[this.identifier];
         var attrsToIgnore = ref.attrsToIgnore;
 

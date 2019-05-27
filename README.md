@@ -186,7 +186,7 @@ render(Html){
 
 ### setup
 
-The `setup` function wires up an external data-source. This is done with the `setupStore` argument that binds a data source to your renderer.
+The `setup` function wires up an external data-source. This is done with the `attachStore` argument that binds a data source to your renderer.
 
 #### Connect a data source
 
@@ -195,13 +195,13 @@ Example of re-rendering when the mouse moves. Will pass mouse values to render
 ```js
 // getMouseValues(){ ... }
 
-setup(setupStore){
+setup(attachStore){
 
     // the getMouseValues function will be call before each render and pass to render
-    const callMeOnStoreChange = setupStore(getMouseValues)
+    const onStoreChange = attachStore(getMouseValues)
 
     // call next on every mouse event
-    onMouseMove(callMeOnStoreChange)
+    onMouseMove(onStoreChange)
 
     // cleanup logic
     return ()=> console.warn("On remove, do component cleanup here")
@@ -213,8 +213,8 @@ setup(setupStore){
 Example of re-rendering every second
 
 ```js
-setup(setupStore){
-    setInterval(setupStore(), 1000);
+setup(attachStore){
+    setInterval(attachStore(), 1000);
 }// END setup
 ```
 
@@ -223,8 +223,8 @@ setup(setupStore){
 Example of hard coding an object that will be used on **every** render
 
 ```js
-setup(setupStore){
-    setupStore({max_levels:3})
+setup(attachStore){
+    attachStore({max_levels:3})
 }// END setup
 ```
 
@@ -234,15 +234,15 @@ Any logic you wish to run when the **element** is removed from the page should b
 
 ```js
 // listen to a WebSocket
-setup(setupStore){
+setup(attachStore){
 
   let newSocketValue;
-  const callMeOnStoreChange = setupStore(()=> newSocketValue);
+  const onStoreChange = attachStore(()=> newSocketValue);
   const ws = new WebSocket("ws://127.0.0.1/data");
 
   ws.onmessage = ({data}) => {
     newSocketValue = JSON.parse(data);
-    callMeOnStoreChange()
+    onStoreChange()
   }
 
   // Return way to unsubscribe
@@ -263,12 +263,12 @@ With this approach there is no leaking of references.
 #### ✎ To subscribe to 2 events
 
 ```js
-setup(setupStore){
+setup(attachStore){
 
-  const callMeOnStoreChange = setupStore(user);
+  const onStoreChange = attachStore(user);
 
-  mobx.autorun(callMeOnStoreChange);       // update when changed (real-time feedback)
-  setInterval(callMeOnStoreChange, 1000);  // update every second (update "the time is now ...")
+  mobx.autorun(onStoreChange);       // update when changed (real-time feedback)
+  setInterval(onStoreChange, 1000);  // update every second (update "the time is now ...")
 
 }// END setup
 
@@ -586,9 +586,9 @@ var user = new (Backbone.Model.extend({
 
 document.registerElement("my-profile", class extends hyperElement{
 
-  setup(setupStore){
-    user.on("change",setupStore(user.toJSON.bind(user)));
-    // OR user.on("change",setupStore(()=>user.toJSON()));
+  setup(attachStore){
+    user.on("change",attachStore(user.toJSON.bind(user)));
+    // OR user.on("change",attachStore(()=>user.toJSON()));
   }//END setup
 
   render(Html,{name}){
@@ -607,8 +607,8 @@ const user = observable({
 
 document.registerElement("my-profile", class extends hyperElement{
 
-  setup(setupStore){
-    mobx.autorun(setupStore(user));
+  setup(attachStore){
+    mobx.autorun(attachStore(user));
   }// END setup
 
   render(Html,{name}){
@@ -622,8 +622,8 @@ document.registerElement("my-profile", class extends hyperElement{
 ```js
 document.registerElement("my-profile", class extends hyperElement{
 
-  setup(setupStore){
-    store.subcribe(setupStore(store.getState)
+  setup(attachStore){
+    store.subcribe(attachStore(store.getState)
   }// END setup
 
   render(Html,{user}){

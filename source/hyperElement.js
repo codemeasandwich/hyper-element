@@ -138,7 +138,9 @@ console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAP
            }
 
            return function template(data){
-
+             if("object" !== typeof data){
+               throw new Error("Templates must be passed an object to be populated with. You passed "+JSON.stringify(data)+" to "+templateVals.id)
+             }
              return hyperHTML.wire(data,templateVals.id)(...fragment(data))
            }
 
@@ -216,15 +218,21 @@ function  createdCallback(){
                 else if("object" === typeof result.template
                 && "function" === typeof result.template.then ){
 
-                  result = Object.assign({},result,{ any : result.template.then(({template,values}) => {
+                  result = Object.assign({},result,{ any : result.template.then(args => {
+
+                      let { template, values } = args
+                      if(!template && "string" === typeof args){
+                        template = args;
+                        values = {};
+                      }
 
                       if(!templatestrings[template]){
                         templatestrings[template] = buildTemplate(template)
                       }
                       if(Array.isArray(values)){
-                        result = { any : values.map(templatestrings[template]) }
-                      } else { //TODO: test if values is an object
-                        result = { any : templatestrings[template]( values || data ) }
+                        result = { any : values.map(templatestrings[template]), once: result.once }
+                      } else {
+                        result = { any : templatestrings[template]( values || data ), once: result.once }
                       }
                       return result.any;
                     })
@@ -420,6 +428,9 @@ function  createdCallback(){
     }
 */
     attributeChangedCallback(name,oldVal,newVal){
+      if((+newVal)+"" === newVal.trim()){
+        newVal = +newVal; // to number
+      }
       const ref = manager[this.identifier]
       const { attrsToIgnore } = ref;
       const that = ref.this
