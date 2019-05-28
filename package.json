@@ -1,5 +1,5 @@
 {
-  "version": "0.11.1",
+  "version": "0.12.0",
   "name": "hyper-element",
   "author": "Brian Shannon (github.com/codemeasandwich)",
   "description": "hyperHTML + WebComponents",
@@ -17,6 +17,7 @@
     "url": "https://github.com/codemeasandwich/hyper-element/issues"
   },
   "keywords": [
+    "hyper-element",
     "hyperhtml",
     "web-components",
     "webcomponents"

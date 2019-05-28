@@ -253,9 +253,48 @@ function  createdCallback(){
          })
          function toString(){ return "hyper-element: "+this.localName }
          Object.defineProperty(that,"toString",{ value: toString.bind(this), writable: false })
-                                                     // use shadow DOM, else fallback to render to element
-   ref.shadow =  this//.attachShadow ? this.attachShadow({mode: 'closed'}) : this
 
+
+        if(this.attrs){
+          throw new Error("'attrs' is defined!!")
+        }
+        that.attrs = this.attachAttrs(this.attributes) || {};
+        that.dataset = this.getDataset()
+     		const render = this.render
+        this.render = (...data)=>{
+           ref.observe = false
+            setTimeout(()=>{ref.observe = true},0)
+
+            render.call(that,ref.Html,...data)
+
+            //after render check if dataset has chacked
+            Object.getOwnPropertyNames(that.dataset)
+                 .filter(key => !this.dataset[key])
+                 .forEach( key => {
+
+                     const value = that.dataset[key]
+                     this.addDataset(that.dataset, key.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`))
+                     that.dataset[key] = value
+                 })
+        }
+    const fixedSettings = { supportsShadow: !!this.attachShadow }
+    const options = Object.assign({},fixedSettings)
+    if( ! that.options)  {
+      that.options = function (inputOptions){
+        if(undefined === inputOptions)
+          return Object.assign({},options)//a copy of options
+        else
+        Object.assign(options,inputOptions,fixedSettings)
+      }
+    } // END options
+    const teardown = this.setup && this.setup.call(that,onNext.bind(this,that))
+
+                                                     // use shadow DOM, else fallback to render to element
+   ref.shadow =  options.useShadow && this.attachShadow ? this.attachShadow({mode: 'closed'}) : this
+
+  if(teardown){
+    ref.teardown = teardown
+  }
    // Restrict access to hyperHTML
    const hyperHTMLbind = hyperHTML.bind(ref.shadow);
    ref.Html = function Html(...args){
@@ -300,32 +339,7 @@ function  createdCallback(){
    ref.Html.wire = function wire(...args){return hyperHTML.wire(...args)}
    ref.Html.lite = function lite(...args){return hyperHTML(...args)}
 
-   if(this.attrs){
-     throw new Error("'attrs' is defined!!")
-   }
-   that.attrs = this.attachAttrs(this.attributes) || {};
-   that.dataset = this.getDataset()
-		const render = this.render
-   this.render = (...data)=>{
-      ref.observe = false
-       setTimeout(()=>{ref.observe = true},0)
 
-       render.call(that,ref.Html,...data)
-
-       //after render check if dataset has chacked
-       Object.getOwnPropertyNames(that.dataset)
-            .filter(key => !this.dataset[key])
-            .forEach( key => {
-
-                const value = that.dataset[key]
-                this.addDataset(that.dataset, key.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`))
-                that.dataset[key] = value
-            })
-   }
-
-   if(this.setup){
-     ref.teardown = this.setup.call(that,onNext.bind(this,that))
-   }
 
    this.render()
 

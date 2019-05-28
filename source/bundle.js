@@ -273,14 +273,58 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
       return "hyper-element: " + this.localName;
     }
     Object.defineProperty(that, "toString", { value: toString.bind(this), writable: false });
-    // use shadow DOM, else fallback to render to element
-    ref.shadow = this; //.attachShadow ? this.attachShadow({mode: 'closed'}) : this
 
+    if (this.attrs) {
+      throw new Error("'attrs' is defined!!");
+    }
+    that.attrs = this.attachAttrs(this.attributes) || {};
+    that.dataset = this.getDataset();
+    var render = this.render;
+    this.render = function () {
+      for (var _len2 = arguments.length, data = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        data[_key2] = arguments[_key2];
+      }
+
+      ref.observe = false;
+      setTimeout(function () {
+        ref.observe = true;
+      }, 0);
+
+      render.call.apply(render, [that, ref.Html].concat(data));
+
+      //after render check if dataset has chacked
+      Object.getOwnPropertyNames(that.dataset).filter(function (key) {
+        return !_this2.dataset[key];
+      }).forEach(function (key) {
+
+        var value = that.dataset[key];
+        _this2.addDataset(that.dataset, key.replace(/([A-Z])/g, function (g) {
+          return '-' + g[0].toLowerCase();
+        }));
+        that.dataset[key] = value;
+      });
+    };
+
+    var options = {};
+    if (!that.options) {
+      that.options = function (inputOptions) {
+        if (undefined === inputOptions) return Object.assign({}, options); //a copy of options
+        else Object.assign(options, inputOptions);
+      };
+    }
+    var teardown = this.setup && this.setup.call(that, onNext.bind(this, that));
+
+    // use shadow DOM, else fallback to render to element
+    ref.shadow = options.useShadow && this.attachShadow ? this.attachShadow({ mode: 'closed' }) : this;
+
+    if (teardown) {
+      ref.teardown = teardown;
+    }
     // Restrict access to hyperHTML
     var hyperHTMLbind = hyperHTML.bind(ref.shadow);
     ref.Html = function Html() {
-      for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
+      for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
       }
 
       if (args.some(function (item) {
@@ -329,41 +373,6 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     ref.Html.lite = function lite() {
       return hyperHTML.apply(undefined, arguments);
     };
-
-    if (this.attrs) {
-      throw new Error("'attrs' is defined!!");
-    }
-    that.attrs = this.attachAttrs(this.attributes) || {};
-    that.dataset = this.getDataset();
-    var render = this.render;
-    this.render = function () {
-      for (var _len3 = arguments.length, data = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        data[_key3] = arguments[_key3];
-      }
-
-      ref.observe = false;
-      setTimeout(function () {
-        ref.observe = true;
-      }, 0);
-
-      render.call.apply(render, [that, ref.Html].concat(data));
-
-      //after render check if dataset has chacked
-      Object.getOwnPropertyNames(that.dataset).filter(function (key) {
-        return !_this2.dataset[key];
-      }).forEach(function (key) {
-
-        var value = that.dataset[key];
-        _this2.addDataset(that.dataset, key.replace(/([A-Z])/g, function (g) {
-          return '-' + g[0].toLowerCase();
-        }));
-        that.dataset[key] = value;
-      });
-    };
-
-    if (this.setup) {
-      ref.teardown = this.setup.call(that, onNext.bind(this, that));
-    }
 
     this.render();
   }
