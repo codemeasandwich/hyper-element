@@ -91,6 +91,8 @@ Output
 </my-elem>
 ```
 
+**Live Example of [helloworld](https://codepen.io/codemeasandwich/pen/VOQpqz)**
+
 # Api
 
 ## Define your element
@@ -207,6 +209,8 @@ setup(attachStore){
     return ()=> console.warn("On remove, do component cleanup here")
 }// END setup
 ```
+
+**Live Example of [attach a store](https://codepen.io/codemeasandwich/pen/VOQWeN)**
 
 #### re-rendering without a data source
 
@@ -343,6 +347,8 @@ Output:
 </users-elem>
 ```
 
+**Live Example of passing an [onclick to a child element](https://codepen.io/codemeasandwich/pen/rgdvPX)**
+
 ## Templates
 
 You can declare markup to be used as a template within the custom element
@@ -388,6 +394,8 @@ Output:
     </div>
 </my-list>
 ```
+
+**Live Example of using a [templatets](https://codepen.io/codemeasandwich/pen/LoQLrK)**
 
 ## Fragments
 
@@ -551,6 +559,7 @@ Output:
 </my-friends>
 ```
 
+**Live Example of using a [asynchronous fragment](https://codepen.io/codemeasandwich/pen/MdQrVd)**
 
 ## Styling
 
@@ -571,6 +580,8 @@ Supports an object as the style attribute. Compatible with React's implementatio
   }//END render
 
 ```
+
+**Live Example of [styling](https://codepen.io/codemeasandwich/pen/RmQVKY)**
 
 # Example of connecting to a data store
 
