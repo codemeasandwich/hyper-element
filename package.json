@@ -22,7 +22,7 @@
     "webcomponents"
   ],
   "dependencies": {
-    "hyperhtml": "^2.4.3"
+    "hyperhtml": "^2.34.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
