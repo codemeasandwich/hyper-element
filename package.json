@@ -6,7 +6,10 @@
   "main": "source/hyperElement.js",
   "scripts": {
     "build": "./node_modules/.bin/babel --presets es2015 source/hyperElement.js -o source/bundle.js",
-    "test": "echo \"No tests configured yet\""
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "kitchensink": "npx serve ."
   },
   "license": "MIT",
   "repository": {
@@ -27,6 +30,7 @@
   "devDependencies": {
     "@commitlint/cli": "^18.6.1",
     "@commitlint/config-conventional": "^18.6.3",
+    "@playwright/test": "^1.40.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
@@ -35,6 +39,7 @@
     "eslint-plugin-prettier": "^5.5.5",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
-    "prettier": "^3.8.0"
+    "prettier": "^3.8.0",
+    "serve": "^14.2.5"
   }
 }
