@@ -3,6 +3,40 @@
 (function (factory) {
   window.hyperElement = factory(window.hyperHTML);
 })(function (hyperHTML) {
+  /**
+   * @typedef {Object} HtmlFunction
+   * @property {function(Object, string=): function(TemplateStringsArray, ...any): any} wire - Create wired template bound to an object
+   * @property {function(TemplateStringsArray, ...any): any} lite - Create lightweight template
+   * @property {function(Object): any} [template] - Template function when template attribute is used
+   */
+
+  /**
+   * @typedef {Object} ElementContext
+   * @property {HTMLElement} element - The DOM element
+   * @property {Record<string, any>} attrs - Parsed attributes from the element
+   * @property {Record<string, any>} dataset - Dataset proxy with automatic type coercion
+   * @property {any} [store] - Store value from setup
+   * @property {string} wrappedContent - Text content of element
+   */
+
+  /**
+   * @typedef {Object} FragmentResult
+   * @property {any} [any] - Rendered content
+   * @property {boolean} [once] - Render only once
+   * @property {string|Promise<string|{template:string, values:Object|any[]}>} [template] - Template string or promise
+   * @property {Object|any[]} [values] - Template values
+   * @property {string} [text] - Text content
+   * @property {string} [html] - HTML content
+   * @property {any} [placeholder] - Placeholder content
+   */
+
+  /**
+   * Callback for store updates in setup
+   * @callback OnNextCallback
+   * @param {any|function(): any} store - Store value or getter function
+   * @returns {function(...any): void} - Render function with store
+   */
+
   const manager = {},
     sharedAttrs = {},
     isCustomTag = /<+\w+[-]+\w/;
@@ -429,7 +463,26 @@
   //==================================== Wrap the element
   //=====================================================
 
+  /**
+   * Base class for creating custom elements with hyperHTML templating.
+   * Extend this class and implement the render() method to create a custom element.
+   *
+   * @example
+   * class MyElement extends hyperElement {
+   *   render(Html) {
+   *     Html`<div>Hello ${this.attrs.name}</div>`;
+   *   }
+   * }
+   * customElements.define('my-element', MyElement);
+   *
+   * @extends HTMLElement
+   */
   class hyperElement extends HTMLElement {
+    /**
+     * Unique identifier for this element instance
+     * @type {symbol}
+     */
+    identifier;
     //++++++++++++++++++++++++++++++++ get element content
     //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -571,6 +624,37 @@
       //ref.teardown = null
       //Called when the element is removed from a document
     } // END disconnectedCallback
+
+    /**
+     * Optional setup lifecycle method. Called once when the element is connected.
+     * Use this to set up stores, subscriptions, or other initialization logic.
+     *
+     * @param {OnNextCallback} onNext - Call this with a store value or getter to enable reactive updates
+     * @returns {void|function(): void} Optional teardown function called when element is disconnected
+     *
+     * @example
+     * setup(onNext) {
+     *   const store = createStore({ count: 0 });
+     *   onNext(store.getState);
+     *   return store.subscribe(() => this.render());
+     * }
+     */
+    setup(onNext) {} // eslint-disable-line no-unused-vars
+
+    /**
+     * Required render lifecycle method. Called on every render cycle.
+     * Use the Html template tag to render content to the element.
+     *
+     * @param {HtmlFunction} Html - Tagged template literal function for rendering
+     * @param {...any} data - Additional data passed from store updates
+     * @returns {void}
+     *
+     * @example
+     * render(Html) {
+     *   Html`<div>Hello ${this.attrs.name}!</div>`;
+     * }
+     */
+    render(Html, ...data) {} // eslint-disable-line no-unused-vars
   }
 
   //=====================================================

@@ -4,6 +4,9 @@ Combining the best of [hyperHTML] and [Custom Elements]!
 
 [![npm version](https://img.shields.io/npm/v/hyper-element.svg)](https://www.npmjs.com/package/hyper-element)
 [![npm package size](https://img.shields.io/bundlephobia/minzip/hyper-element)](https://bundlephobia.com/package/hyper-element)
+[![CI](https://github.com/codemeasandwich/hyper-element/actions/workflows/publish.yml/badge.svg)](https://github.com/codemeasandwich/hyper-element/actions/workflows/publish.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/codemeasandwich/hyper-element)
 [![ES6+](https://img.shields.io/badge/ES6+-supported-blue.svg)](https://caniuse.com/es6)
 
 Your new custom-element will be rendered with the super fast [hyperHTML] and will react to tag attribute and store changes.
@@ -48,7 +51,29 @@ customElements.define(
 
 ## CDN (Browser)
 
-## why hyper-element
+For browser environments without a bundler, include both hyperHTML and hyper-element via CDN:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/build/hyperElement.min.js"></script>
+```
+
+The `hyperElement` class will be available globally on `window.hyperElement`.
+
+## Browser Support
+
+hyper-element requires native ES6 class support and the Custom Elements v1 API:
+
+| Browser | Version |
+| ------- | ------- |
+| Chrome  | 67+     |
+| Firefox | 63+     |
+| Safari  | 10.1+   |
+| Edge    | 79+     |
+
+For older browsers, a [Custom Elements polyfill](https://github.com/webcomponents/polyfills/tree/master/packages/custom-elements) may be required.
+
+## Why hyper-element
 
 - hyper-element is fast & small
   - With only 1 dependency: [hyperHTML]
@@ -65,6 +90,7 @@ customElements.define(
 
 ---
 
+- [Browser Support](#browser-support)
 - [Define a Custom Element](#define-a-custom-element)
 - [Api](#api)
   - [Define your element](#define-your-element)
@@ -84,6 +110,7 @@ customElements.define(
   - [backbone](#backbone)
   - [mobx](#mobx)
   - [redux](#redux)
+- [Development](#development)
 
 ---
 
@@ -94,7 +121,7 @@ customElements.define(
 <html>
   <head>
     <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/build/hyperElement.min.js"></script>
   </head>
   <body>
     <my-elem who="world"></my-elem>
@@ -367,7 +394,7 @@ setup(attachStore){
 
 Being able to set attributes at run-time should be the same for dealing with a native element and ones defined by hyper-element.
 
-**⚠ To support dynamic attributes on custom elements YOU MUST USE `customElements.define` which requires native ES6 support! Use the native source `/source/hyperElement.js` NOT `/source/bundle.js`**
+**⚠ To support dynamic attributes on custom elements YOU MUST USE `customElements.define` which requires native ES6 support! Use either `/source/hyperElement.js` (development) or `/build/hyperElement.min.js` (production).**
 
 This is what allows for the passing any dynamic attributes from parent to child custom element! You can also pass a `function` to a child element(that extends hyperElement).
 
@@ -442,7 +469,7 @@ In you document:
 Implementation:
 
 ```js
-document.registerElement(
+customElements.define(
   'my-list',
   class extends hyperElement {
     render(Html) {
@@ -598,7 +625,7 @@ and **one** of the following as the fragment's result:
 Implementation:
 
 ```js
-document.registerElement(
+customElements.define(
   'my-friends',
   class extends hyperElement {
     FriendCount(user) {
@@ -665,7 +692,7 @@ _Note: the different is whether or not a "values" is returned from the fragment 
 Implementation:
 
 ```js
-document.registerElement(
+customElements.define(
   'click-me',
   class extends hyperElement {
     Button() {
@@ -703,7 +730,7 @@ Rewritting the _my-friends_ example
 Implementation:
 
 ```js
-document.registerElement("my-friends",class extends hyperElement{
+customElements.define("my-friends",class extends hyperElement{
 
       FriendCount(user){
 
@@ -775,7 +802,7 @@ var user = new (Backbone.Model.extend({
   },
 }))(); //END Backbone.Model.extend
 
-document.registerElement(
+customElements.define(
   'my-profile',
   class extends hyperElement {
     setup(attachStore) {
@@ -797,7 +824,7 @@ const user = observable({
   name: 'Guest User',
 }); //END observable
 
-document.registerElement(
+customElements.define(
   'my-profile',
   class extends hyperElement {
     setup(attachStore) {
@@ -814,7 +841,7 @@ document.registerElement(
 ## redux
 
 ```js
-document.registerElement("my-profile", class extends hyperElement{
+customElements.define("my-profile", class extends hyperElement{
 
   setup(attachStore){
     store.subcribe(attachStore(store.getState)
@@ -825,6 +852,27 @@ document.registerElement("my-profile", class extends hyperElement{
   }// END render
 })// END my-profile
 ```
+
+---
+
+# Development
+
+## Quick Start
+
+```bash
+git clone https://github.com/codemeasandwich/hyper-element.git
+cd hyper-element
+npm install
+npm test
+```
+
+## Documentation
+
+- [Development Guide](docs/DEVELOPMENT.md) - Setup, scripts, and project structure
+- [Testing Guide](docs/TESTING.md) - How to run and write tests
+- [Contributing](CONTRIBUTING.md) - How to contribute to the project
+
+---
 
 [shadow-dom]: https://developers.google.com/web/fundamentals/web-components/shadowdom
 [innerHTML]: https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML
