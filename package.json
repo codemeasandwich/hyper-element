@@ -3,14 +3,12 @@
   "name": "hyper-element",
   "author": "Brian Shannon (github.com/codemeasandwich)",
   "description": "hyperHTML + WebComponents",
-  "main": "source/hyperElement.js",
+  "main": "build/hyperElement.js",
   "types": "index.d.ts",
   "files": [
-    "source/hyperElement.js",
     "build/hyperElement.min.js",
     "build/hyperElement.min.js.map",
-    "index.d.ts",
-    "README.md"
+    "index.d.ts"
   ],
   "scripts": {
     "build": "esbuild source/hyperElement.js --minify --sourcemap --outfile=build/hyperElement.min.js",
