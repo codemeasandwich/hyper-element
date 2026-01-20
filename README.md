@@ -1,7 +1,5 @@
 # hyper-element
 
-Combining the best of [hyperHTML] and [Custom Elements]!
-
 [![npm version](https://img.shields.io/npm/v/hyper-element.svg)](https://www.npmjs.com/package/hyper-element)
 [![npm package size](https://img.shields.io/bundlephobia/minzip/hyper-element)](https://bundlephobia.com/package/hyper-element)
 [![CI](https://github.com/codemeasandwich/hyper-element/actions/workflows/publish.yml/badge.svg)](https://github.com/codemeasandwich/hyper-element/actions/workflows/publish.yml)
@@ -9,7 +7,9 @@ Combining the best of [hyperHTML] and [Custom Elements]!
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/codemeasandwich/hyper-element)
 [![ES6+](https://img.shields.io/badge/ES6+-supported-blue.svg)](https://caniuse.com/es6)
 
-Your new custom-element will be rendered with the super fast [hyperHTML] and will react to tag attribute and store changes.
+Combining the best of [hyperHTML] and [Custom Elements]! Your new custom-element will be rendered with the super fast **hyperHTML** and will react to tag attribute and store changes.
+
+### If you like it, please [★ it on github](https://github.com/codemeasandwich/hyper-element)
 
 # Installation
 
@@ -78,7 +78,7 @@ For older browsers, a [Custom Elements polyfill](https://github.com/webcomponent
 - hyper-element is fast & small
   - With only 1 dependency: [hyperHTML]
 - With a completely stateless approach, setting and reseting the view is trivial
-- Simple yet powerful [Api](#api)
+- Simple yet powerful [Interface](#interface)
 - Built in [template](#templates) system to customise the rendered output
 - Inline style objects supported (similar to React)
 - First class support for [data stores](#connecting-to-a-data-store)
@@ -86,14 +86,24 @@ For older browsers, a [Custom Elements polyfill](https://github.com/webcomponent
 
 # [Live Demo](https://jsfiddle.net/codemeasandwich/k25e6ufv/)
 
-### If you like it, please [★ it on github](https://github.com/codemeasandwich/hyper-element)
+## Live Examples
+
+| Example              | Description                         | Link                                                       |
+| -------------------- | ----------------------------------- | ---------------------------------------------------------- |
+| Hello World          | Basic element creation              | [CodePen](https://codepen.io/codemeasandwich/pen/VOQpqz)   |
+| Attach a Store       | Store integration with setup()      | [CodePen](https://codepen.io/codemeasandwich/pen/VOQWeN)   |
+| Templates            | Using the template system           | [CodePen](https://codepen.io/codemeasandwich/pen/LoQLrK)   |
+| Child Element Events | Passing functions to child elements | [CodePen](https://codepen.io/codemeasandwich/pen/rgdvPX)   |
+| Async Fragments      | Loading content asynchronously      | [CodePen](https://codepen.io/codemeasandwich/pen/MdQrVd)   |
+| Styling              | React-style inline styles           | [CodePen](https://codepen.io/codemeasandwich/pen/RmQVKY)   |
+| Full Demo            | Complete feature demonstration      | [JSFiddle](https://jsfiddle.net/codemeasandwich/k25e6ufv/) |
 
 ---
 
 - [Browser Support](#browser-support)
 - [Define a Custom Element](#define-a-custom-element)
 - [Lifecycle](#lifecycle)
-- [Api](#api)
+- [Interface](#interface)
   - [render](#render)
   - [Html](#html)
   - [Html.wire](#htmlwire)
@@ -172,7 +182,7 @@ After initialization, the element will automatically re-render when:
 
 ---
 
-# Api
+# Interface
 
 ## Define your element
 
@@ -924,20 +934,6 @@ See [kitchensink/README.md](kitchensink/README.md) for the full testing guide.
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
-
----
-
-# Live Examples
-
-| Example              | Description                         | Link                                                       |
-| -------------------- | ----------------------------------- | ---------------------------------------------------------- |
-| Hello World          | Basic element creation              | [CodePen](https://codepen.io/codemeasandwich/pen/VOQpqz)   |
-| Attach a Store       | Store integration with setup()      | [CodePen](https://codepen.io/codemeasandwich/pen/VOQWeN)   |
-| Templates            | Using the template system           | [CodePen](https://codepen.io/codemeasandwich/pen/LoQLrK)   |
-| Child Element Events | Passing functions to child elements | [CodePen](https://codepen.io/codemeasandwich/pen/rgdvPX)   |
-| Async Fragments      | Loading content asynchronously      | [CodePen](https://codepen.io/codemeasandwich/pen/MdQrVd)   |
-| Styling              | React-style inline styles           | [CodePen](https://codepen.io/codemeasandwich/pen/RmQVKY)   |
-| Full Demo            | Complete feature demonstration      | [JSFiddle](https://jsfiddle.net/codemeasandwich/k25e6ufv/) |
 
 ---
 
