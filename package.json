@@ -12,9 +12,9 @@
   ],
   "scripts": {
     "build": "node scripts/build.js",
-    "test": "npm run build && playwright test",
-    "test:ui": "npm run build && playwright test --ui",
-    "test:headed": "npm run build && playwright test --headed",
+    "test": "npm run build && playwright test; rm -rf build",
+    "test:ui": "npm run build && playwright test --ui; rm -rf build",
+    "test:headed": "npm run build && playwright test --headed; rm -rf build",
     "kitchensink": "npx serve .",
     "release": "bash scripts/publish.sh",
     "hooks:install": "cp .hooks/pre-commit .git/hooks/ && cp .hooks/commit-msg .git/hooks/ && cp -r .hooks/pre-commit.d .git/hooks/ && chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/pre-commit.d/*.sh",
