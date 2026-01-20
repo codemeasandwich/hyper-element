@@ -244,6 +244,35 @@ setup(attachStore){
 }// END setup
 ```
 
+#### Event callbacks from external sources
+
+Use `attachStore()` without arguments to get a trigger function for external events:
+
+```js
+// External event system
+const callbacks = []
+function onMessage(cb) { callbacks.push(cb) }
+function emitMessage(msg) { callbacks.forEach(cb => cb(msg)) }
+
+// Element definition
+customElements.define("chat-messages", class extends hyperElement {
+  messages = []
+
+  setup(attachStore) {
+    const triggerRender = attachStore() // No state function needed
+
+    onMessage((msg) => {
+      this.messages.push(msg)
+      triggerRender() // Re-renders with updated this.messages
+    })
+  }
+
+  render(Html) {
+    Html`<ul>${this.messages.map(m => Html.wire(m, ':msg')`<li>${m}</li>`)}</ul>`
+  }
+})
+```
+
 #### Set initial values to pass to every render
 
 Example of hard coding an object that will be used on **every** render
