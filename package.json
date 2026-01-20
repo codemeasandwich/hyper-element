@@ -4,10 +4,12 @@
   "author": "Brian Shannon (github.com/codemeasandwich)",
   "description": "hyperHTML + WebComponents",
   "main": "source/hyperElement.js",
+  "types": "index.d.ts",
   "files": [
     "source/hyperElement.js",
     "build/hyperElement.min.js",
     "build/hyperElement.min.js.map",
+    "index.d.ts",
     "README.md"
   ],
   "scripts": {
@@ -57,6 +59,7 @@
     "prettier": "^3.8.0",
     "serve": "^14.2.5",
     "set-value": "^2.0.1",
+    "typescript": "^5.9.3",
     "union-value": "^2.0.1",
     "v8-to-istanbul": "^9.3.0"
   }
