@@ -288,6 +288,10 @@ function  createdCallback(){
                if("on" === attrName.substring(0,2)){
                  throw new Error(`'on' is reserve for native elements. Change: "${attrName}" for "${localName}" to something else`)
                }
+               // Don't intercept style - let hyperHTML handle it natively
+               if("style" === attrName){
+                 return
+               }
                const id = makeid()
                sharedAttrs[id] = { attrName, val, localName }
                args[index+1] = ("function" === typeof val ? 'fn-':'ob-')+id;
