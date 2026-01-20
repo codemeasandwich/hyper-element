@@ -9,7 +9,8 @@
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
-    "kitchensink": "npx serve ."
+    "kitchensink": "npx serve .",
+    "release": "bash scripts/publish.sh"
   },
   "license": "MIT",
   "repository": {
