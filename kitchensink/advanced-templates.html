@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Templates - hyper-element Kitchen Sink</title>
+  <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/min.js"></script>
+  <script src="../source/hyperElement.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    section { margin: 2rem 0; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; }
+    section[data-test-result="pass"] { border-color: green; background: #f0fff0; }
+    section[data-test-result="fail"] { border-color: red; background: #fff0f0; }
+    h1 { border-bottom: 2px solid #333; }
+    h2 { margin-top: 0; }
+    pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Advanced Templates</h1>
+  <p>Tests handlebars-like templating features: conditionals, iteration, etc.</p>
+
+  <!-- Test: Simple variable substitution (existing feature) -->
+  <section data-test="simple-variable" data-test-result="pending">
+    <h2>Simple Variable Substitution</h2>
+    <p>Basic {variable} substitution should still work.</p>
+    <simple-template-elem template>Hello {name}!</simple-template-elem>
+    <script>
+      customElements.define("simple-template-elem", class extends hyperElement {
+        render(Html) {
+          Html`${Html.template({ name: "Alice" })}`
+        }
+      });
+
+      requestAnimationFrame(() => {
+        const section = document.querySelector('[data-test="simple-variable"]');
+        const elem = document.querySelector('simple-template-elem');
+        const pass = elem && elem.textContent.includes('Hello Alice!');
+        section.dataset.testResult = pass ? 'pass' : 'fail';
+      });
+    </script>
+  </section>
+
+  <!-- Test: #if conditional (truthy) -->
+  <section data-test="if-truthy" data-test-result="pending">
+    <h2>If Conditional (Truthy)</h2>
+    <p>{#if condition}...{/if} should render content when condition is truthy.</p>
+    <if-truthy-elem template>{#if show}Message: {message}{/if}</if-truthy-elem>
+    <script>
+      customElements.define("if-truthy-elem", class extends hyperElement {
+        render(Html) {
+          Html`${Html.template({ show: true, message: "VISIBLE" })}`
+        }
+      });
+
+      requestAnimationFrame(() => {
+        const section = document.querySelector('[data-test="if-truthy"]');
+        const elem = document.querySelector('if-truthy-elem');
+        const pass = elem && elem.textContent.includes('Message: VISIBLE');
+        console.log('if-truthy:', elem ? elem.textContent : 'null', 'pass:', pass);
+        section.dataset.testResult = pass ? 'pass' : 'fail';
+      });
+    </script>
+  </section>
+
+  <!-- Test: #if conditional (falsy) -->
+  <section data-test="if-falsy" data-test-result="pending">
+    <h2>If Conditional (Falsy)</h2>
+    <p>{#if condition}...{/if} should NOT render content when condition is falsy.</p>
+    <if-falsy-elem template>Before{#if show}SHOULD_NOT_APPEAR{/if}After</if-falsy-elem>
+    <script>
+      customElements.define("if-falsy-elem", class extends hyperElement {
+        render(Html) {
+          Html`${Html.template({ show: false })}`
+        }
+      });
+
+      requestAnimationFrame(() => {
+        const section = document.querySelector('[data-test="if-falsy"]');
+        const elem = document.querySelector('if-falsy-elem');
+        const pass = elem && elem.textContent.trim() === 'BeforeAfter';
+        console.log('if-falsy:', elem ? elem.textContent : 'null', 'pass:', pass);
+        section.dataset.testResult = pass ? 'pass' : 'fail';
+      });
+    </script>
+  </section>
+
+  <!-- Test: #if with else -->
+  <section data-test="if-else" data-test-result="pending">
+    <h2>If/Else Conditional</h2>
+    <p>{#if condition}...{else}...{/if} should render the else branch when condition is falsy.</p>
+    <if-else-elem template>{#if active}ACTIVE{else}INACTIVE{/if}</if-else-elem>
+    <script>
+      customElements.define("if-else-elem", class extends hyperElement {
+        render(Html) {
+          Html`${Html.template({ active: false })}`
+        }
+      });
+
+      requestAnimationFrame(() => {
+        const section = document.querySelector('[data-test="if-else"]');
+        const elem = document.querySelector('if-else-elem');
+        const pass = elem && elem.textContent.trim() === 'INACTIVE';
+        console.log('if-else:', elem ? elem.textContent : 'null', 'pass:', pass);
+        section.dataset.testResult = pass ? 'pass' : 'fail';
+      });
+    </script>
+  </section>
+
+  <!-- Test: #each iteration -->
+  <section data-test="each-iteration" data-test-result="pending">
+    <h2>Each Iteration</h2>
+    <p>{#each items}{.}{/each} should iterate over arrays. Use {.} for current item.</p>
+    <each-elem template>{#each items}{.},{/each}</each-elem>
+    <script>
+      customElements.define("each-elem", class extends hyperElement {
+        render(Html) {
+          Html`${Html.template({ items: ["A", "B", "C"] })}`
+        }
+      });
+
+      requestAnimationFrame(() => {
+        const section = document.querySelector('[data-test="each-iteration"]');
+        const elem = document.querySelector('each-elem');
+        const pass = elem && elem.textContent.trim() === 'A,B,C,';
+        console.log('each:', elem ? elem.textContent : 'null', 'pass:', pass);
+        section.dataset.testResult = pass ? 'pass' : 'fail';
+      });
+    </script>
+  </section>
+
+  <!-- Test: #each with object properties -->
+  <section data-test="each-objects" data-test-result="pending">
+    <h2>Each with Object Properties</h2>
+    <p>{#each items}{name}{/each} should access object properties in the loop.</p>
+    <each-obj-elem template>{#each users}{name} {/each}</each-obj-elem>
+    <script>
+      customElements.define("each-obj-elem", class extends hyperElement {
+        render(Html) {
+          Html`${Html.template({ users: [{name: "Ann"}, {name: "Bob"}] })}`
+        }
+      });
+
+      requestAnimationFrame(() => {
+        const section = document.querySelector('[data-test="each-objects"]');
+        const elem = document.querySelector('each-obj-elem');
+        const pass = elem && elem.textContent.trim() === 'Ann Bob';
+        console.log('each-obj:', elem ? elem.textContent : 'null', 'pass:', pass);
+        section.dataset.testResult = pass ? 'pass' : 'fail';
+      });
+    </script>
+  </section>
+
+  <!-- Test: #unless -->
+  <section data-test="unless" data-test-result="pending">
+    <h2>Unless Conditional</h2>
+    <p>{#unless condition}...{/unless} should render when condition is falsy (opposite of #if).</p>
+    <unless-elem template>{#unless hidden}SHOWN{/unless}</unless-elem>
+    <script>
+      customElements.define("unless-elem", class extends hyperElement {
+        render(Html) {
+          Html`${Html.template({ hidden: false })}`
+        }
+      });
+
+      requestAnimationFrame(() => {
+        const section = document.querySelector('[data-test="unless"]');
+        const elem = document.querySelector('unless-elem');
+        const pass = elem && elem.textContent.trim() === 'SHOWN';
+        console.log('unless:', elem ? elem.textContent : 'null', 'pass:', pass);
+        section.dataset.testResult = pass ? 'pass' : 'fail';
+      });
+    </script>
+  </section>
+
+  <a href="index.html">&larr; Back to Kitchen Sink</a>
+</body>
+</html>

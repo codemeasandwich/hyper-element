@@ -123,9 +123,74 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     });
   }
 
-  function buildTemplate(innerHTML) {
+  // Process handlebars-like constructs in template
+  function processAdvancedTemplate(template, data) {
+    var result = template;
 
-    var re = /(\{[\w]+\})/g; // /\s*(\{[\w]+\})\s*/g
+    // Process {#each array}...{/each}
+    var eachRegex = /\{#each\s+(\w+)\}([\s\S]*?)\{\/each\}/g;
+    result = result.replace(eachRegex, function (match, arrayName, content) {
+      var arr = data[arrayName];
+      if (!Array.isArray(arr)) return '';
+      return arr.map(function (item, index) {
+        var itemContent = content;
+        // Replace {.} with current item (for primitives)
+        itemContent = itemContent.replace(/\{\.\}/g, item);
+        // Replace {@index} with current index
+        itemContent = itemContent.replace(/\{@index\}/g, index);
+        // If item is object, replace {prop} with item.prop
+        if ((typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && item !== null) {
+          Object.keys(item).forEach(function (key) {
+            itemContent = itemContent.replace(new RegExp('\\{' + key + '\\}', 'g'), item[key]);
+          });
+        }
+        return itemContent;
+      }).join('');
+    });
+
+    // Process {#if condition}...{else}...{/if}
+    var ifElseRegex = /\{#if\s+(\w+)\}([\s\S]*?)\{else\}([\s\S]*?)\{\/if\}/g;
+    result = result.replace(ifElseRegex, function (match, condition, ifContent, elseContent) {
+      return data[condition] ? ifContent : elseContent;
+    });
+
+    // Process {#if condition}...{/if} (without else)
+    var ifRegex = /\{#if\s+(\w+)\}([\s\S]*?)\{\/if\}/g;
+    result = result.replace(ifRegex, function (match, condition, content) {
+      return data[condition] ? content : '';
+    });
+
+    // Process {#unless condition}...{/unless}
+    var unlessRegex = /\{#unless\s+(\w+)\}([\s\S]*?)\{\/unless\}/g;
+    result = result.replace(unlessRegex, function (match, condition, content) {
+      return data[condition] ? '' : content;
+    });
+
+    return result;
+  }
+
+  function buildTemplate(innerHTML) {
+    // Check if template has advanced features
+    var hasAdvanced = /\{#(if|each|unless)\s/.test(innerHTML);
+
+    if (hasAdvanced) {
+      // Use advanced template processing
+      return function template(data) {
+        if ("object" !== (typeof data === 'undefined' ? 'undefined' : _typeof(data))) {
+          throw new Error("Templates must be passed an object. You passed " + JSON.stringify(data));
+        }
+        // Process advanced template features
+        var result = processAdvancedTemplate(innerHTML, data);
+        // Simple variable substitution for remaining {var} patterns
+        result = result.replace(/\{(\w+)\}/g, function (match, key) {
+          return data[key] != null ? data[key] : '';
+        });
+        return result;
+      };
+    }
+
+    // Original simple template processing
+    var re = /(\{[\w]+\})/g;
     var templateVals = innerHTML.split(re).reduce(function (vals, item) {
 
       if ("{" === item[0] && "}" === item.slice(-1)) {
