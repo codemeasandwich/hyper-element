@@ -16,6 +16,7 @@ Thank you for your interest in contributing to hyper-element!
 ### Suggesting Features
 
 Open an issue with the `enhancement` label describing:
+
 - The use case for the feature
 - How it would work
 - Any potential drawbacks
@@ -52,22 +53,23 @@ We use [Conventional Commits](https://www.conventionalcommits.org/). Each commit
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| `feat` | A new feature |
-| `fix` | A bug fix |
-| `docs` | Documentation changes |
-| `style` | Code style changes (formatting, semicolons, etc.) |
+| Type       | Description                                         |
+| ---------- | --------------------------------------------------- |
+| `feat`     | A new feature                                       |
+| `fix`      | A bug fix                                           |
+| `docs`     | Documentation changes                               |
+| `style`    | Code style changes (formatting, semicolons, etc.)   |
 | `refactor` | Code changes that neither fix bugs nor add features |
-| `perf` | Performance improvements |
-| `test` | Adding or updating tests |
-| `build` | Build system or dependency changes |
-| `ci` | CI configuration changes |
-| `chore` | Other changes that don't modify src or test files |
+| `perf`     | Performance improvements                            |
+| `test`     | Adding or updating tests                            |
+| `build`    | Build system or dependency changes                  |
+| `ci`       | CI configuration changes                            |
+| `chore`    | Other changes that don't modify src or test files   |
 
 ### Breaking Changes
 
 For breaking changes, add `!` after the type:
+
 ```bash
 git commit -m "feat!: remove deprecated API"
 ```

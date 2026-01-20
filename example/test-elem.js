@@ -1,91 +1,91 @@
 'use strict';
-(()=>{
+(() => {
+  //=====================================================
+  //============================= Example: simple element
+  //=====================================================
 
-//=====================================================
-//============================= Example: simple element
-//=====================================================
-
-    document.registerElement("the-max", class extends hyperElement{
-      render(Html){
-        Html`MAX:${this.props.max}`
+  document.registerElement(
+    'the-max',
+    class extends hyperElement {
+      render(Html) {
+        Html`MAX:${this.props.max}`;
       }
-    })
+    }
+  );
 
-//=====================================================
-//============================= Example: using backbone
-//=====================================================
+  //=====================================================
+  //============================= Example: using backbone
+  //=====================================================
 
-//+++++++++++++++++++++++++++++++++++++ Backbone Model
-//++++++++++++++++++++++++++++++++++++++++++++++++++++
+  //+++++++++++++++++++++++++++++++++++++ Backbone Model
+  //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    var person = new (Backbone.Model.extend({
-        defaults: {
-            name: 'Guest User',
-        }
-    }));
+  var person = new (Backbone.Model.extend({
+    defaults: {
+      name: 'Guest User',
+    },
+  }))();
 
-    // to change from console !!!!!
-    window.person = person;
+  // to change from console !!!!!
+  window.person = person;
 
-//++++++++++++++++++++++++++++++++++++++++ The Element
-//++++++++++++++++++++++++++++++++++++++++++++++++++++
+  //++++++++++++++++++++++++++++++++++++++++ The Element
+  //++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    document.registerElement("my-profile", class extends hyperElement{
-
-      setup(onNext){
-        person.on("change",onNext(person.toJSON.bind(person)));
+  document.registerElement(
+    'my-profile',
+    class extends hyperElement {
+      setup(onNext) {
+        person.on('change', onNext(person.toJSON.bind(person)));
         // OR person.on("change",onNext(()=>person.toJSON()));
       }
 
-      render(Html,{name}){
-        Html`Profile: ${name}`
+      render(Html, { name }) {
+        Html`Profile: ${name}`;
       }
-    })
+    }
+  );
 
+  //=====================================================
+  //================================= Example: using mobx
+  //======================================== using a wire
 
-//=====================================================
-//================================= Example: using mobx
-//======================================== using a wire
-
-    document.registerElement("alex-rocks", class extends hyperElement{
-
-      setup(onNext){
+  document.registerElement(
+    'alex-rocks',
+    class extends hyperElement {
+      setup(onNext) {
         mobx.autorun(onNext(window.appState));
       }
 
-      render(Html,{devices}){
-
+      render(Html, { devices }) {
         const _ = Html.lite;
 
         Html`
 
         Your devices
-        <ul>${
-
-        devices.map(num=> _`<li>${num}</li>`)
-
-        }</ul>
-        <the-max max=20 />`
+        <ul>${devices.map((num) => _`<li>${num}</li>`)}</ul>
+        <the-max max=20 />`;
       }
-    })
-
-//=====================================================
-//================================= Example: using mobx
-//========================================= with inputs
-
-  document.registerElement("test-elem", class extends hyperElement{
-
-    setup(onNext){
-      mobx.autorun(onNext(window.appState));
     }
+  );
 
-    render(Html,store){
+  //=====================================================
+  //================================= Example: using mobx
+  //========================================= with inputs
 
-      const max = this.props.max || 100
+  document.registerElement(
+    'test-elem',
+    class extends hyperElement {
+      setup(onNext) {
+        mobx.autorun(onNext(window.appState));
+      }
 
-      Html`
+      render(Html, store) {
+        const max = this.props.max || 100;
 
-          <h1 style=${{color:store.temperature < max ? "green":"red"}}>
+        Html`
+
+          <h1 style=${{ color: store.temperature < max ? 'green' : 'red' }}>
                temperature: ${store.temperature}
           </h1>
           ${store.fullName} ${store.completedCount} ${store.todos.length}
@@ -98,21 +98,21 @@
           <br/>
           <alex-rocks />
 
-      `}
-
-      onkeyup({key}){
-        if("Enter" === key)
-        this.save()
+      `;
       }
 
-      save(){
-          this.store.devices.push(this.store.form);
-          this.store.form = "";
+      onkeyup({ key }) {
+        if ('Enter' === key) this.save();
       }
 
-      oninput(event){
-        this.store.form = event.target.value
+      save() {
+        this.store.devices.push(this.store.form);
+        this.store.form = '';
       }
-  })
 
-})()
+      oninput(event) {
+        this.store.form = event.target.value;
+      }
+    }
+  );
+})();

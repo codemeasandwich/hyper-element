@@ -13,18 +13,18 @@ function checkFileJSDoc(content) {
   const trimmedContent = content.trimStart();
 
   // Check if file starts with JSDoc (allow shebang before)
-  if (!trimmedContent.startsWith("/**")) {
-    const lines = trimmedContent.split("\n");
+  if (!trimmedContent.startsWith('/**')) {
+    const lines = trimmedContent.split('\n');
     const firstNonShebang = lines.findIndex(
-      (l) => !l.startsWith("#!") && l.trim() !== "",
+      (l) => !l.startsWith('#!') && l.trim() !== ''
     );
 
     if (
       firstNonShebang === -1 ||
-      !lines[firstNonShebang].trim().startsWith("/**")
+      !lines[firstNonShebang].trim().startsWith('/**')
     ) {
       errors.push(
-        `Line 1: File must start with a JSDoc comment (/** @file ... */)`,
+        `Line 1: File must start with a JSDoc comment (/** @file ... */)`
       );
     }
   }
@@ -33,7 +33,7 @@ function checkFileJSDoc(content) {
   const firstJSDocMatch = content.match(/\/\*\*[\s\S]*?\*\//);
   if (firstJSDocMatch && !/@file(overview)?\b/.test(firstJSDocMatch[0])) {
     errors.push(
-      `Line 1: File-level JSDoc should include @file or @fileoverview tag`,
+      `Line 1: File-level JSDoc should include @file or @fileoverview tag`
     );
   }
 

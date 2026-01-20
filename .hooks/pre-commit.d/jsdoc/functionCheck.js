@@ -3,9 +3,13 @@
  * Validates that functions have proper JSDoc documentation.
  */
 
-const { extractJSDocBefore, parseParams, hasReturnsTag, parseFunctionParams } =
-  require("./parsers.js");
-const { hasReturnValue, findClosingBrace } = require("./utils.js");
+const {
+  extractJSDocBefore,
+  parseParams,
+  hasReturnsTag,
+  parseFunctionParams,
+} = require('./parsers.js');
+const { hasReturnValue, findClosingBrace } = require('./utils.js');
 
 /**
  * Checks JSDoc for a single function
@@ -22,19 +26,18 @@ function checkFunctionJSDoc(func, lines, content) {
   let jsdocEndLine = lineNumber - 2; // 0-indexed, line before function
 
   // Skip blank lines and find JSDoc
-  while (jsdocEndLine >= 0 && lines[jsdocEndLine].trim() === "") {
+  while (jsdocEndLine >= 0 && lines[jsdocEndLine].trim() === '') {
     jsdocEndLine--;
   }
 
   // Check if we have a JSDoc block ending here
-  const jsdoc =
-    lines[jsdocEndLine]?.includes("*/")
-      ? extractJSDocBefore(lines, jsdocEndLine)
-      : null;
+  const jsdoc = lines[jsdocEndLine]?.includes('*/')
+    ? extractJSDocBefore(lines, jsdocEndLine)
+    : null;
 
   if (!jsdoc) {
     errors.push(
-      `Line ${lineNumber}: Function '${funcName}' is missing JSDoc comment`,
+      `Line ${lineNumber}: Function '${funcName}' is missing JSDoc comment`
     );
     return errors;
   }
@@ -65,7 +68,7 @@ function checkParams(errors, lineNumber, funcName, paramsStr, jsdocText) {
   for (const param of filteredExpected) {
     if (!docParams.includes(param)) {
       errors.push(
-        `Line ${lineNumber}: Function '${funcName}' - @param '${param}' missing in JSDoc`,
+        `Line ${lineNumber}: Function '${funcName}' - @param '${param}' missing in JSDoc`
       );
     }
   }
@@ -73,11 +76,10 @@ function checkParams(errors, lineNumber, funcName, paramsStr, jsdocText) {
   // Check for extra @param tags
   for (const docParam of docParams) {
     if (!filteredExpected.includes(docParam) && filteredExpected.length > 0) {
-      const isDestructured =
-        paramsStr.includes("{") || paramsStr.includes("[");
+      const isDestructured = paramsStr.includes('{') || paramsStr.includes('[');
       if (!isDestructured) {
         errors.push(
-          `Line ${lineNumber}: Function '${funcName}' - @param '${docParam}' not in function signature`,
+          `Line ${lineNumber}: Function '${funcName}' - @param '${docParam}' not in function signature`
         );
       }
     }
@@ -94,7 +96,7 @@ function checkParams(errors, lineNumber, funcName, paramsStr, jsdocText) {
  * @param {string} jsdocText - JSDoc text
  */
 function checkReturns(errors, lineNumber, funcName, index, content, jsdocText) {
-  const braceIndex = content.indexOf("{", index);
+  const braceIndex = content.indexOf('{', index);
   if (braceIndex === -1) return;
 
   const closeBrace = findClosingBrace(content, braceIndex);
@@ -103,7 +105,7 @@ function checkReturns(errors, lineNumber, funcName, index, content, jsdocText) {
   const body = content.slice(braceIndex, closeBrace + 1);
   if (hasReturnValue(body) && !hasReturnsTag(jsdocText)) {
     errors.push(
-      `Line ${lineNumber}: Function '${funcName}' returns a value but has no @returns tag`,
+      `Line ${lineNumber}: Function '${funcName}' returns a value but has no @returns tag`
     );
   }
 }

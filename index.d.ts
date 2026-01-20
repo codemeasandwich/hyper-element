@@ -18,7 +18,10 @@ export interface HtmlFunction {
    * @param obj - Object to bind the template to
    * @param id - Optional template identifier
    */
-  wire(obj: object, id?: string): (strings: TemplateStringsArray, ...values: any[]) => any;
+  wire(
+    obj: object,
+    id?: string
+  ): (strings: TemplateStringsArray, ...values: any[]) => any;
 
   /**
    * Create a lightweight template without wire binding
@@ -56,7 +59,11 @@ export interface FragmentResult {
   /** Render only once */
   once?: boolean;
   /** Template string or promise resolving to template */
-  template?: string | Promise<string | { template: string; values: Record<string, any> | any[] }>;
+  template?:
+    | string
+    | Promise<
+        string | { template: string; values: Record<string, any> | any[] }
+      >;
   /** Template values */
   values?: Record<string, any> | any[];
   /** Text content */
@@ -71,7 +78,9 @@ export interface FragmentResult {
  * Callback for store updates in setup.
  * Call this with a store value or getter function to enable reactive updates.
  */
-export type OnNextCallback = (store: any | (() => any)) => (...data: any[]) => void;
+export type OnNextCallback = (
+  store: any | (() => any)
+) => (...data: any[]) => void;
 
 /**
  * Base class for creating custom elements with hyperHTML templating.

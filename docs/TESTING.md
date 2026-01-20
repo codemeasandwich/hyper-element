@@ -21,6 +21,7 @@ npm run test:ui
 ```
 
 This opens the Playwright UI where you can:
+
 - See tests running in real-time
 - Step through tests
 - View screenshots and traces
@@ -70,6 +71,7 @@ Each HTML file in `kitchensink/` is a self-contained test scenario that:
 3. Contains assertions using `data-test-result` attributes
 
 The `kitchensink.spec.js` file:
+
 - Auto-discovers all HTML test files
 - Runs each test against both source and minified builds
 - Collects V8 coverage data
@@ -79,6 +81,7 @@ The `kitchensink.spec.js` file:
 ## Coverage Requirements
 
 **100% code coverage is required** for all contributions:
+
 - Statements: 100%
 - Branches: 100%
 - Functions: 100%
@@ -89,6 +92,7 @@ Coverage is checked automatically by the pre-commit hook. If coverage drops belo
 ### Viewing Coverage Reports
 
 After running tests, coverage reports are generated in:
+
 - `coverage/coverage-final.json` - Machine-readable coverage data
 - `coverage/v8-coverage.json` - V8 format coverage
 
@@ -99,20 +103,23 @@ After running tests, coverage reports are generated in:
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <script src="../source/hyperElement.js"></script>
-</head>
-<body>
-  <my-test-elem></my-test-elem>
+  <head>
+    <script src="../source/hyperElement.js"></script>
+  </head>
+  <body>
+    <my-test-elem></my-test-elem>
 
-  <script>
-    customElements.define('my-test-elem', class extends hyperElement {
-      render(Html) {
-        Html`<div data-test-result="pass">Test passed!</div>`;
-      }
-    });
-  </script>
-</body>
+    <script>
+      customElements.define(
+        'my-test-elem',
+        class extends hyperElement {
+          render(Html) {
+            Html`<div data-test-result="pass">Test passed!</div>`;
+          }
+        }
+      );
+    </script>
+  </body>
 </html>
 ```
 
@@ -124,9 +131,9 @@ After running tests, coverage reports are generated in:
 
 Tests run in two parallel projects:
 
-| Project | Description |
-|---------|-------------|
-| `source` | Tests against `/source/hyperElement.js` |
+| Project    | Description                                |
+| ---------- | ------------------------------------------ |
+| `source`   | Tests against `/source/hyperElement.js`    |
 | `minified` | Tests against `/build/hyperElement.min.js` |
 
 This ensures both the development source and production build work identically.
@@ -141,6 +148,7 @@ This ensures both the development source and production build work identically.
 ## Continuous Integration
 
 Tests run automatically on GitHub Actions for:
+
 - Every pull request
 - Every push to main branch
 - Release workflows

@@ -21,12 +21,12 @@ const FUNCTION_PATTERNS = [
  * @type {Set<string>}
  */
 const SKIP_NAMES = new Set([
-  "function",
-  "if",
-  "for",
-  "while",
-  "switch",
-  "catch",
+  'function',
+  'if',
+  'for',
+  'while',
+  'switch',
+  'catch',
 ]);
 
 /**
@@ -52,9 +52,9 @@ function findFunctions(content) {
 
     while ((match = pattern.exec(content)) !== null) {
       const beforeMatch = content.slice(0, match.index);
-      const lineNumber = beforeMatch.split("\n").length;
-      const funcName = match[2] || "anonymous";
-      const paramsStr = match[3] || "";
+      const lineNumber = beforeMatch.split('\n').length;
+      const funcName = match[2] || 'anonymous';
+      const paramsStr = match[3] || '';
 
       if (isGetterSetter(match[0])) continue;
       if (SKIP_NAMES.has(funcName)) continue;

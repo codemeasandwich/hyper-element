@@ -10,12 +10,14 @@ This guide covers setting up the development environment for hyper-element.
 ## Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/codemeasandwich/hyper-element.git
    cd hyper-element
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -24,17 +26,17 @@ This guide covers setting up the development environment for hyper-element.
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run build` | Build minified production bundle with source maps |
-| `npm test` | Run Playwright tests with coverage |
-| `npm run test:ui` | Run tests with Playwright UI for debugging |
-| `npm run test:headed` | Run tests in headed browser mode |
-| `npm run kitchensink` | Start local dev server for examples |
-| `npm run lint` | Run ESLint to check for code issues |
-| `npm run format` | Check Prettier formatting |
-| `npm run format:fix` | Auto-fix Prettier formatting issues |
-| `npm run release` | Run the release script (maintainers only) |
+| Command               | Description                                       |
+| --------------------- | ------------------------------------------------- |
+| `npm run build`       | Build minified production bundle with source maps |
+| `npm test`            | Run Playwright tests with coverage                |
+| `npm run test:ui`     | Run tests with Playwright UI for debugging        |
+| `npm run test:headed` | Run tests in headed browser mode                  |
+| `npm run kitchensink` | Start local dev server for examples               |
+| `npm run lint`        | Run ESLint to check for code issues               |
+| `npm run format`      | Check Prettier formatting                         |
+| `npm run format:fix`  | Auto-fix Prettier formatting issues               |
+| `npm run release`     | Run the release script (maintainers only)         |
 
 ## Project Structure
 
@@ -67,6 +69,7 @@ npm run build
 ```
 
 This produces:
+
 - `build/hyperElement.min.js` - Minified bundle (~6.2 KB)
 - `build/hyperElement.min.js.map` - Source map for debugging
 
@@ -108,6 +111,7 @@ This starts a server at `http://localhost:5555` where you can view and test the 
 - All files are automatically checked on commit
 
 Run formatting manually:
+
 ```bash
 npm run format:fix
 ```

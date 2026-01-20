@@ -11,8 +11,8 @@
 function hasReturnValue(body) {
   // Remove strings and comments to avoid false positives
   const cleaned = body
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/\/\/.*/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*/g, '')
     .replace(/'(?:[^'\\]|\\.)*'/g, '""')
     .replace(/"(?:[^"\\]|\\.)*"/g, '""')
     .replace(/`(?:[^`\\]|\\.)*`/g, '""');
@@ -32,23 +32,23 @@ function findClosingBrace(content, startIndex) {
   let depth = 1;
   let i = startIndex + 1;
   let inString = false;
-  let stringChar = "";
+  let stringChar = '';
 
   while (i < content.length && depth > 0) {
     const char = content[i];
     const prev = content[i - 1];
 
     if (inString) {
-      if (char === stringChar && prev !== "\\") {
+      if (char === stringChar && prev !== '\\') {
         inString = false;
       }
     } else {
-      if (char === '"' || char === "'" || char === "`") {
+      if (char === '"' || char === "'" || char === '`') {
         inString = true;
         stringChar = char;
-      } else if (char === "{") {
+      } else if (char === '{') {
         depth++;
-      } else if (char === "}") {
+      } else if (char === '}') {
         depth--;
       }
     }

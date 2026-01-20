@@ -10,13 +10,13 @@
  */
 function extractJSDocBefore(lines, endLine) {
   let i = endLine;
-  while (i >= 0 && !lines[i].includes("/**")) {
+  while (i >= 0 && !lines[i].includes('/**')) {
     i--;
   }
   if (i < 0) return null;
 
-  const text = lines.slice(i, endLine + 1).join("\n");
-  if (!text.includes("/**") || !text.includes("*/")) return null;
+  const text = lines.slice(i, endLine + 1).join('\n');
+  if (!text.includes('/**') || !text.includes('*/')) return null;
 
   return { text, startLine: i + 1, endLine: endLine + 1 };
 }
@@ -33,7 +33,7 @@ function parseParams(jsdoc) {
   let match;
   while ((match = paramRegex.exec(jsdoc)) !== null) {
     // Remove brackets for optional params [param] -> param
-    params.push(match[1].replace(/^\[|\]$/g, ""));
+    params.push(match[1].replace(/^\[|\]$/g, ''));
   }
   return params;
 }
@@ -56,18 +56,18 @@ function extractParamName(param) {
   if (!param) return null;
 
   // Rest parameter: ...args
-  if (param.startsWith("...")) {
-    return param.slice(3).split("=")[0].trim();
+  if (param.startsWith('...')) {
+    return param.slice(3).split('=')[0].trim();
   }
 
   // Destructured parameter: { a, b } or [a, b]
   // Skip validation for destructured params
-  if (param.startsWith("{") || param.startsWith("[")) {
+  if (param.startsWith('{') || param.startsWith('[')) {
     return null;
   }
 
   // Regular parameter: name or name = default
-  return param.split("=")[0].trim();
+  return param.split('=')[0].trim();
 }
 
 /**
@@ -84,15 +84,15 @@ function parseFunctionParams(signature) {
 
   const params = [];
   let depth = 0;
-  let current = "";
+  let current = '';
 
   for (const char of paramsStr) {
-    if (char === "{" || char === "[" || char === "(") depth++;
-    else if (char === "}" || char === "]" || char === ")") depth--;
-    else if (char === "," && depth === 0) {
+    if (char === '{' || char === '[' || char === '(') depth++;
+    else if (char === '}' || char === ']' || char === ')') depth--;
+    else if (char === ',' && depth === 0) {
       const param = extractParamName(current.trim());
       if (param) params.push(param);
-      current = "";
+      current = '';
       continue;
     }
     current += char;
