@@ -16,8 +16,19 @@ module.exports = defineConfig({
 
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'source',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Test against source file (default)
+      },
+    },
+    {
+      name: 'minified',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Test against minified build
+        buildType: 'minified',
+      },
     },
   ],
 
