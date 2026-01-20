@@ -12,8 +12,8 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  Checking source files..."
 echo ""
 
-# Run ESLint on source directory
-npx eslint source/ 2>&1
+# Run ESLint on src directory
+npx eslint src/ 2>&1
 
 RESULT=$?
 

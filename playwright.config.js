@@ -1,3 +1,8 @@
+/**
+ * @file Playwright configuration for hyper-element tests.
+ * Configures test runner, web server, and browser settings.
+ */
+
 const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
@@ -16,18 +21,9 @@ module.exports = defineConfig({
 
   projects: [
     {
-      name: 'source',
+      name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // Test against source file (default)
-      },
-    },
-    {
-      name: 'minified',
-      use: {
-        ...devices['Desktop Chrome'],
-        // Test against minified build
-        buildType: 'minified',
       },
     },
   ],

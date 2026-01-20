@@ -11,11 +11,10 @@
     "index.d.ts"
   ],
   "scripts": {
-    "build": "node scripts/build.js --prod",
-    "build:dev": "node scripts/build.js",
-    "test": "npm run build:dev && playwright test",
-    "test:ui": "npm run build:dev && playwright test --ui",
-    "test:headed": "npm run build:dev && playwright test --headed",
+    "build": "node scripts/build.js",
+    "test": "npm run build && playwright test",
+    "test:ui": "npm run build && playwright test --ui",
+    "test:headed": "npm run build && playwright test --headed",
     "kitchensink": "npx serve .",
     "release": "bash scripts/publish.sh",
     "hooks:install": "cp .hooks/pre-commit .git/hooks/ && cp .hooks/commit-msg .git/hooks/ && cp -r .hooks/pre-commit.d .git/hooks/ && chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/pre-commit.d/*.sh",

@@ -10,7 +10,7 @@ HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 VALIDATOR="$HOOKS_DIR/jsdoc-validator.js"
 
 # Directories to exclude from JSDoc checks
-EXCLUDED_DIRS="node_modules|coverage|.next|.git|.hooks|.github|example|todo|scripts"
+EXCLUDED_DIRS="node_modules|coverage|.next|.git|.hooks|.github|example|todo|scripts|build"
 
 ERROR=0
 FAILED_FILES=()
