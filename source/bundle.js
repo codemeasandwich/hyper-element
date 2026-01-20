@@ -283,8 +283,8 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
         args[_key2] = arguments[_key2];
       }
 
-      if (args.some(function (item) {
-        return "function" === typeof item;
+      if (args.slice(1).some(function (item) {
+        return "function" === typeof item || item !== null && "object" === (typeof item === 'undefined' ? 'undefined' : _typeof(item));
       }) && args[0].some(function (t) {
         return isCustomTag.test(t);
       })) {
@@ -309,7 +309,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
           }
           var val = args[index + 1];
 
-          if ("function" === typeof val || "object" === (typeof val === 'undefined' ? 'undefined' : _typeof(val))) {
+          if ("function" === typeof val || val !== null && "object" === (typeof val === 'undefined' ? 'undefined' : _typeof(val))) {
             var attrName = item.split(" ").pop().slice(0, -1);
             if ("on" === attrName.substring(0, 2)) {
               throw new Error('\'on\' is reserve for native elements. Change: "' + attrName + '" for "' + localName + '" to something else');
@@ -460,7 +460,7 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
             var ref = manager[this.identifier];
             ref.Html.template = buildTemplate(ref.innerHTML);
             accumulator[name] = true;
-          } else if ("fn-" === value.substr(0, 3) || "ob-" === value.substr(0, 3) && !!sharedAttrs[value.substr(3)] && sharedAttrs[value.substr(3)].localName === this.localName) {
+          } else if (("fn-" === value.substr(0, 3) || "ob-" === value.substr(0, 3)) && !!sharedAttrs[value.substr(3)] && sharedAttrs[value.substr(3)].localName === this.localName) {
             accumulator[name] = sharedAttrs[value.substr(3)].val;
           } else {
             if (+value + "" === (value + "").trim()) {
