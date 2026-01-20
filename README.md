@@ -448,6 +448,87 @@ Output:
 
 **Live Example of using a [templatets](https://codepen.io/codemeasandwich/pen/LoQLrK)**
 
+### Advanced Template Features
+
+Templates support handlebars-like conditionals and iteration:
+
+#### Conditionals: {#if}
+
+Show content based on a condition:
+
+```html
+<status-elem template>{#if active}Online{else}Offline{/if}</status-elem>
+```
+
+```js
+customElements.define("status-elem", class extends hyperElement {
+  render(Html) {
+    Html`${Html.template({ active: true })}`
+  }
+})
+```
+
+Output: `Online`
+
+#### Negation: {#unless}
+
+Show content when condition is falsy (opposite of #if):
+
+```html
+<warning-elem template>{#unless valid}Invalid input!{/unless}</warning-elem>
+```
+
+```js
+customElements.define("warning-elem", class extends hyperElement {
+  render(Html) {
+    Html`${Html.template({ valid: false })}`
+  }
+})
+```
+
+Output: `Invalid input!`
+
+#### Iteration: {#each}
+
+Loop over arrays:
+
+```html
+<list-elem template>
+  <ul>{#each items}<li>{name}</li>{/each}</ul>
+</list-elem>
+```
+
+```js
+customElements.define("list-elem", class extends hyperElement {
+  render(Html) {
+    Html`${Html.template({ items: [{name: "Ann"}, {name: "Bob"}] })}`
+  }
+})
+```
+
+Output:
+```html
+<ul><li>Ann</li><li>Bob</li></ul>
+```
+
+**Special variables in {#each}:**
+- `{.}` - The current item (useful for arrays of primitives)
+- `{@index}` - The current index (0-based)
+
+```html
+<nums-elem template>{#each numbers}{@index}: {.}, {/each}</nums-elem>
+```
+
+```js
+customElements.define("nums-elem", class extends hyperElement {
+  render(Html) {
+    Html`${Html.template({ numbers: ["a", "b", "c"] })}`
+  }
+})
+```
+
+Output: `0: a, 1: b, 2: c, `
+
 ## Fragments
 
 Fragments are pieces of content that can be loaded *asynchronously*.

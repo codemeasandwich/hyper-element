@@ -97,9 +97,74 @@
     });
   }
 
-  function buildTemplate(innerHTML){
+  // Process handlebars-like constructs in template
+  function processAdvancedTemplate(template, data) {
+    let result = template;
 
-        const re = /(\{[\w]+\})/g// /\s*(\{[\w]+\})\s*/g
+    // Process {#each array}...{/each}
+    const eachRegex = /\{#each\s+(\w+)\}([\s\S]*?)\{\/each\}/g;
+    result = result.replace(eachRegex, (match, arrayName, content) => {
+      const arr = data[arrayName];
+      if (!Array.isArray(arr)) return '';
+      return arr.map((item, index) => {
+        let itemContent = content;
+        // Replace {.} with current item (for primitives)
+        itemContent = itemContent.replace(/\{\.\}/g, item);
+        // Replace {@index} with current index
+        itemContent = itemContent.replace(/\{@index\}/g, index);
+        // If item is object, replace {prop} with item.prop
+        if (typeof item === 'object' && item !== null) {
+          Object.keys(item).forEach(key => {
+            itemContent = itemContent.replace(new RegExp('\\{' + key + '\\}', 'g'), item[key]);
+          });
+        }
+        return itemContent;
+      }).join('');
+    });
+
+    // Process {#if condition}...{else}...{/if}
+    const ifElseRegex = /\{#if\s+(\w+)\}([\s\S]*?)\{else\}([\s\S]*?)\{\/if\}/g;
+    result = result.replace(ifElseRegex, (match, condition, ifContent, elseContent) => {
+      return data[condition] ? ifContent : elseContent;
+    });
+
+    // Process {#if condition}...{/if} (without else)
+    const ifRegex = /\{#if\s+(\w+)\}([\s\S]*?)\{\/if\}/g;
+    result = result.replace(ifRegex, (match, condition, content) => {
+      return data[condition] ? content : '';
+    });
+
+    // Process {#unless condition}...{/unless}
+    const unlessRegex = /\{#unless\s+(\w+)\}([\s\S]*?)\{\/unless\}/g;
+    result = result.replace(unlessRegex, (match, condition, content) => {
+      return data[condition] ? '' : content;
+    });
+
+    return result;
+  }
+
+  function buildTemplate(innerHTML){
+        // Check if template has advanced features
+        const hasAdvanced = /\{#(if|each|unless)\s/.test(innerHTML);
+
+        if (hasAdvanced) {
+          // Use advanced template processing
+          return function template(data){
+            if("object" !== typeof data){
+              throw new Error("Templates must be passed an object. You passed "+JSON.stringify(data))
+            }
+            // Process advanced template features
+            let result = processAdvancedTemplate(innerHTML, data);
+            // Simple variable substitution for remaining {var} patterns
+            result = result.replace(/\{(\w+)\}/g, (match, key) => {
+              return data[key] != null ? data[key] : '';
+            });
+            return result;
+          }
+        }
+
+        // Original simple template processing
+        const re = /(\{[\w]+\})/g
         const templateVals = innerHTML.split(re).reduce((vals,item)=>{
 
            if("{" === item[0] && "}" === item.slice(-1)){
