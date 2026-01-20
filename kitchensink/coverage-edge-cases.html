@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Coverage Edge Cases - hyper-element Kitchen Sink</title>
+  <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/min.js"></script>
+  <script src="test-loader.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    section { margin: 2rem 0; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; }
+    section[data-test-result="pass"] { border-color: green; background: #f0fff0; }
+    section[data-test-result="fail"] { border-color: red; background: #fff0f0; }
+    h1 { border-bottom: 2px solid #333; }
+    h2 { margin-top: 0; }
+    pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Coverage Edge Cases</h1>
+  <p>Tests for edge cases to achieve 100% code coverage.</p>
+
+  <!-- Test: setup without store (undefined store path) -->
+  <section data-test="setup-no-store" data-test-result="pending">
+    <h2>Setup with No Store (undefined)</h2>
+    <p>Tests the onNext function when called without a store argument.</p>
+    <div id="no-store-output"></div>
+    <script>
+      customElements.define("no-store-elem", class extends hyperElement {
+        setup(attachStore) {
+          // Call attachStore with no arguments - triggers undefined store path
+          const trigger = attachStore();
+          setTimeout(() => trigger(), 10);
+        }
+        render(Html) {
+          Html`<span>No store render</span>`;
+        }
+      });
+
+      const elem = document.createElement('no-store-elem');
+      document.getElementById('no-store-output').appendChild(elem);
+
+      setTimeout(() => {
+        const section = document.querySelector('[data-test="setup-no-store"]');
+        if (elem && elem.textContent.includes('No store render')) {
+          section.dataset.testResult = 'pass';
+        } else {
+          section.dataset.testResult = 'fail';
+        }
+      }, 100);
+    </script>
+  </section>
+
+  <!-- Test: innerShadow getter -->
+  <section data-test="inner-shadow" data-test-result="pending">
+    <h2>innerShadow Getter</h2>
+    <p>Tests accessing the innerShadow property.</p>
+    <div id="inner-shadow-output"></div>
+    <script>
+      customElements.define("inner-shadow-elem", class extends hyperElement {
+        render(Html) {
+          Html`<span class="inner-content">Shadow content here</span>`;
+        }
+      });
+
+      const elem2 = document.createElement('inner-shadow-elem');
+      document.getElementById('inner-shadow-output').appendChild(elem2);
+
+      requestAnimationFrame(() => {
+        const section = document.querySelector('[data-test="inner-shadow"]');
+        // Access innerShadow getter
+        const shadow = elem2.innerShadow;
+        if (shadow && shadow.includes('Shadow content here')) {
+          section.dataset.testResult = 'pass';
+        } else {
+          section.dataset.testResult = 'fail';
+        }
+      });
+    </script>
+  </section>
+
+  <!-- Test: disconnectedCallback / teardown -->
+  <section data-test="disconnected" data-test-result="pending">
+    <h2>Disconnected Callback (Teardown)</h2>
+    <p>Tests that teardown function is called when element is removed.</p>
+    <div id="disconnected-output"></div>
+    <script>
+      let teardownCalled = false;
+
+      customElements.define("teardown-elem", class extends hyperElement {
+        setup(attachStore) {
+          attachStore({ count: 0 });
+          // Return teardown function
+          return () => {
+            teardownCalled = true;
+          };
+        }
+        render(Html, store) {
+          Html`<span>Count: ${store ? store.count : 0}</span>`;
+        }
+      });
+
+      const container = document.getElementById('disconnected-output');
+      const elem6 = document.createElement('teardown-elem');
+      container.appendChild(elem6);
+
+      setTimeout(() => {
+        // Remove element to trigger disconnectedCallback
+        container.removeChild(elem6);
+
+        setTimeout(() => {
+          const section = document.querySelector('[data-test="disconnected"]');
+          if (teardownCalled) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        }, 50);
+      }, 50);
+    </script>
+  </section>
+
+  <!-- Test: async fragment with array values -->
+  <section data-test="async-fragment-array" data-test-result="pending">
+    <h2>Async Fragment with Array Values</h2>
+    <p>Tests async fragment template that returns an array of values.</p>
+    <div id="async-array-output"></div>
+    <script>
+      customElements.define("async-array-elem", class extends hyperElement {
+        Items() {
+          return {
+            placeholder: 'Loading items...',
+            template: Promise.resolve({
+              template: '<li>{name}</li>',
+              values: [{name: 'Item A'}, {name: 'Item B'}, {name: 'Item C'}]
+            })
+          };
+        }
+        render(Html) {
+          Html`<ul>${{Items: {}}}</ul>`;
+        }
+      });
+
+      const elem8 = document.createElement('async-array-elem');
+      document.getElementById('async-array-output').appendChild(elem8);
+
+      setTimeout(() => {
+        const section = document.querySelector('[data-test="async-fragment-array"]');
+        const content = elem8.textContent;
+        if (content.includes('Item A') && content.includes('Item B') && content.includes('Item C')) {
+          section.dataset.testResult = 'pass';
+        } else {
+          section.dataset.testResult = 'fail';
+        }
+      }, 300);
+    </script>
+  </section>
+
+  <!-- Test: async fragment with string return and values from data -->
+  <section data-test="async-fragment-string" data-test-result="pending">
+    <h2>Async Fragment with String Return</h2>
+    <p>Tests async fragment that returns just a string template (uses data param for values).</p>
+    <div id="async-string-output"></div>
+    <script>
+      customElements.define("async-string-elem", class extends hyperElement {
+        Message(data) {
+          // When promise resolves to just a string, the 'data' passed to fragment is used for values
+          return {
+            placeholder: 'Loading...',
+            template: Promise.resolve({
+              template: '<p>Hello {name}!</p>',
+              values: data  // Use the data passed from render
+            })
+          };
+        }
+        render(Html) {
+          Html`${{Message: {name: 'World'}}}`;
+        }
+      });
+
+      const elem9 = document.createElement('async-string-elem');
+      document.getElementById('async-string-output').appendChild(elem9);
+
+      setTimeout(() => {
+        const section = document.querySelector('[data-test="async-fragment-string"]');
+        if (elem9.textContent.includes('Hello World!')) {
+          section.dataset.testResult = 'pass';
+        } else {
+          section.dataset.testResult = 'fail';
+        }
+      }, 300);
+    </script>
+  </section>
+
+  <!-- Test: async fragment promise resolves to plain string -->
+  <section data-test="async-plain-string" data-test-result="pending">
+    <h2>Async Fragment - Promise Resolves to Plain String</h2>
+    <p>Tests async fragment where promise resolves directly to a template string (no variables).</p>
+    <div id="async-plain-output"></div>
+    <script>
+      customElements.define("async-plain-elem", class extends hyperElement {
+        PlainMsg(data) {
+          // Promise resolves to just a string - tests line 272-274
+          // When returning just a string, values defaults to {} so no substitution happens
+          return {
+            placeholder: 'Loading...',
+            template: Promise.resolve('<p>Static message loaded</p>')
+          };
+        }
+        render(Html) {
+          Html`${{PlainMsg: {}}}`;
+        }
+      });
+
+      const elemPlain = document.createElement('async-plain-elem');
+      document.getElementById('async-plain-output').appendChild(elemPlain);
+
+      setTimeout(() => {
+        const section = document.querySelector('[data-test="async-plain-string"]');
+        // When promise returns just string, no variable substitution (values = {})
+        if (elemPlain.textContent.includes('Static message loaded')) {
+          section.dataset.testResult = 'pass';
+        } else {
+          section.dataset.testResult = 'fail';
+        }
+      }, 300);
+    </script>
+  </section>
+
+  <!-- Test: fragment with once:true caching -->
+  <section data-test="fragment-once" data-test-result="pending">
+    <h2>Fragment with once:true Caching</h2>
+    <p>Tests that fragments with once:true only execute once.</p>
+    <div id="fragment-once-output"></div>
+    <script>
+      let fragmentCallCount = 0;
+
+      customElements.define("once-frag-elem", class extends hyperElement {
+        Cached(data) {
+          fragmentCallCount++;
+          return {
+            once: true,
+            any: 'Cached content (calls: ' + fragmentCallCount + ')'
+          };
+        }
+        setup(attachStore) {
+          const trigger = attachStore();
+          // Trigger multiple re-renders
+          setTimeout(() => trigger(), 20);
+          setTimeout(() => trigger(), 40);
+        }
+        render(Html) {
+          Html`<span>${{Cached: {}}}</span>`;
+        }
+      });
+
+      const elem10 = document.createElement('once-frag-elem');
+      document.getElementById('fragment-once-output').appendChild(elem10);
+
+      setTimeout(() => {
+        const section = document.querySelector('[data-test="fragment-once"]');
+        // Fragment should only have been called once despite multiple renders
+        if (fragmentCallCount === 1 && elem10.textContent.includes('calls: 1')) {
+          section.dataset.testResult = 'pass';
+        } else {
+          section.dataset.testResult = 'fail';
+        }
+      }, 150);
+    </script>
+  </section>
+
+  <!-- Test: 'on' attribute error -->
+  <section data-test="on-attr-error" data-test-result="pending">
+    <h2>'on' Attribute Error</h2>
+    <p>Tests that using 'on*' attributes with functions throws an error.</p>
+    <div id="on-attr-output"></div>
+    <script>
+      (function() {
+        const section = document.querySelector('[data-test="on-attr-error"]');
+        let errorThrown = false;
+
+        customElements.define("on-error-parent", class extends hyperElement {
+          handleClick() { console.log('clicked'); }
+          render(Html) {
+            try {
+              // Attempting to pass a function via onclick should throw
+              Html`<on-error-child onclick=${this.handleClick}></on-error-child>`;
+            } catch (e) {
+              if (e.message.includes("'on' is reserve")) {
+                errorThrown = true;
+              }
+            }
+          }
+        });
+
+        customElements.define("on-error-child", class extends hyperElement {
+          render(Html) {
+            Html`<span>Child</span>`;
+          }
+        });
+
+        const elem = document.createElement('on-error-parent');
+        document.getElementById('on-attr-output').appendChild(elem);
+
+        setTimeout(() => {
+          if (errorThrown) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        }, 100);
+      })();
+    </script>
+  </section>
+
+  <!-- Test: unknown template type error -->
+  <section data-test="unknown-template-error" data-test-result="pending">
+    <h2>Unknown Template Type Error</h2>
+    <p>Tests that invalid template type throws an error.</p>
+    <div id="unknown-template-output"></div>
+    <script>
+      (function() {
+        const section = document.querySelector('[data-test="unknown-template-error"]');
+        let errorThrown = false;
+
+        customElements.define("bad-template-elem", class extends hyperElement {
+          BadFragment(data) {
+            return {
+              // Invalid template type (number instead of string or promise)
+              template: 12345
+            };
+          }
+          render(Html) {
+            try {
+              Html`${{BadFragment: {}}}`;
+            } catch (e) {
+              if (e.message.includes('unknow template type')) {
+                errorThrown = true;
+              }
+            }
+          }
+        });
+
+        const elem = document.createElement('bad-template-elem');
+        document.getElementById('unknown-template-output').appendChild(elem);
+
+        setTimeout(() => {
+          if (errorThrown) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        }, 100);
+      })();
+    </script>
+  </section>
+
+  <a href="index.html">&larr; Back to Kitchen Sink</a>
+</body>
+</html>
