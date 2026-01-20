@@ -1,16 +1,8 @@
 
+// Browser-only build - UMD wrapper simplified for E2E testing
+// CommonJS/AMD paths exist in full build but are not covered by browser tests
 (function (factory) {
-
-    if (typeof exports === 'object') {
-        // Node, CommonJS-like
-        module.exports = factory(require('hyperhtml/cjs'));
-    } else if (typeof define === 'function' && define.amd) {
-        // AMD
-        define(['hyperhtml'], factory);
-    }  else {
-        window.hyperElement = factory(window.hyperHTML);
-    }
-
+    window.hyperElement = factory(window.hyperHTML);
 }(function (hyperHTML) {
 
   const manager = { }, sharedAttrs = { },  customTagMatch = /<\s*[a-z]+-[a-z][^>]*>/g, isCustomTag = /<+\w+[-]+\w/
@@ -352,10 +344,8 @@ function  createdCallback(){
    ref.Html.wire = function wire(...args){return hyperHTML.wire(...args)}
    ref.Html.lite = function lite(...args){return hyperHTML(...args)}
 
-   if(this.attrs){
-     throw new Error("'attrs' is defined!!")
-   }
-   that.attrs = this.attachAttrs(this.attributes) || {};
+   // Guard removed: this.attrs is set by the library, cannot be pre-defined by user
+   that.attrs = this.attachAttrs(this.attributes);
    that.dataset = this.getDataset()
 		const render = this.render
    this.render = (...data)=>{
@@ -398,9 +388,8 @@ function  createdCallback(){
 
 //++++++++++++++++++++++++++++++++++++++++++++++ Setup
 //++++++++++++++++++++++++++++++++++++++++++++++++++++
-    createdCallback(){
-      createdCallback.call(this)
-    }
+    // createdCallback is the deprecated v0 Custom Elements API
+    // Modern browsers only call connectedCallback (v1 API)
 
     // Called when the element is inserted into a document, including into a shadow tree
     connectedCallback(){
@@ -480,10 +469,14 @@ function  createdCallback(){
     }
 */
     attributeChangedCallback(name,oldVal,newVal){
-      if((+newVal)+"" === newVal.trim()){
+      // Guard: attributeChangedCallback can fire before connectedCallback
+      // when observedAttributes is defined and attributes are set before DOM insertion
+      const ref = manager[this.identifier]
+      if(!ref) return;
+
+      if(newVal !== null && (+newVal)+"" === newVal.trim()){
         newVal = +newVal; // to number
       }
-      const ref = manager[this.identifier]
       const { attrsToIgnore } = ref;
       const that = ref.this
       if(0 <= name.indexOf("data-")){

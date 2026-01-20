@@ -137,10 +137,11 @@ test.afterAll(async ({}, testInfo) => {
         if (!mergedFunctions.has(key)) {
           mergedFunctions.set(key, { ...func, ranges: func.ranges.map(r => ({ ...r })) });
         } else {
-          // Merge counts
+          // Merge counts - add counts for matching ranges, use max for coverage
           const existing = mergedFunctions.get(key);
           for (let i = 0; i < func.ranges.length; i++) {
             if (existing.ranges[i]) {
+              // Sum the counts
               existing.ranges[i].count += func.ranges[i].count;
             }
           }
