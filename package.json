@@ -16,7 +16,12 @@
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
     "kitchensink": "npx serve .",
-    "release": "bash scripts/publish.sh"
+    "release": "bash scripts/publish.sh",
+    "hooks:install": "cp .hooks/pre-commit .git/hooks/ && cp .hooks/commit-msg .git/hooks/ && cp -r .hooks/pre-commit.d .git/hooks/ && chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/pre-commit.d/*.sh",
+    "prepare": "npm run hooks:install",
+    "lint": "eslint source/",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write ."
   },
   "license": "MIT",
   "repository": {
