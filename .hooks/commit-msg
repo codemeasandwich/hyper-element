@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+#
+# Commit message validator for hyper-element
+#
+# Enforces:
+#   1. Conventional Commits format: <type>: <message>
+#   2. First line max 80 characters
+#
+# Allowed types:
+#   feat, fix, docs, style, refactor, perf, test, build, ci, chore
+
+set -euo pipefail
+
+MSG_FILE="$1"
+if [ ! -f "$MSG_FILE" ]; then
+    echo "ERROR: commit-msg hook expects path to commit message file." >&2
+    exit 1
+fi
+
+MSG_CONTENT=$(cat "$MSG_FILE")
+FIRST_LINE=$(echo "$MSG_CONTENT" | sed -n '1p' | tr -d '\r')
+
+# Skip merge commits
+if printf '%s\n' "$FIRST_LINE" | grep -Eq "^Merge "; then
+    exit 0
+fi
+
+TYPES="feat|fix|docs|style|refactor|perf|test|build|ci|chore"
+
+# Check format: type: message (with optional ! for breaking changes)
+if ! printf '%s\n' "$FIRST_LINE" | grep -Eq "^(${TYPES})(!)?:[[:space:]]+[^[:space:]]"; then
+    cat >&2 <<'ERR'
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✗ Invalid Commit Message Format
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Commit messages must follow Conventional Commits format:
+
+    <type>: <summary>
+
+Allowed types:
+    feat     - A new feature
+    fix      - A bug fix
+    docs     - Documentation only changes
+    style    - Code style changes (formatting, etc)
+    refactor - Code refactoring
+    perf     - Performance improvements
+    test     - Adding or updating tests
+    build    - Build system changes
+    ci       - CI/CD changes
+    chore    - Other changes (deps, configs, etc)
+
+Examples:
+    feat: add dark mode toggle
+    fix: resolve memory leak in event handler
+    docs: update installation instructions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ERR
+    exit 1
+fi
+
+# Enforce max line length (80 characters)
+LENGTH=${#FIRST_LINE}
+if [ "$LENGTH" -gt 80 ]; then
+    cat >&2 <<ERR
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✗ First Line Too Long
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+First line is ${LENGTH} characters (maximum is 80).
+
+Keep the summary line concise. Details go in the body.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ERR
+    exit 1
+fi
+
+exit 0

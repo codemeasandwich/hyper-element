@@ -6,7 +6,6 @@ Combining the best of [hyperHTML] and [Custom Elements]!
 [![npm package size](https://img.shields.io/bundlephobia/minzip/hyper-element)](https://bundlephobia.com/package/hyper-element)
 [![ES6+](https://img.shields.io/badge/ES6+-supported-blue.svg)](https://caniuse.com/es6)
 
-
 Your new custom-element will be rendered with the super fast [hyperHTML] and will react to tag attribute and store changes.
 
 # Installation
@@ -20,40 +19,45 @@ npm install hyper-element
 ### ES6 Modules
 
 ```js
-import hyperElement from "hyper-element"
+import hyperElement from 'hyper-element';
 
-customElements.define("my-elem", class extends hyperElement {
-  render(Html) {
-    Html`Hello ${this.attrs.who}!`
+customElements.define(
+  'my-elem',
+  class extends hyperElement {
+    render(Html) {
+      Html`Hello ${this.attrs.who}!`;
+    }
   }
-})
+);
 ```
 
 ### CommonJS
 
 ```js
-const hyperElement = require("hyper-element")
+const hyperElement = require('hyper-element');
 
-customElements.define("my-elem", class extends hyperElement {
-  render(Html) {
-    Html`Hello ${this.attrs.who}!`
+customElements.define(
+  'my-elem',
+  class extends hyperElement {
+    render(Html) {
+      Html`Hello ${this.attrs.who}!`;
+    }
   }
-})
+);
 ```
 
 ## CDN (Browser)
 
 ## why hyper-element
 
-
-* hyper-element is fast & small
-    * With only 1 dependency: [hyperHTML]
-* With a completely stateless approach, setting and reseting the view is trivial
-* Simple yet powerful [Api](#api)
-* Built in [template](#templates) system to customise the rendered output
-* Inline style objects supported (similar to React)
-* First class support for [data stores](#example-of-connecting-to-a-data-store)
-* Pass `function` to other custom hyper-elements via there tag attribute
+- hyper-element is fast & small
+  - With only 1 dependency: [hyperHTML]
+- With a completely stateless approach, setting and reseting the view is trivial
+- Simple yet powerful [Api](#api)
+- Built in [template](#templates) system to customise the rendered output
+- Inline style objects supported (similar to React)
+- First class support for [data stores](#example-of-connecting-to-a-data-store)
+- Pass `function` to other custom hyper-elements via there tag attribute
 
 # [Live Demo](https://jsfiddle.net/codemeasandwich/k25e6ufv/)
 
@@ -63,23 +67,23 @@ customElements.define("my-elem", class extends hyperElement {
 
 - [Define a Custom Element](#define-a-custom-element)
 - [Api](#api)
-  * [Define your element](#define-your-element)
-    + [render](#render)
-      + [Html](#html)
-      + [Html.wire](#htmlwire)
-      + [Html.lite](#htmllite)
-    + [setup](#setup)
-    + [this](#this)
-  * [Advanced attributes](#advanced-attributes)
-  * [Templates](#templates)
-  * [Fragments](#fragments)
-    + [fragment templates](#fragment-templates)
-    + [Async fragment templates](#asynchronous-fragment-templates)
-  * [Styling](#styling)
+  - [Define your element](#define-your-element)
+    - [render](#render)
+      - [Html](#html)
+      - [Html.wire](#htmlwire)
+      - [Html.lite](#htmllite)
+    - [setup](#setup)
+    - [this](#this)
+  - [Advanced attributes](#advanced-attributes)
+  - [Templates](#templates)
+  - [Fragments](#fragments)
+    - [fragment templates](#fragment-templates)
+    - [Async fragment templates](#asynchronous-fragment-templates)
+  - [Styling](#styling)
 - [Connecting to a data store](#example-of-connecting-to-a-data-store)
-  * [backbone](#backbone)
-  * [mobx](#mobx)
-  * [redux](#redux)
+  - [backbone](#backbone)
+  - [mobx](#mobx)
+  - [redux](#redux)
 
 ---
 
@@ -88,29 +92,30 @@ customElements.define("my-elem", class extends hyperElement {
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/index.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js"></script>
-</head>
-<body>
-  <my-elem who="world"></my-elem>
-  <script>
-    customElements.define("my-elem", class extends hyperElement {
-      render(Html) {
-        Html`hello ${this.attrs.who}`
-      }
-    })
-  </script>
-</body>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js"></script>
+  </head>
+  <body>
+    <my-elem who="world"></my-elem>
+    <script>
+      customElements.define(
+        'my-elem',
+        class extends hyperElement {
+          render(Html) {
+            Html`hello ${this.attrs.who}`;
+          }
+        }
+      );
+    </script>
+  </body>
 </html>
 ```
 
 Output
 
 ```html
-<my-elem who="world">
-    hello world
-</my-elem>
+<my-elem who="world"> hello world </my-elem>
 ```
 
 **Live Example of [helloworld](https://codepen.io/codemeasandwich/pen/VOQpqz)**
@@ -119,7 +124,7 @@ Output
 
 ## Define your element
 
-There are 2 functions. `render` is *required* and `setup` is *optional*
+There are 2 functions. `render` is _required_ and `setup` is _optional_
 
 ### render
 
@@ -149,17 +154,18 @@ The `Html` has a primary operation and two utilities: `.wire` & `.lite`
 The `.wire` is for creating reusable sub-element
 
 The wire can take two arguments `Html.wire(obj,id)`
+
 1. a refrive object to match with the create node. Allowing for reuse of the exiting node.
 2. a string to identify the markup used. Allowing the markup template to be generated only once.
 
 Example of displaying a list of users from an array
 
 ```js
-    Html`
+Html`
       <ul>
-          ${users.map(user => Html.wire(user,":user_list_item")`<li>${user.name}</li>`)}
+          ${users.map((user) => Html.wire(user, ':user_list_item')`<li>${user.name}</li>`)}
       </ul>
-    `
+    `;
 ```
 
 An **anti-pattern** is to inline the markup as a string
@@ -167,11 +173,11 @@ An **anti-pattern** is to inline the markup as a string
 BAD example: ✗
 
 ```js
-    Html`
+Html`
       <ul>
-          ${users.map(user => `<li>${user.name}</li>`)}
+          ${users.map((user) => `<li>${user.name}</li>`)}
       </ul>
-    `
+    `;
 ```
 
 This will create a new node for every element on every render. The is have a **Negative impact on performance** and output will **Not be sanitized**. So DONT do this!
@@ -206,7 +212,6 @@ render(Html){
 ```
 
 ---
-
 
 ### setup
 
@@ -250,27 +255,34 @@ Use `attachStore()` without arguments to get a trigger function for external eve
 
 ```js
 // External event system
-const callbacks = []
-function onMessage(cb) { callbacks.push(cb) }
-function emitMessage(msg) { callbacks.forEach(cb => cb(msg)) }
+const callbacks = [];
+function onMessage(cb) {
+  callbacks.push(cb);
+}
+function emitMessage(msg) {
+  callbacks.forEach((cb) => cb(msg));
+}
 
 // Element definition
-customElements.define("chat-messages", class extends hyperElement {
-  messages = []
+customElements.define(
+  'chat-messages',
+  class extends hyperElement {
+    messages = [];
 
-  setup(attachStore) {
-    const triggerRender = attachStore() // No state function needed
+    setup(attachStore) {
+      const triggerRender = attachStore(); // No state function needed
 
-    onMessage((msg) => {
-      this.messages.push(msg)
-      triggerRender() // Re-renders with updated this.messages
-    })
+      onMessage((msg) => {
+        this.messages.push(msg);
+        triggerRender(); // Re-renders with updated this.messages
+      });
+    }
+
+    render(Html) {
+      Html`<ul>${this.messages.map((m) => Html.wire(m, ':msg')`<li>${m}</li>`)}</ul>`;
+    }
   }
-
-  render(Html) {
-    Html`<ul>${this.messages.map(m => Html.wire(m, ':msg')`<li>${m}</li>`)}</ul>`
-  }
-})
+);
 ```
 
 #### Set initial values to pass to every render
@@ -333,19 +345,19 @@ setup(attachStore){
 
 ### this
 
-* **this.attrs** : the attributes on the tag `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
-    * Casting types supported: `Number`
-* **this.store** : the value returned from the store function. *!only updated before each render*
-* **this.wrappedContent** : the text content embedded between your tag `<my-elem>Hi!</my-elem>` = `"Hi!"`
-* **this.element** : a reference to your created element
-* **this.dataset**: this allows reading and writing to all the custom data attributes `data-*` set on the element.
-    * Data will be parsed to try and cast them to Javascript types
-    * Casting types supported: `Object`, `Array`, `Number` & `Boolean`
-    * `dataset` is a **live reflection**. Changes on this object will update matching data attribute on its element.
-        * e.g. `<my-elem data-users='["ann","bob"]'></my-elem>` to `this.dataset.users // ["ann","bob"]`
-    * ⚠ For performance! The `dataset` works by reference. To update an attribute you must use **assignment** on the `dataset`
-        * Bad: `this.dataset.user.name = ""` ✗
-        * Good: `this.dataset.user = {name:""}` ✓
+- **this.attrs** : the attributes on the tag `<my-elem min="0" max="10" />` = `{ min:0, max:10 }`
+  - Casting types supported: `Number`
+- **this.store** : the value returned from the store function. _!only updated before each render_
+- **this.wrappedContent** : the text content embedded between your tag `<my-elem>Hi!</my-elem>` = `"Hi!"`
+- **this.element** : a reference to your created element
+- **this.dataset**: this allows reading and writing to all the custom data attributes `data-*` set on the element.
+  - Data will be parsed to try and cast them to Javascript types
+  - Casting types supported: `Object`, `Array`, `Number` & `Boolean`
+  - `dataset` is a **live reflection**. Changes on this object will update matching data attribute on its element.
+    - e.g. `<my-elem data-users='["ann","bob"]'></my-elem>` to `this.dataset.users // ["ann","bob"]`
+  - ⚠ For performance! The `dataset` works by reference. To update an attribute you must use **assignment** on the `dataset`
+    - Bad: `this.dataset.user.name = ""` ✗
+    - Good: `this.dataset.user = {name:""}` ✓
 
 ---
 
@@ -371,21 +383,27 @@ In you document:
 Implementation:
 
 ```js
-window.customElements.define("a-user",class extends hyperElement{
-  render(Html){
-    const onClick = () => this.attrs.hi("Hello from "+this.attrs.name);
-    Html`${this.attrs.name} <button onclick=${onClick}>Say hi!</button>`
+window.customElements.define(
+  'a-user',
+  class extends hyperElement {
+    render(Html) {
+      const onClick = () => this.attrs.hi('Hello from ' + this.attrs.name);
+      Html`${this.attrs.name} <button onclick=${onClick}>Say hi!</button>`;
+    }
   }
-})
+);
 
-window.customElements.define("users-elem",class extends hyperElement{
-  onHi(val){
-    console.log("hi was clicked",val)
+window.customElements.define(
+  'users-elem',
+  class extends hyperElement {
+    onHi(val) {
+      console.log('hi was clicked', val);
+    }
+    render(Html) {
+      Html`<a-user hi=${this.onHi} name="Beckett" />`;
+    }
   }
-  render(Html){
-    Html`<a-user hi=${this.onHi} name="Beckett" />`
-  }
-})
+);
 ```
 
 Output:
@@ -393,7 +411,7 @@ Output:
 ```html
 <users-elem>
   <a-user update="fn-bgzvylhphgvpwtv" name="Beckett">
-     Beckett <button>Say hi!</button>
+    Beckett <button>Say hi!</button>
   </a-user>
 </users-elem>
 ```
@@ -424,17 +442,20 @@ In you document:
 Implementation:
 
 ```js
-document.registerElement("my-list",class extends hyperElement{
-
-      render(Html){
-        Html`
-        ${this.dataset.json.map(user => Html.template(user))}
-        `
-      }// END render
- })// END my-list
+document.registerElement(
+  'my-list',
+  class extends hyperElement {
+    render(Html) {
+      Html`
+        ${this.dataset.json.map((user) => Html.template(user))}
+        `;
+    } // END render
+  }
+); // END my-list
 ```
 
 Output:
+
 ```Html
 <my-list template data-json='[{"name":"ann","url":""},{"name":"bob","url":""}]' >
     <div>
@@ -461,11 +482,14 @@ Show content based on a condition:
 ```
 
 ```js
-customElements.define("status-elem", class extends hyperElement {
-  render(Html) {
-    Html`${Html.template({ active: true })}`
+customElements.define(
+  'status-elem',
+  class extends hyperElement {
+    render(Html) {
+      Html`${Html.template({ active: true })}`;
+    }
   }
-})
+);
 ```
 
 Output: `Online`
@@ -479,11 +503,14 @@ Show content when condition is falsy (opposite of #if):
 ```
 
 ```js
-customElements.define("warning-elem", class extends hyperElement {
-  render(Html) {
-    Html`${Html.template({ valid: false })}`
+customElements.define(
+  'warning-elem',
+  class extends hyperElement {
+    render(Html) {
+      Html`${Html.template({ valid: false })}`;
+    }
   }
-})
+);
 ```
 
 Output: `Invalid input!`
@@ -494,24 +521,36 @@ Loop over arrays:
 
 ```html
 <list-elem template>
-  <ul>{#each items}<li>{name}</li>{/each}</ul>
+  <ul>
+    {#each items}
+    <li>{name}</li>
+    {/each}
+  </ul>
 </list-elem>
 ```
 
 ```js
-customElements.define("list-elem", class extends hyperElement {
-  render(Html) {
-    Html`${Html.template({ items: [{name: "Ann"}, {name: "Bob"}] })}`
+customElements.define(
+  'list-elem',
+  class extends hyperElement {
+    render(Html) {
+      Html`${Html.template({ items: [{ name: 'Ann' }, { name: 'Bob' }] })}`;
+    }
   }
-})
+);
 ```
 
 Output:
+
 ```html
-<ul><li>Ann</li><li>Bob</li></ul>
+<ul>
+  <li>Ann</li>
+  <li>Bob</li>
+</ul>
 ```
 
 **Special variables in {#each}:**
+
 - `{.}` - The current item (useful for arrays of primitives)
 - `{@index}` - The current index (0-based)
 
@@ -520,18 +559,21 @@ Output:
 ```
 
 ```js
-customElements.define("nums-elem", class extends hyperElement {
-  render(Html) {
-    Html`${Html.template({ numbers: ["a", "b", "c"] })}`
+customElements.define(
+  'nums-elem',
+  class extends hyperElement {
+    render(Html) {
+      Html`${Html.template({ numbers: ['a', 'b', 'c'] })}`;
+    }
   }
-})
+);
 ```
 
 Output: `0: a, 1: b, 2: c, `
 
 ## Fragments
 
-Fragments are pieces of content that can be loaded *asynchronously*.
+Fragments are pieces of content that can be loaded _asynchronously_.
 
 You define one with a class property starting with a **capital letter**.
 
@@ -539,58 +581,60 @@ To use one within your renderer. Pass an object with a property matching the fra
 
 The fragment function should return an object with the following properties
 
-* **placeholder:** the placeholder to show while resolving the fragment
-* **once:** Only generate the fragment once.
-    * Default: `false`. The fragment function will be run on every render!
+- **placeholder:** the placeholder to show while resolving the fragment
+- **once:** Only generate the fragment once.
+  - Default: `false`. The fragment function will be run on every render!
 
 and **one** of the following as the fragment's result:
 
-* **text:** An escaped string to output  
-* **any:** An type of content
-* **html:** A html string to output, **(Not sanitised)**
-* **template:** A [template](#fragment-templates) string to use, **(Is sanitised)**
-    * **values:** A set of values to be used in the **template**
+- **text:** An escaped string to output
+- **any:** An type of content
+- **html:** A html string to output, **(Not sanitised)**
+- **template:** A [template](#fragment-templates) string to use, **(Is sanitised)**
+  - **values:** A set of values to be used in the **template**
 
 **Example:**
 
 Implementation:
 
 ```js
-document.registerElement("my-friends",class extends hyperElement{
+document.registerElement(
+  'my-friends',
+  class extends hyperElement {
+    FriendCount(user) {
+      return {
+        once: true,
 
-      FriendCount(user){
-        return {
+        placeholder: 'loading your number of friends',
 
-          once:true,
+        text: fetch('/user/' + user.userId + '/friends')
+          .then((b) => b.json())
+          .then((friends) => `you have ${friends.count} friends`)
+          .catch((err) => 'problem loading friends'),
+      }; // END return
+    } // END FriendCount
 
-          placeholder: "loading your number of friends",
-
-          text:fetch("/user/"+user.userId+"/friends")
-              .then(b => b.json())
-              .then(friends => `you have ${friends.count} friends`)
-              .catch(err => "problem loading friends")
-        }// END return
-      }// END FriendCount
-
-      render(Html){
-        const userId = this.attrs.myId
-        Html`<h2> ${{FriendCount:userId}} </h2>`
-      }// END render
- })// END my-friends
+    render(Html) {
+      const userId = this.attrs.myId;
+      Html`<h2> ${{ FriendCount: userId }} </h2>`;
+    } // END render
+  }
+); // END my-friends
 ```
 
 Output:
 
 ```html
 <my-friends myId="1234">
-  <h2> loading your number of friends </h2>
+  <h2>loading your number of friends</h2>
 </my-friends>
 ```
+
 then
 
 ```html
 <my-friends myId="1234">
-  <h2> you have 635 friends </h2>
+  <h2>you have 635 friends</h2>
 </my-friends>
 ```
 
@@ -598,17 +642,19 @@ then
 
 You can use the [template](#templates) syntax with in a fragment
 
-* The template will use the values pass to it from the render or using a "values" property to match the template string
+- The template will use the values pass to it from the render or using a "values" property to match the template string
 
 **e.g.** assigning values to template from with in the **fragment function**
-* `Foo(values){ return{ template:"<p>{txt}</p>", values:{txt:"Ipsum"} }}`
-* with `` Html`${{Foo:{}}}` ``
+
+- `Foo(values){ return{ template:"<p>{txt}</p>", values:{txt:"Ipsum"} }}`
+- with `` Html`${{Foo:{}}}` ``
 
 **or** assigning values to template from with in the **render function**
-* `Foo(values){ return{ template:"<p>{txt}</p>" }}`
-* with `` Html`${{Foo:{txt:"Ipsum"}}}` ``
 
-*Note: the different is whether or not a "values" is returned from the fragment function*
+- `Foo(values){ return{ template:"<p>{txt}</p>" }}`
+- with `` Html`${{Foo:{txt:"Ipsum"}}}` ``
+
+_Note: the different is whether or not a "values" is returned from the fragment function_
 
 **output**
 
@@ -619,35 +665,38 @@ You can use the [template](#templates) syntax with in a fragment
 Implementation:
 
 ```js
-document.registerElement("click-me",class extends hyperElement{
-      Button(){
-        return {
-          template:`<button type="button" class="btn"
-                        onclick={onclick}>{text}</button>`
-        }// END return
-      }// END Button
-      render(Html){
-        Html`Try ${{Button:{
-                  text:"Click Me",
-                  onclick:()=>alert("Hello!")
-              }}}`
-      }// END render
- })// END click-me
+document.registerElement(
+  'click-me',
+  class extends hyperElement {
+    Button() {
+      return {
+        template: `<button type="button" class="btn"
+                        onclick={onclick}>{text}</button>`,
+      }; // END return
+    } // END Button
+    render(Html) {
+      Html`Try ${{
+        Button: {
+          text: 'Click Me',
+          onclick: () => alert('Hello!'),
+        },
+      }}`;
+    } // END render
+  }
+); // END click-me
 ```
 
 Output:
 
 ```html
-<click-me>
-  Try <button type="button" class="btn">Click Me</button>
-</click-me>
+<click-me> Try <button type="button" class="btn">Click Me</button> </click-me>
 ```
 
 #### Asynchronous fragment templates
 
 You can also return a [promise] as your `template` property.
 
-Rewritting the *my-friends* example
+Rewritting the _my-friends_ example
 
 **Example:**
 
@@ -687,7 +736,7 @@ Output:
 
 ```html
 <my-friends myId="1234">
-  <h2> you have 635 friends </h2>
+  <h2>you have 635 friends</h2>
 </my-friends>
 ```
 
@@ -704,8 +753,8 @@ Supports an object as the style attribute. Compatible with React's implementatio
   render(Html){
     const style= {
       position: "absolute",
-      top: "50%", left: "50%",  
-      marginRight: "-50%",  
+      top: "50%", left: "50%",
+      marginRight: "-50%",
       transform: "translate(-50%, -50%)"
     }//END style
     Html`<div style=${style}> center </div>`
@@ -721,43 +770,45 @@ Supports an object as the style attribute. Compatible with React's implementatio
 
 ```js
 var user = new (Backbone.Model.extend({
-    defaults: {
-        name: 'Guest User',
-    }
-}));//END Backbone.Model.extend
+  defaults: {
+    name: 'Guest User',
+  },
+}))(); //END Backbone.Model.extend
 
+document.registerElement(
+  'my-profile',
+  class extends hyperElement {
+    setup(attachStore) {
+      user.on('change', attachStore(user.toJSON.bind(user)));
+      // OR user.on("change",attachStore(()=>user.toJSON()));
+    } //END setup
 
-document.registerElement("my-profile", class extends hyperElement{
-
-  setup(attachStore){
-    user.on("change",attachStore(user.toJSON.bind(user)));
-    // OR user.on("change",attachStore(()=>user.toJSON()));
-  }//END setup
-
-  render(Html,{name}){
-    Html`Profile: ${name}`
-  }//END render
-})//END my-profile
+    render(Html, { name }) {
+      Html`Profile: ${name}`;
+    } //END render
+  }
+); //END my-profile
 ```
 
 ## mobx
 
 ```js
 const user = observable({
-  name: 'Guest User'
-})//END observable
+  name: 'Guest User',
+}); //END observable
 
+document.registerElement(
+  'my-profile',
+  class extends hyperElement {
+    setup(attachStore) {
+      mobx.autorun(attachStore(user));
+    } // END setup
 
-document.registerElement("my-profile", class extends hyperElement{
-
-  setup(attachStore){
-    mobx.autorun(attachStore(user));
-  }// END setup
-
-  render(Html,{name}){
-    Html`Profile: ${name}`
-  }// END render
-})//END my-profile
+    render(Html, { name }) {
+      Html`Profile: ${name}`;
+    } // END render
+  }
+); //END my-profile
 ```
 
 ## redux
@@ -774,9 +825,10 @@ document.registerElement("my-profile", class extends hyperElement{
   }// END render
 })// END my-profile
 ```
-[shadow-dom]:https://developers.google.com/web/fundamentals/web-components/shadowdom
-[innerHTML]:https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML
-[hyperHTML]:https://viperhtml.js.org/hyper.html
-[Custom Elements]:https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
-[Test system]:https://jsfiddle.net/codemeasandwich/k25e6ufv/36/
-[promise]:https://scotch.io/tutorials/javascript-promises-for-dummies#understanding-promises
+
+[shadow-dom]: https://developers.google.com/web/fundamentals/web-components/shadowdom
+[innerHTML]: https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML
+[hyperHTML]: https://viperhtml.js.org/hyper.html
+[Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
+[Test system]: https://jsfiddle.net/codemeasandwich/k25e6ufv/36/
+[promise]: https://scotch.io/tutorials/javascript-promises-for-dummies#understanding-promises
