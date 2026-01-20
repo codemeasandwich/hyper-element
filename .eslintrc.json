@@ -8,6 +8,9 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
+  "globals": {
+    "hyperHTML": "readonly"
+  },
   "rules": {
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
   }
