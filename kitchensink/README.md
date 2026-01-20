@@ -1,6 +1,56 @@
-# Testing Guide
+# Kitchen Sink
 
-hyper-element uses [Playwright](https://playwright.dev/) for end-to-end testing with 100% code coverage enforcement.
+Interactive demos and E2E test suite for hyper-element.
+
+## Purpose
+
+This directory serves two purposes:
+
+1. **Interactive Documentation** - Each HTML file demonstrates a specific feature with working code examples
+2. **Automated Test Suite** - All demos double as Playwright E2E tests ensuring 100% code coverage
+
+## Demos by Category
+
+### Core Features
+- [basic-rendering.html](basic-rendering.html) - Static content rendering with the `Html` template literal
+- [setup-async.html](setup-async.html) - Async initialization using `setup()` with `onNext` trigger
+
+### Attributes & Data
+- [attributes.html](attributes.html) - Accessing element attributes via `this.attrs`
+- [dataset.html](dataset.html) - Using `data-*` attributes with automatic JSON parsing
+- [dataset-mutations.html](dataset-mutations.html) - Re-rendering when dataset values change
+
+### Content Handling
+- [content-handling.html](content-handling.html) - Accessing content between tags via `this.wrappedContent`
+- [content-mutations.html](content-mutations.html) - Re-rendering when wrapped content changes
+
+### Templates & Fragments
+- [templates.html](templates.html) - `Html.template()` with `{variable}` substitution
+- [fragments-async.html](fragments-async.html) - Fragments with promises and placeholders
+- [fragments-templates.html](fragments-templates.html) - Fragments using template strings
+
+### Advanced Templates
+- [advanced-templates.html](advanced-templates.html) - Conditionals (`{#if}`, `{#unless}`), iteration (`{#each}`), and branching
+
+### Composition
+- [nested-elements.html](nested-elements.html) - Parent-child custom element composition
+
+### Event Handling
+- [event-callbacks.html](event-callbacks.html) - External event callbacks using `attachStore()`
+
+### Edge Cases
+- [corner-cases.html](corner-cases.html) - Unusual scenarios and edge cases
+- [coverage-edge-cases.html](coverage-edge-cases.html) - Coverage testing for uncovered branches
+
+## Running Demos
+
+Open any HTML file directly in a browser, or start a local server:
+
+```bash
+npx serve .
+```
+
+Then visit [http://localhost:3000/kitchensink/](http://localhost:3000/kitchensink/)
 
 ## Running Tests
 
@@ -33,33 +83,6 @@ To watch tests run in a visible browser:
 
 ```bash
 npm run test:headed
-```
-
-## Test Structure
-
-Tests are located in the `kitchensink/` directory:
-
-```
-kitchensink/
-├── kitchensink.spec.js      # Main test runner
-├── basic-rendering.html     # Basic element rendering
-├── attributes.html          # Attribute parsing
-├── dataset.html             # Data attribute handling
-├── dataset-mutations.html   # Dynamic dataset updates
-├── templates.html           # Template system
-├── advanced-templates.html  # {#if}, {#each}, {#unless}
-├── fragments-async.html     # Async fragments
-├── fragments-templates.html # Template fragments
-├── nested-elements.html     # Component composition
-├── event-callbacks.html     # Event delegation
-├── setup-async.html         # Async setup patterns
-├── content-handling.html    # Inner content management
-├── content-mutations.html   # Dynamic content updates
-├── child-redraw.html        # Child element redrawing
-├── child-styles.html        # Style inheritance
-├── corner-cases.html        # Edge cases
-├── complex-type-attrs.html  # Type coercion
-└── coverage-edge-cases.html # Coverage edge cases
 ```
 
 ## How Tests Work
