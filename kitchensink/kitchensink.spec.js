@@ -1,11 +1,18 @@
 const { test, expect } = require('@playwright/test');
-const { readdirSync, mkdirSync, writeFileSync, existsSync, readFileSync } = require('fs');
+const {
+  readdirSync,
+  mkdirSync,
+  writeFileSync,
+  existsSync,
+  readFileSync,
+} = require('fs');
 const path = require('path');
 const v8toIstanbul = require('v8-to-istanbul');
 
 // Auto-discover all HTML files in kitchensink directory (except index.html)
-const htmlFiles = readdirSync(__dirname)
-  .filter(f => f.endsWith('.html') && f !== 'index.html');
+const htmlFiles = readdirSync(__dirname).filter(
+  (f) => f.endsWith('.html') && f !== 'index.html'
+);
 
 // Coverage data storage (shared across workers via file)
 const coverageDir = path.join(__dirname, '..', 'coverage');
@@ -25,10 +32,10 @@ for (const file of htmlFiles) {
 
     // Capture all console messages
     const logs = [];
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       logs.push(`[${msg.type()}] ${msg.text()}`);
     });
-    page.on('pageerror', err => {
+    page.on('pageerror', (err) => {
       logs.push(`[pageerror] ${err.message}`);
     });
 
@@ -38,13 +45,15 @@ for (const file of htmlFiles) {
     // Wait for all test sections to complete (no more 'pending' results)
     try {
       await expect(async () => {
-        const pendingCount = await page.locator('[data-test-result="pending"]').count();
+        const pendingCount = await page
+          .locator('[data-test-result="pending"]')
+          .count();
         expect(pendingCount).toBe(0);
       }).toPass({ timeout: 10000 });
     } catch (e) {
       // If timeout, output collected logs
       console.log(`\n--- Console logs for ${file} ---`);
-      logs.forEach(l => console.log(l));
+      logs.forEach((l) => console.log(l));
       console.log(`--- End logs ---\n`);
       throw e;
     }
@@ -64,10 +73,12 @@ for (const file of htmlFiles) {
 
       if (result !== 'pass') {
         // Get element content for debugging
-        const elemContent = await page.locator(`[data-test="${testName}"]`).textContent();
+        const elemContent = await page
+          .locator(`[data-test="${testName}"]`)
+          .textContent();
         console.log(`\n--- Failed test: ${testName} in ${file} ---`);
         console.log(`Element content: ${elemContent.substring(0, 200)}...`);
-        logs.forEach(l => console.log(l));
+        logs.forEach((l) => console.log(l));
         console.log(`--- End logs ---\n`);
       }
 
@@ -78,7 +89,7 @@ for (const file of htmlFiles) {
     if (collectCoverage) {
       const coverage = await page.coverage.stopJSCoverage();
       // Filter to only include hyperElement.js (source, not minified)
-      const hyperElementCoverage = coverage.filter(entry =>
+      const hyperElementCoverage = coverage.filter((entry) =>
         entry.url.includes('source/hyperElement.js')
       );
 
@@ -135,7 +146,10 @@ test.afterAll(async ({}, testInfo) => {
       for (const func of entry.functions || []) {
         const key = `${func.functionName}-${func.ranges[0]?.startOffset}-${func.ranges[0]?.endOffset}`;
         if (!mergedFunctions.has(key)) {
-          mergedFunctions.set(key, { ...func, ranges: func.ranges.map(r => ({ ...r })) });
+          mergedFunctions.set(key, {
+            ...func,
+            ranges: func.ranges.map((r) => ({ ...r })),
+          });
         } else {
           // Merge counts - add counts for matching ranges, use max for coverage
           const existing = mergedFunctions.get(key);
@@ -154,11 +168,13 @@ test.afterAll(async ({}, testInfo) => {
       url: allCoverage[0].url,
       scriptId: allCoverage[0].scriptId,
       source: allCoverage[0].source,
-      functions: Array.from(mergedFunctions.values())
+      functions: Array.from(mergedFunctions.values()),
     };
 
     // Convert to Istanbul format
-    const converter = v8toIstanbul(sourceFile, 0, { source: mergedEntry.source });
+    const converter = v8toIstanbul(sourceFile, 0, {
+      source: mergedEntry.source,
+    });
     await converter.load();
     converter.applyCoverage(mergedEntry.functions);
     const istanbulCoverage = converter.toIstanbul();
@@ -173,20 +189,23 @@ test.afterAll(async ({}, testInfo) => {
     const fileCoverage = Object.values(istanbulCoverage)[0];
     if (fileCoverage) {
       const { s: statements, f: functions, b: branches } = fileCoverage;
-      const stmtHit = Object.values(statements).filter(v => v > 0).length;
+      const stmtHit = Object.values(statements).filter((v) => v > 0).length;
       const stmtTotal = Object.values(statements).length;
-      const fnHit = Object.values(functions).filter(v => v > 0).length;
+      const fnHit = Object.values(functions).filter((v) => v > 0).length;
       const fnTotal = Object.values(functions).length;
 
-      let branchHit = 0, branchTotal = 0;
+      let branchHit = 0,
+        branchTotal = 0;
       for (const branchArr of Object.values(branches)) {
         branchTotal += branchArr.length;
-        branchHit += branchArr.filter(v => v > 0).length;
+        branchHit += branchArr.filter((v) => v > 0).length;
       }
 
-      const stmtPct = stmtTotal > 0 ? ((stmtHit / stmtTotal) * 100).toFixed(2) : 0;
+      const stmtPct =
+        stmtTotal > 0 ? ((stmtHit / stmtTotal) * 100).toFixed(2) : 0;
       const fnPct = fnTotal > 0 ? ((fnHit / fnTotal) * 100).toFixed(2) : 0;
-      const branchPct = branchTotal > 0 ? ((branchHit / branchTotal) * 100).toFixed(2) : 0;
+      const branchPct =
+        branchTotal > 0 ? ((branchHit / branchTotal) * 100).toFixed(2) : 0;
 
       console.log(`\n${'='.repeat(50)}`);
       console.log(`Code Coverage Summary for source/hyperElement.js`);
@@ -218,7 +237,9 @@ test.afterAll(async ({}, testInfo) => {
 
       // Check for 100% coverage requirement
       if (stmtPct !== '100.00') {
-        console.log(`\n⚠️  Coverage is not 100%! Missing statements on lines: ${[...new Set(uncoveredStmts)].sort((a, b) => a - b).join(', ')}`);
+        console.log(
+          `\n⚠️  Coverage is not 100%! Missing statements on lines: ${[...new Set(uncoveredStmts)].sort((a, b) => a - b).join(', ')}`
+        );
       }
     }
   } catch (e) {

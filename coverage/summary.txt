@@ -1,4 +1,4 @@
-Statements: 99.62% (526/528)
-Functions: 100.00% (109/109)
-Branches: 99.65% (281/282)
-Uncovered lines: 390, 391
+Statements: 100.00% (528/528)
+Functions: 98.83% (169/171)
+Branches: 98.83% (423/428)
+Uncovered lines: 

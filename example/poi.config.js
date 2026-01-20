@@ -1,4 +1,4 @@
 module.exports = {
-  minimize:true,
-  sourceMap:true
-}
+  minimize: true,
+  sourceMap: true,
+};
