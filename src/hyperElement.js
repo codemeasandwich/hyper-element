@@ -1,0 +1,175 @@
+/**
+ * @file hyperElement base class definition.
+ * The main class that custom elements extend to use hyperHTML templating.
+ */
+
+import { manager } from './core/manager.js';
+import { createdCallback } from './lifecycle/connectedCallback.js';
+import { attachAttrs } from './attributes/attachAttrs.js';
+import { getDataset, addDataset } from './attributes/dataset.js';
+
+/**
+ * Context object available as `this` in render() and setup() methods.
+ * @typedef {Object} ElementContext
+ * @property {HTMLElement} element - The DOM element
+ * @property {Object} attrs - Parsed attributes from the element
+ * @property {Object} dataset - Dataset proxy with automatic type coercion
+ * @property {any} [store] - Store value from setup
+ * @property {string} wrappedContent - Text content of element
+ */
+
+/**
+ * Base class for creating custom elements with hyperHTML templating.
+ * Extend this class and implement the render() method to create a custom element.
+ *
+ * @example
+ * class MyElement extends hyperElement {
+ *   render(Html) {
+ *     Html`<div>Hello ${this.attrs.name}</div>`;
+ *   }
+ * }
+ * customElements.define('my-element', MyElement);
+ *
+ * @extends HTMLElement
+ */
+export class hyperElement extends HTMLElement {
+  /**
+   * Unique identifier for this element instance.
+   * @type {symbol}
+   */
+  identifier;
+
+  /**
+   * Gets the innerHTML of the element's shadow/content root.
+   * @returns {string} The inner HTML content
+   */
+  get innerShadow() {
+    return manager[this.identifier].shadow.innerHTML;
+  }
+
+  /**
+   * Called when the element is inserted into a document.
+   * Initializes the element, sets up observers, and triggers initial render.
+   * @returns {void}
+   */
+  connectedCallback() {
+    createdCallback.call(this);
+  }
+
+  /**
+   * Adds a property to the dataset proxy with automatic type coercion.
+   * @param {Object} dataset - The proxied dataset object
+   * @param {string} dash_key - The kebab-case attribute key
+   * @returns {void}
+   */
+  addDataset(dataset, dash_key) {
+    addDataset.call(this, dataset, dash_key);
+  }
+
+  /**
+   * Creates a proxied dataset object from the element's dataset.
+   * @returns {Object} Proxied dataset with automatic type coercion
+   */
+  getDataset() {
+    return getDataset.call(this);
+  }
+
+  /**
+   * Attaches attributes from the element to the context object.
+   * @param {NamedNodeMap} attributes - The element's attributes collection
+   * @returns {Object} Object containing all parsed attributes
+   */
+  attachAttrs(attributes) {
+    return attachAttrs.call(this, attributes);
+  }
+
+  /**
+   * Called when an observed attribute changes.
+   * Updates the context and triggers re-render if needed.
+   *
+   * @param {string} name - The attribute name
+   * @param {string|null} oldVal - The previous value
+   * @param {string|null} newVal - The new value
+   * @returns {void}
+   */
+  attributeChangedCallback(name, oldVal, newVal) {
+    // Guard: attributeChangedCallback can fire before connectedCallback
+    // when observedAttributes is defined and attributes are set before DOM insertion
+    const ref = manager[this.identifier];
+    if (!ref) return;
+
+    if (newVal !== null && +newVal + '' === newVal.trim()) {
+      newVal = +newVal; // to number
+    }
+    const { attrsToIgnore } = ref;
+    const that = ref.this;
+    if (0 <= name.indexOf('data-')) {
+      // we have data
+      const dataSetName = name.slice('data-'.length);
+      if (null === oldVal) {
+        this.addDataset(that.dataset, dataSetName);
+      } else if (null === newVal) {
+        const camel_key = dataSetName.replace(/-([a-z])/g, (g) =>
+          g[1].toUpperCase()
+        );
+        delete that.dataset[camel_key];
+      }
+    }
+
+    if (newVal === that.attrs[name]) {
+      return;
+    }
+    if (null === newVal) {
+      delete that.attrs[name];
+    } else {
+      that.attrs[name] = newVal;
+    }
+    if (attrsToIgnore[name]) {
+      delete attrsToIgnore[name];
+      return;
+    } else {
+      this.render();
+    }
+  }
+
+  /**
+   * Called when the element is removed from the document.
+   * Calls the teardown function if one was returned from setup().
+   * @returns {void}
+   */
+  disconnectedCallback() {
+    const ref = manager[this.identifier];
+    ref.teardown && ref.teardown();
+  }
+
+  /**
+   * Optional setup lifecycle method. Called once when the element is connected.
+   * Use this to set up stores, subscriptions, or other initialization logic.
+   *
+   * @param {Function} onNext - Call this with a store value or getter to enable reactive updates
+   * @returns {void|Function} Optional teardown function called when element is disconnected
+   *
+   * @example
+   * setup(onNext) {
+   *   const store = createStore({ count: 0 });
+   *   onNext(store.getState);
+   *   return store.subscribe(() => this.render());
+   * }
+   */
+  setup(onNext) {} // eslint-disable-line no-unused-vars
+
+  /**
+   * Required render lifecycle method. Called on every render cycle.
+   * Use the Html template tag to render content to the element.
+   *
+   * @param {Object} Html - Tagged template literal function for rendering
+   * @param {...any} data - Additional data passed from store updates
+   * @returns {void}
+   *
+   * @example
+   * render(Html) {
+   *   Html`<div>Hello ${this.attrs.name}!</div>`;
+   * }
+   */
+  render(Html, ...data) {} // eslint-disable-line no-unused-vars
+}

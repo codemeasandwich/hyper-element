@@ -11,15 +11,16 @@
     "index.d.ts"
   ],
   "scripts": {
-    "build": "esbuild source/hyperElement.js --minify --sourcemap --outfile=build/hyperElement.min.js",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed",
+    "build": "node scripts/build.js --prod",
+    "build:dev": "node scripts/build.js",
+    "test": "npm run build:dev && playwright test",
+    "test:ui": "npm run build:dev && playwright test --ui",
+    "test:headed": "npm run build:dev && playwright test --headed",
     "kitchensink": "npx serve .",
     "release": "bash scripts/publish.sh",
     "hooks:install": "cp .hooks/pre-commit .git/hooks/ && cp .hooks/commit-msg .git/hooks/ && cp -r .hooks/pre-commit.d .git/hooks/ && chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/pre-commit.d/*.sh",
     "prepare": "npm run hooks:install",
-    "lint": "eslint source/",
+    "lint": "eslint src/",
     "format": "prettier --check .",
     "format:fix": "prettier --write ."
   },
