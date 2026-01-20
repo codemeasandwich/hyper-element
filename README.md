@@ -9,6 +9,40 @@ Combining the best of [hyperHTML] and [Custom Elements]!
 
 Your new custom-element will be rendered with the super fast [hyperHTML] and will react to tag attribute and store changes.
 
+# Installation
+
+## npm
+
+```bash
+npm install hyper-element
+```
+
+### ES6 Modules
+
+```js
+import hyperElement from "hyper-element"
+
+customElements.define("my-elem", class extends hyperElement {
+  render(Html) {
+    Html`Hello ${this.attrs.who}!`
+  }
+})
+```
+
+### CommonJS
+
+```js
+const hyperElement = require("hyper-element")
+
+customElements.define("my-elem", class extends hyperElement {
+  render(Html) {
+    Html`Hello ${this.attrs.who}!`
+  }
+})
+```
+
+## CDN (Browser)
+
 ## why hyper-element
 
 
@@ -51,36 +85,24 @@ Your new custom-element will be rendered with the super fast [hyperHTML] and wil
 
 # Define a custom-element
 
-```js
-document.registerElement("my-elem", class extends hyperElement{
-
-  render(Html){
-    Html`hello ${this.attrs.who}`
-  }// END render
-
-})// END my-elem
-```
-
-If using **webpack**
-
-```
-const hyperElement from "hyper-element"
-```
-
-To use your element in brower
-
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/webcomponentsjs@latest/lite.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/source/bundle.min.js"></script>
 </head>
 <body>
   <my-elem who="world"></my-elem>
+  <script>
+    customElements.define("my-elem", class extends hyperElement {
+      render(Html) {
+        Html`hello ${this.attrs.who}`
+      }
+    })
+  </script>
 </body>
-<html>
+</html>
 ```
 
 Output
