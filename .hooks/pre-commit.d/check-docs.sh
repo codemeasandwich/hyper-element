@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # .hooks/pre-commit.d/check-docs.sh - Documentation validation
 # Ensures:
-# 1. Every new folder has README.md and files.md
+# 1. Every folder containing staged files has README.md and files.md
 # 2. Every committed file has entries in parent's files.md (Directory Structure + Files section)
 
 ERROR=0
@@ -95,8 +95,8 @@ if [ -z "$STAGED_FILES" ]; then
     exit 0
 fi
 
-# Track new directories (using a regular array with deduplication)
-NEW_DIRS=()
+# Track ALL directories containing staged files (using a regular array with deduplication)
+DIRS_TO_CHECK=()
 
 for file in $STAGED_FILES; do
     # Skip excluded paths
@@ -104,22 +104,30 @@ for file in $STAGED_FILES; do
         continue
     fi
 
-    # Track new directories
+    # Skip documentation files themselves
+    filename=$(get_filename "$file")
+    if [ "$filename" = "README.md" ] || [ "$filename" = "files.md" ]; then
+        continue
+    fi
+
+    # Skip root-level files (they don't need files.md documentation)
     dir=$(dirname "$file")
+    if [ "$dir" = "." ]; then
+        continue
+    fi
+
+    # Track all directories containing staged files
     while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
-        # Check if this directory is being newly created (not in HEAD)
-        if ! git ls-tree -d HEAD "$dir" >/dev/null 2>&1; then
-            # Add to array if not already present
-            if ! array_contains "$dir" "${NEW_DIRS[@]}"; then
-                NEW_DIRS+=("$dir")
-            fi
+        # Add to array if not already present
+        if ! array_contains "$dir" "${DIRS_TO_CHECK[@]}"; then
+            DIRS_TO_CHECK+=("$dir")
         fi
         dir=$(dirname "$dir")
     done
 done
 
-# Check that new directories have README.md and files.md
-for dir in "${NEW_DIRS[@]}"; do
+# Check that all directories containing staged files have README.md and files.md
+for dir in "${DIRS_TO_CHECK[@]}"; do
     if is_excluded "$dir"; then
         continue
     fi
@@ -192,7 +200,7 @@ if [ $ERROR -eq 1 ]; then
     echo ""
 
     if [ ${#MISSING_README[@]} -gt 0 ]; then
-        echo "❌ New directories missing README.md:"
+        echo "❌ Directories missing README.md:"
         for dir in "${MISSING_README[@]}"; do
             echo "   - $dir/README.md"
         done
@@ -200,7 +208,7 @@ if [ $ERROR -eq 1 ]; then
     fi
 
     if [ ${#MISSING_FILES_MD[@]} -gt 0 ]; then
-        echo "❌ New directories missing files.md:"
+        echo "❌ Directories missing files.md:"
         for dir in "${MISSING_FILES_MD[@]}"; do
             echo "   - $dir/files.md"
         done

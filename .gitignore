@@ -2,3 +2,6 @@
 node_modules
 bower_components
 build/
+coverage/
+playwright-report/
+test-results/
