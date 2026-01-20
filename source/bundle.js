@@ -314,6 +314,10 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
             if ("on" === attrName.substring(0, 2)) {
               throw new Error('\'on\' is reserve for native elements. Change: "' + attrName + '" for "' + localName + '" to something else');
             }
+            // Don't intercept style - let hyperHTML handle it natively
+            if ("style" === attrName) {
+              return;
+            }
             var id = makeid();
             sharedAttrs[id] = { attrName: attrName, val: val, localName: localName };
             args[index + 1] = ("function" === typeof val ? 'fn-' : 'ob-') + id;
