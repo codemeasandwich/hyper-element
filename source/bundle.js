@@ -82,31 +82,25 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
 
     var that = ref.this;
     var mutationObserver = new MutationObserver(function (mutations) {
-      /*
-      //if(!this.textContent){
-      const mutation = mutations[mutations.length - 1]
-      const addedNodes = mutation.addedNodes[0]
-      console.log(this,addedNodes,ref.observe)
-      //}
-      */
-      var textContent = _this.textContent;
-      /*
-      				//if("" === textContent){
-              //  const mutation = mutations[mutations.length - 1]
-               // const addedNodes = mutation.addedNodes[0]
-                if(addedNodes)
-                textContent = addedNodes.data
-             // }
-      
-      console.log(textContent === this.wrapedConten,"TEXT_CONTENT:",textContent, "WRAPED_CONTENT:",this.wrappedContent)
-            */
 
       if (!ref.observe) return;
 
+      // Check for attribute changes
+      var attrMutations = mutations.filter(function (m) {
+        return m.type === 'attributes';
+      });
+      if (attrMutations.length > 0) {
+        // Re-attach attrs to pick up new shared attr values
+        that.attrs = _this.attachAttrs(_this.attributes) || {};
+        _this.render();
+        return;
+      }
+
+      // Handle content changes
+      var textContent = _this.textContent;
+
       ref.innerHTML = _this.innerHTML;
-      // that.wrappedContent = textContent
       if (that.attrs.template) {
-        //this.attachAttrs(this.attributes)
         that.attrs = _this.attachAttrs(_this.attributes) || {};
       }
 
@@ -118,23 +112,14 @@ function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defi
     });
 
     mutationObserver.observe(this, {
-      // Set to true if mutations to target's attributes are to be observed.
-      //attributes: true,
-
-      // Set to true if mutations to target's data are to be observed.
-      // characterData: true, // re-render on content change
+      // Watch attribute changes to trigger re-renders
+      attributes: true,
 
       // Set to true if additions and removals of the target node's child elements (including text nodes) are to be observed.
       childList: true,
 
       // Set to true if mutations to target and target's descendants are to be observed.
       subtree: true
-
-      // Set to true if attributes is set to true and target's attribute value before the mutation needs to be recorded.
-      //attributeOldValue: true,
-
-      // Set to true if characterData is set to true and target's data before the mutation needs to be recorded.
-      //characterDataOldValue: true
     });
   }
 
