@@ -42,8 +42,13 @@ This guide covers setting up the development environment for hyper-element.
 
 ```
 hyper-element/
-├── source/
-│   └── hyperElement.js      # Main source file (UMD wrapper)
+├── src/                     # Source files (ES modules)
+│   ├── core/                # Core utilities
+│   ├── attributes/          # Attribute handling
+│   ├── template/            # Template processing
+│   ├── html/                # HTML rendering
+│   ├── lifecycle/           # Lifecycle hooks
+│   └── hyperElement.js      # Main export
 ├── build/
 │   ├── hyperElement.min.js  # Minified production build
 │   └── hyperElement.min.js.map

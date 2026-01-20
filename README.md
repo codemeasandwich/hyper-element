@@ -394,7 +394,7 @@ setup(attachStore){
 
 Being able to set attributes at run-time should be the same for dealing with a native element and ones defined by hyper-element.
 
-**⚠ To support dynamic attributes on custom elements YOU MUST USE `customElements.define` which requires native ES6 support! Use either `/source/hyperElement.js` (development) or `/build/hyperElement.min.js` (production).**
+**⚠ To support dynamic attributes on custom elements YOU MUST USE `customElements.define` which requires native ES6 support! Use `/build/hyperElement.min.js`.**
 
 This is what allows for the passing any dynamic attributes from parent to child custom element! You can also pass a `function` to a child element(that extends hyperElement).
 
@@ -403,7 +403,7 @@ This is what allows for the passing any dynamic attributes from parent to child 
 In you document:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/source/hyperElement.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/build/hyperElement.min.js"></script>
 <users-elem />
 ```
 

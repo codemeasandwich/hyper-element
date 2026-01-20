@@ -1,3 +1,8 @@
+/**
+ * @file Playwright test runner for kitchensink tests.
+ * Auto-discovers HTML test files and runs them with coverage collection.
+ */
+
 const { test, expect } = require('@playwright/test');
 const {
   readdirSync,
@@ -19,13 +24,9 @@ const coverageDir = path.join(__dirname, '..', 'coverage');
 const coverageFile = path.join(coverageDir, 'v8-coverage.json');
 
 for (const file of htmlFiles) {
-  test(`kitchensink/${file}`, async ({ page, browserName }, testInfo) => {
-    // Determine if we're testing minified build
-    const isMinified = testInfo.project.name === 'minified';
-    const buildParam = isMinified ? '?build=minified' : '';
-
-    // Start coverage collection for source tests only
-    const collectCoverage = !isMinified && browserName === 'chromium';
+  test(`kitchensink/${file}`, async ({ page, browserName }) => {
+    // Start coverage collection for chromium only
+    const collectCoverage = browserName === 'chromium';
     if (collectCoverage) {
       await page.coverage.startJSCoverage({ reportAnonymousScripts: true });
     }
@@ -40,7 +41,7 @@ for (const file of htmlFiles) {
     });
 
     // Navigate to page via web server
-    await page.goto(`/kitchensink/${file}${buildParam}`);
+    await page.goto(`/kitchensink/${file}`);
 
     // Wait for all test sections to complete (no more 'pending' results)
     try {
@@ -88,9 +89,9 @@ for (const file of htmlFiles) {
     // Collect coverage data
     if (collectCoverage) {
       const coverage = await page.coverage.stopJSCoverage();
-      // Filter to only include hyperElement.js (source, not minified)
+      // Filter to only include hyperElement.min.js
       const hyperElementCoverage = coverage.filter((entry) =>
-        entry.url.includes('source/hyperElement.js')
+        entry.url.includes('build/hyperElement.min.js')
       );
 
       if (hyperElementCoverage.length > 0) {
@@ -120,10 +121,7 @@ for (const file of htmlFiles) {
 }
 
 // Final coverage report - runs after all tests in this file
-test.afterAll(async ({}, testInfo) => {
-  // Only generate report for the source project
-  if (testInfo.project.name !== 'source') return;
-
+test.afterAll(async () => {
   if (!existsSync(coverageFile)) {
     console.log('No coverage data collected');
     return;
@@ -135,8 +133,13 @@ test.afterAll(async ({}, testInfo) => {
     return;
   }
 
-  // Use the source file path
-  const sourceFile = path.join(__dirname, '..', 'source', 'hyperElement.js');
+  // Use the minified file with source map for coverage
+  const sourceFile = path.join(
+    __dirname,
+    '..',
+    'build',
+    'hyperElement.min.js'
+  );
 
   try {
     // Merge all coverage data for the same file
@@ -171,7 +174,7 @@ test.afterAll(async ({}, testInfo) => {
       functions: Array.from(mergedFunctions.values()),
     };
 
-    // Convert to Istanbul format
+    // Convert to Istanbul format using source maps
     const converter = v8toIstanbul(sourceFile, 0, {
       source: mergedEntry.source,
     });
@@ -208,7 +211,7 @@ test.afterAll(async ({}, testInfo) => {
         branchTotal > 0 ? ((branchHit / branchTotal) * 100).toFixed(2) : 0;
 
       console.log(`\n${'='.repeat(50)}`);
-      console.log(`Code Coverage Summary for source/hyperElement.js`);
+      console.log(`Code Coverage Summary for src/`);
       console.log(`${'='.repeat(50)}`);
       console.log(`Statements : ${stmtHit}/${stmtTotal} (${stmtPct}%)`);
       console.log(`Functions  : ${fnHit}/${fnTotal} (${fnPct}%)`);

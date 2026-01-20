@@ -1,14 +1,8 @@
-// Dynamically load hyper-element based on query parameter
-// Usage: Add ?build=minified to test against build/hyperElement.min.js
+/**
+ * @file Test loader for hyper-element kitchensink tests.
+ * Synchronously loads the minified build for browser testing.
+ */
+
 (function () {
-  const params = new URLSearchParams(window.location.search);
-  const build = params.get('build');
-
-  const src =
-    build === 'minified'
-      ? '../build/hyperElement.min.js'
-      : '../source/hyperElement.js';
-
-  // Use document.write for synchronous loading
-  document.write('<script src="' + src + '"><\/script>');
+  document.write('<script src="../build/hyperElement.min.js"><\/script>');
 })();

@@ -73,8 +73,8 @@ Each HTML file in `kitchensink/` is a self-contained test scenario that:
 The `kitchensink.spec.js` file:
 
 - Auto-discovers all HTML test files
-- Runs each test against both source and minified builds
-- Collects V8 coverage data
+- Runs tests against the minified build (`build/hyperElement.min.js`)
+- Collects V8 coverage data mapped to `src/` files
 - Validates test assertions
 - Reports console errors on failure
 
@@ -104,7 +104,7 @@ After running tests, coverage reports are generated in:
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="../source/hyperElement.js"></script>
+    <script src="../kitchensink/test-loader.js"></script>
   </head>
   <body>
     <my-test-elem></my-test-elem>
@@ -127,16 +127,9 @@ After running tests, coverage reports are generated in:
 3. Use `data-test-result="pass"` to indicate successful assertions
 4. Use `data-test-result="fail"` to indicate failures
 
-## Test Projects
+## Test Configuration
 
-Tests run in two parallel projects:
-
-| Project    | Description                                |
-| ---------- | ------------------------------------------ |
-| `source`   | Tests against `/source/hyperElement.js`    |
-| `minified` | Tests against `/build/hyperElement.min.js` |
-
-This ensures both the development source and production build work identically.
+Tests run against the minified production build (`build/hyperElement.min.js`) to ensure the shipped code works correctly. Coverage is collected and mapped back to the source files in `src/` using source maps.
 
 ## Debugging Failed Tests
 

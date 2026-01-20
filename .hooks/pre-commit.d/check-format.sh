@@ -12,8 +12,8 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  Checking code formatting..."
 echo ""
 
-# Run Prettier check on source files and configs (excluding .claude.md)
-npx prettier --check "source/**/*.js" "*.json" "README.md" 2>&1
+# Run Prettier check on src files and configs (excluding .claude.md)
+npx prettier --check "src/**/*.js" "*.json" "README.md" 2>&1
 
 RESULT=$?
 

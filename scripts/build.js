@@ -8,7 +8,6 @@ const fs = require('fs');
 const path = require('path');
 
 const srcDir = path.join(__dirname, '..', 'src');
-const outDir = path.join(__dirname, '..', 'source');
 const buildDir = path.join(__dirname, '..', 'build');
 
 // Files in dependency order (no circular deps)
@@ -54,9 +53,10 @@ function processFile(filePath) {
 }
 
 /**
- * Builds the development bundle.
+ * Creates the bundled source content from src/ files.
+ * @returns {string} The bundled UMD source
  */
-function buildDev() {
+function createBundle() {
   const parts = [];
 
   // UMD wrapper start
@@ -86,41 +86,34 @@ function buildDev() {
 });
 `);
 
-  const output = parts.join('\n');
-
-  // Ensure output directory exists
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, { recursive: true });
-  }
-
-  fs.writeFileSync(path.join(outDir, 'hyperElement.js'), output);
-  console.log(
-    `Built: source/hyperElement.js (${(output.length / 1024).toFixed(1)}kb)`
-  );
+  return parts.join('\n');
 }
 
 /**
  * Builds the minified production bundle using esbuild.
  */
-async function buildProd() {
-  // First build dev, then minify it
-  buildDev();
-
+async function build() {
   try {
     const esbuild = require('esbuild');
-    const devFile = path.join(outDir, 'hyperElement.js');
 
     // Ensure build directory exists
     if (!fs.existsSync(buildDir)) {
       fs.mkdirSync(buildDir, { recursive: true });
     }
 
-    await esbuild.build({
-      entryPoints: [devFile],
+    // Create bundle content
+    const bundleContent = createBundle();
+
+    // Use esbuild's stdin to minify the bundle directly
+    const result = await esbuild.build({
+      stdin: {
+        contents: bundleContent,
+        loader: 'js',
+      },
       outfile: path.join(buildDir, 'hyperElement.min.js'),
       minify: true,
       sourcemap: true,
-      bundle: false, // Already bundled
+      bundle: false,
     });
 
     const stats = fs.statSync(path.join(buildDir, 'hyperElement.min.js'));
@@ -128,15 +121,10 @@ async function buildProd() {
       `Built: build/hyperElement.min.js (${(stats.size / 1024).toFixed(1)}kb)`
     );
   } catch (e) {
-    console.error('Error building production bundle:', e);
+    console.error('Error building bundle:', e);
     process.exit(1);
   }
 }
 
-// Run based on command line args
-const args = process.argv.slice(2);
-if (args.includes('--prod') || args.includes('-p')) {
-  buildProd();
-} else {
-  buildDev();
-}
+// Run build
+build();
