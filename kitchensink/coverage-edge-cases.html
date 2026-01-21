@@ -1843,6 +1843,73 @@
       </script>
     </section>
 
+    <!-- Test: {+each} with undefined/null array -->
+    <section data-test="each-undefined" data-test-result="pending">
+      <h2>Each with Undefined Array</h2>
+      <p>Tests {+each} block with undefined value (should render empty).</p>
+      <div id="each-undefined-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="each-undefined"]');
+
+          customElements.define(
+            'each-undefined-elem',
+            class extends hyperElement {
+              render(Html) {
+                const undefinedArray = undefined;
+                Html`<div id="each-undefined-result">before{+each ${undefinedArray}}<span>item</span>{-each}after</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('each-undefined-elem');
+          document.getElementById('each-undefined-output').appendChild(elem);
+
+          setTimeout(() => {
+            const result = document.getElementById('each-undefined-result');
+            // Should render 'beforeafter' with no items
+            const pass = result && result.textContent === 'beforeafter';
+            section.dataset.testResult = pass ? 'pass' : 'fail';
+            if (!pass) console.log('each-undefined actual:', result?.textContent);
+          }, 100);
+        })();
+      </script>
+    </section>
+
+    <!-- Test: Object/function to regular element (no custom tag interception) -->
+    <section data-test="obj-to-regular-elem" data-test-result="pending">
+      <h2>Object to Regular Element</h2>
+      <p>Tests passing an object to a regular HTML element (not a custom element).</p>
+      <div id="obj-to-regular-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="obj-to-regular-elem"]');
+
+          customElements.define(
+            'obj-to-regular-elem',
+            class extends hyperElement {
+              render(Html) {
+                // Pass an object to a regular div's style attribute
+                // This should NOT trigger custom element interception
+                const styleObj = { color: 'blue', fontWeight: 'bold' };
+                Html`<div id="obj-to-regular-result" style=${styleObj}>styled</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('obj-to-regular-elem');
+          document.getElementById('obj-to-regular-output').appendChild(elem);
+
+          setTimeout(() => {
+            const result = document.getElementById('obj-to-regular-result');
+            // hyperHTML should apply the style object to the div
+            const pass = result && result.style.color === 'blue';
+            section.dataset.testResult = pass ? 'pass' : 'fail';
+          }, 100);
+        })();
+      </script>
+    </section>
+
     <a href="index.html">&larr; Back to Kitchen Sink</a>
   </body>
 </html>

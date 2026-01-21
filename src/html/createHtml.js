@@ -45,16 +45,16 @@ export function createHtml(shadow) {
       args = [transformed.strings, ...transformed.values];
     }
 
-    if (
-      args
-        .slice(1)
-        .some(
-          (item) =>
-            'function' === typeof item ||
-            (item !== null && 'object' === typeof item)
-        ) &&
-      args[0].some((t) => isCustomTag.test(t))
-    ) {
+    const hasFnOrObj = args
+      .slice(1)
+      .some(
+        (item) =>
+          'function' === typeof item ||
+          (item !== null && 'object' === typeof item)
+      );
+    const hasCustomTag = args[0].some((t) => isCustomTag.test(t));
+
+    if (hasFnOrObj && hasCustomTag) {
       let inCustomTag = false;
       let localName = '';
       args[0].forEach((item, index, _items) => {
