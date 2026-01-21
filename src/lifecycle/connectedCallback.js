@@ -57,6 +57,20 @@ export function createdCallback() {
           if (undefined !== result && result.once) return result;
 
           result = this[name](data);
+
+          // Handle text type (escaped by hyperHTML) and html type (raw)
+          // Only handle synchronous string values, not Promises
+          if (result.text !== undefined && typeof result.text === 'string') {
+            // Pass text directly - hyperHTML escapes strings in 'any' mode
+            result = { any: result.text, once: result.once };
+          } else if (
+            result.html !== undefined &&
+            typeof result.html === 'string'
+          ) {
+            // Use hyperHTML's html mode for raw HTML fragments
+            result = { any: { html: result.html }, once: result.once };
+          }
+
           if (result.template) {
             if ('string' === typeof result.template) {
               if (!templatestrings[result.template]) {
@@ -64,9 +78,19 @@ export function createdCallback() {
                   result.template
                 );
               }
-              result = {
-                any: templatestrings[result.template](result.values || data),
-              };
+              const templateResult = templatestrings[result.template](
+                result.values || data
+              );
+              // Handle both DOM nodes (from wire) and {html: string} (from advanced)
+              if (templateResult && templateResult.html) {
+                // Advanced templates return {html: string} - use hyperHTML's html mode
+                result = {
+                  any: { html: templateResult.html },
+                  once: result.once,
+                };
+              } else {
+                result = { any: templateResult, once: result.once };
+              }
             } else if (
               'object' === typeof result.template &&
               'function' === typeof result.template.then

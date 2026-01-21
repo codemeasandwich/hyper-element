@@ -55,10 +55,45 @@ Html`
 `;
 ```
 
-This creates a new node for every element on every render, causing:
+This creates a new node for every element on every render, causing **negative impact on performance**. Use `Html.wire()` instead to allow hyperHTML to efficiently reuse DOM nodes when the data reference and ID don't change.
 
-- **Negative impact on performance**
-- **Output will not be sanitized** - potential XSS vulnerability
+### Block Syntax
+
+The Html function supports block syntax for iteration and conditionals:
+
+| Syntax                                | Description           |
+| ------------------------------------- | --------------------- |
+| `{+each ${array}}...{-each}`          | Iterate over arrays   |
+| `{+if ${condition}}...{-if}`          | Conditional rendering |
+| `{+if ${condition}}...{else}...{-if}` | Conditional with else |
+| `{+unless ${condition}}...{-unless}`  | Negated conditional   |
+
+#### {+each} - Iteration
+
+```js
+Html`<ul>{+each ${users}}<li>{name}</li>{-each}</ul>`;
+```
+
+This is equivalent to manually calling `Html.wire()`:
+
+```js
+Html`<ul>${users.map((user) => Html.wire(user, ':id')`<li>${user.name}</li>`)}</ul>`;
+```
+
+Inside `{+each}` blocks:
+
+- `{property}` - Access object properties
+- `{...}` or `{ ... }` - Current item value (formatted: primitives escaped, arrays join(","), objects JSON, functions called)
+- `{@}` - Array index (0-based)
+- `{+each {property}}` - Nested arrays
+
+#### {+if} and {+unless} - Conditionals
+
+```js
+Html`{+if ${isLoggedIn}}<p>Welcome!</p>{else}<p>Please log in</p>{-if}`;
+
+Html`{+unless ${hasErrors}}<p>Form is valid</p>{-unless}`;
+```
 
 ## Html.lite
 

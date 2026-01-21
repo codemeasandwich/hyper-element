@@ -6,6 +6,24 @@
 /**
  * Tagged template literal function for rendering HTML content.
  * Use as a tagged template: Html`<div>${value}</div>`
+ *
+ * Supports auto-wire syntax for efficient list rendering:
+ * ```javascript
+ * Html`<ul>{+each ${users}}<li>{name}</li>{-each}</ul>`;
+ * ```
+ *
+ * This is equivalent to:
+ * ```javascript
+ * Html`<ul>${users.map(u => Html.wire(u, id)`<li>${u.name}</li>`)}</ul>`;
+ * ```
+ *
+ * Syntax:
+ * - `{+each ${array}}...{-each}` - Loop with auto-wire for DOM reuse
+ * - `{name}` - Access item property
+ * - `{address.city}` - Nested property access
+ * - `{...}` or `{ ... }` - Current item value (formatted: primitives escaped, arrays join(","), objects JSON, functions called)
+ * - `{@}` - Current array index (0-based)
+ * - `{+each {items}}...{-each}` - Nested loop using parent's property
  */
 export interface HtmlFunction {
   /**
@@ -27,6 +45,13 @@ export interface HtmlFunction {
    * Create a lightweight template without wire binding
    */
   lite(strings: TemplateStringsArray, ...values: any[]): any;
+
+  /**
+   * Mark a string as safe HTML that should not be escaped.
+   * Use with caution - only for trusted HTML content.
+   * @param html - The HTML string to mark as safe
+   */
+  raw(html: string): { value: string };
 
   /**
    * Template function available when template attribute is used on the element

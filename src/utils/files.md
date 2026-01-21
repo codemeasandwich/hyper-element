@@ -4,10 +4,15 @@
 
 ```
 utils/
+├── escape.js
 └── makeid.js
 ```
 
 ## Files
+
+### `escape.js`
+
+XSS prevention utilities. Exports `escapeHtml()` for escaping HTML entities, `safeHtml()` for marking strings as safe (bypass escaping), `isSafeHtml()` for checking safe markers, and `SAFE_HTML` symbol for internal marking.
 
 ### `makeid.js`
 

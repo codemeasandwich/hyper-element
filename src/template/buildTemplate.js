@@ -4,6 +4,7 @@
  */
 
 import { processAdvancedTemplate } from './processAdvancedTemplate.js';
+import { escapeHtml } from '../utils/escape.js';
 
 /**
  * Builds a template function from an innerHTML string.
@@ -18,7 +19,7 @@ import { processAdvancedTemplate } from './processAdvancedTemplate.js';
  */
 export function buildTemplate(innerHTML) {
   // Check if template has advanced features
-  const hasAdvanced = /\{#(if|each|unless)\s/.test(innerHTML);
+  const hasAdvanced = /\{\+(if|each|unless)\s/.test(innerHTML);
 
   if (hasAdvanced) {
     // Use advanced template processing
@@ -33,9 +34,10 @@ export function buildTemplate(innerHTML) {
       let result = processAdvancedTemplate(innerHTML, data);
       // Simple variable substitution for remaining {var} patterns
       result = result.replace(/\{(\w+)\}/g, (match, key) => {
-        return data[key] != null ? data[key] : '';
+        return data[key] != null ? escapeHtml(String(data[key])) : '';
       });
-      return result;
+      // Return as safe HTML - values are already escaped, markup should render
+      return { html: result };
     };
   }
 

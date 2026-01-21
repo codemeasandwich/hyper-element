@@ -41,6 +41,38 @@
     <h1>Coverage Edge Cases</h1>
     <p>Tests for edge cases to achieve 100% code coverage.</p>
 
+    <!-- Test: Base render() method (no override) -->
+    <section data-test="base-render" data-test-result="pending">
+      <h2>Base render() Method (No Override)</h2>
+      <p>
+        Tests that a hyperElement without an overridden render() still works.
+      </p>
+      <div id="base-render-output"></div>
+      <script>
+        customElements.define(
+          'base-render-elem',
+          class extends hyperElement {
+            // Intentionally no render() method - uses base class empty stub
+          }
+        );
+
+        const baseRenderElem = document.createElement('base-render-elem');
+        document
+          .getElementById('base-render-output')
+          .appendChild(baseRenderElem);
+
+        requestAnimationFrame(() => {
+          const section = document.querySelector('[data-test="base-render"]');
+          // Element should exist and be connected, even with empty render
+          if (baseRenderElem && baseRenderElem.isConnected) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        });
+      </script>
+    </section>
+
     <!-- Test: setup without store (undefined store path) -->
     <section data-test="setup-no-store" data-test-result="pending">
       <h2>Setup with No Store (undefined)</h2>
@@ -885,7 +917,7 @@
             class extends hyperElement {
               Item(data) {
                 return {
-                  template: '{#if show}<span>shown</span>{/if}',
+                  template: '{+if show}<span>shown</span>{-if}',
                   values: 'not-an-object', // This should cause error
                 };
               }
@@ -1039,7 +1071,7 @@
             class extends hyperElement {
               List(data) {
                 return {
-                  template: '{#each items}<li>{.}</li>{/each}',
+                  template: '{+each items}<li>{...}</li>{-each}',
                   values: data,
                 };
               }
@@ -1065,7 +1097,7 @@
     <!-- Test: if/else template - else branch -->
     <section data-test="if-else-branch" data-test-result="pending">
       <h2>If/Else Template - Else Branch</h2>
-      <p>Tests that {#if}...{else}...{/if} uses else branch when false.</p>
+      <p>Tests that {#if}...{else}...{-if} uses else branch when false.</p>
       <div id="if-else-output"></div>
       <script>
         (function () {
@@ -1078,7 +1110,7 @@
             class extends hyperElement {
               Content(data) {
                 return {
-                  template: '{#if showMain}Main{else}Fallback{/if}',
+                  template: '{+if showMain}Main{else}Fallback{-if}',
                   values: data,
                 };
               }
@@ -1115,7 +1147,7 @@
             class extends hyperElement {
               Content(data) {
                 return {
-                  template: 'Before{#unless hidden}SHOWN{/unless}After',
+                  template: 'Before{+unless hidden}SHOWN{-unless}After',
                   values: data,
                 };
               }
@@ -1156,7 +1188,7 @@
             class extends hyperElement {
               Content(data) {
                 return {
-                  template: '{#if show}Value: {value}{/if}',
+                  template: '{+if show}Value: {value}{-if}',
                   values: data,
                 };
               }
@@ -1179,12 +1211,10 @@
       </script>
     </section>
 
-    <!-- Test: {@index} in each loops -->
+    <!-- Test: {@} in each loops -->
     <section data-test="each-with-index" data-test-result="pending">
       <h2>Each with @index</h2>
-      <p>
-        Tests {@index} access in each loops to get the current iteration index.
-      </p>
+      <p>Tests {@} access in each loops to get the current iteration index.</p>
       <div id="each-index-output"></div>
       <script>
         (function () {
@@ -1197,7 +1227,7 @@
             class extends hyperElement {
               List(data) {
                 return {
-                  template: '{#each items}{@index}:{.},{/each}',
+                  template: '{+each items}{@}:{...},{-each}',
                   values: data,
                 };
               }
@@ -1219,11 +1249,11 @@
       </script>
     </section>
 
-    <!-- Test: {#if}...{else}...{/if} truthy branch -->
+    <!-- Test: {#if}...{else}...{-if} truthy branch -->
     <section data-test="if-else-truthy" data-test-result="pending">
       <h2>If/Else Truthy Branch</h2>
       <p>
-        Tests that {#if condition}...{else}...{/if} returns the if-branch when
+        Tests that {+if condition}...{else}...{-if} returns the if-branch when
         condition is truthy.
       </p>
       <div id="if-else-truthy-output"></div>
@@ -1238,7 +1268,7 @@
             class extends hyperElement {
               Content(data) {
                 return {
-                  template: '{#if show}YES{else}NO{/if}',
+                  template: '{+if show}YES{else}NO{-if}',
                   values: data,
                 };
               }
@@ -1265,7 +1295,7 @@
     <section data-test="unless-truthy-hide" data-test-result="pending">
       <h2>Unless Truthy Hides Content</h2>
       <p>
-        Tests that {#unless condition} hides content when condition is truthy.
+        Tests that {+unless condition} hides content when condition is truthy.
       </p>
       <div id="unless-truthy-hide-output"></div>
       <script>
@@ -1279,7 +1309,7 @@
             class extends hyperElement {
               Content(data) {
                 return {
-                  template: 'Before{#unless visible}HIDDEN{/unless}After',
+                  template: 'Before{+unless visible}HIDDEN{-unless}After',
                   values: data,
                 };
               }
@@ -1363,7 +1393,7 @@
             class extends hyperElement {
               List(data) {
                 return {
-                  template: 'Start{#each items}[{.}]{/each}End',
+                  template: 'Start{+each items}[{...}]{-each}End',
                   values: data,
                 };
               }
@@ -1395,11 +1425,11 @@
       </p>
       <!-- Truthy test: shouldHide=true means content is hidden -->
       <unless-truthy-attr-elem template
-        >START{#unless shouldHide}VISIBLE{/unless}END</unless-truthy-attr-elem
+        >START{+unless shouldHide}VISIBLE{-unless}END</unless-truthy-attr-elem
       >
       <!-- Falsy test: shouldShow=false means content is shown -->
       <unless-falsy-attr-elem template
-        >BEGIN{#unless shouldShow}CONTENT{/unless}FINISH</unless-falsy-attr-elem
+        >BEGIN{+unless shouldShow}CONTENT{-unless}FINISH</unless-falsy-attr-elem
       >
       <script>
         customElements.define(
@@ -1465,7 +1495,7 @@
             class extends hyperElement {
               Hidden(data) {
                 return {
-                  template: 'X{#unless showIt}HIDDEN{/unless}Y',
+                  template: 'X{+unless showIt}HIDDEN{-unless}Y',
                   values: data,
                 };
               }
@@ -1496,11 +1526,11 @@
       </p>
       <!-- Undefined variable test -->
       <adv-undef-attr-elem template
-        >{#if show}[{notProvided}]{/if}</adv-undef-attr-elem
+        >{+if show}[{notProvided}]{-if}</adv-undef-attr-elem
       >
       <!-- Defined variable test -->
       <adv-defined-attr-elem template
-        >{#if show}[{provided}]{/if}</adv-defined-attr-elem
+        >{+if show}[{provided}]{-if}</adv-defined-attr-elem
       >
       <script>
         customElements.define(
@@ -1565,7 +1595,7 @@
               NullVal(data) {
                 return {
                   // Template with #if (makes it "advanced") and a null variable
-                  template: '{#if active}Value=[{val}]{/if}',
+                  template: '{+if active}Value=[{val}]{-if}',
                   values: data,
                 };
               }
@@ -1629,6 +1659,186 @@
               ? 'pass'
               : 'fail';
           }, 200);
+        })();
+      </script>
+    </section>
+
+    <!-- Test: formatValue with different types in each loop -->
+    <section data-test="format-value-types" data-test-result="pending">
+      <h2>Format Value Types in Each</h2>
+      <p>
+        Tests {...} with different value types: string, number, boolean, array,
+        object, function, null.
+      </p>
+      <div id="format-value-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector(
+            '[data-test="format-value-types"]'
+          );
+
+          customElements.define(
+            'format-value-elem',
+            class extends hyperElement {
+              List(data) {
+                return {
+                  template: '{+each items}[{...}]{-each}',
+                  values: data,
+                };
+              }
+              render(Html) {
+                // Test various types
+                const items = [
+                  'hello', // string
+                  42, // number
+                  true, // boolean
+                  ['a', 'b'], // array -> "a, b"
+                  { x: 1 }, // object -> JSON
+                  () => 'fn-result', // function -> call it
+                  null, // null -> empty
+                ];
+                Html`<div id="format-value-result">${{ List: { items } }}</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('format-value-elem');
+          document.getElementById('format-value-output').appendChild(elem);
+
+          setTimeout(() => {
+            const result = document.getElementById('format-value-result');
+            const text = result?.textContent || '';
+            // Expected: [hello][42][true][a, b][{"x":1}][fn-result][]
+            const hasString = text.includes('[hello]');
+            const hasNumber = text.includes('[42]');
+            const hasBoolean = text.includes('[true]');
+            const hasArray = text.includes('[a, b]');
+            const hasObject = text.includes('[{"x":1}]');
+            const hasFunction = text.includes('[fn-result]');
+            const hasNull = text.includes('[]');
+
+            const pass =
+              hasString &&
+              hasNumber &&
+              hasBoolean &&
+              hasArray &&
+              hasObject &&
+              hasFunction &&
+              hasNull;
+            section.dataset.testResult = pass ? 'pass' : 'fail';
+            if (!pass) {
+              console.log('format-value-types actual:', text);
+            }
+          }, 200);
+        })();
+      </script>
+    </section>
+
+    <!-- Test: Html.wire() directly -->
+    <section data-test="html-wire-direct" data-test-result="pending">
+      <h2>Html.wire() Direct Usage</h2>
+      <p>Tests that Html.wire() can be used directly for wired templates.</p>
+      <div id="html-wire-direct-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector(
+            '[data-test="html-wire-direct"]'
+          );
+
+          customElements.define(
+            'html-wire-direct-elem',
+            class extends hyperElement {
+              render(Html) {
+                const items = [
+                  { id: 1, name: 'A' },
+                  { id: 2, name: 'B' },
+                ];
+                const wired = items.map(
+                  (item) => Html.wire(item)`<li>${item.name}</li>`
+                );
+                Html`<ul id="html-wire-direct-result">${wired}</ul>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('html-wire-direct-elem');
+          document.getElementById('html-wire-direct-output').appendChild(elem);
+
+          setTimeout(() => {
+            const result = document.getElementById('html-wire-direct-result');
+            const lis = result?.querySelectorAll('li') || [];
+            const pass =
+              lis.length === 2 &&
+              lis[0].textContent === 'A' &&
+              lis[1].textContent === 'B';
+            section.dataset.testResult = pass ? 'pass' : 'fail';
+          }, 100);
+        })();
+      </script>
+    </section>
+
+    <!-- Test: Html.lite() direct usage -->
+    <section data-test="html-lite-direct" data-test-result="pending">
+      <h2>Html.lite() Direct Usage</h2>
+      <p>Tests that Html.lite() works for lightweight templates.</p>
+      <div id="html-lite-direct-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector(
+            '[data-test="html-lite-direct"]'
+          );
+
+          customElements.define(
+            'html-lite-direct-elem',
+            class extends hyperElement {
+              render(Html) {
+                // Use lite for a simple one-off render
+                const lite = Html.lite`<span>lite-direct-content</span>`;
+                Html`<div id="html-lite-direct-result">${lite}</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('html-lite-direct-elem');
+          document.getElementById('html-lite-direct-output').appendChild(elem);
+
+          setTimeout(() => {
+            const result = document.getElementById('html-lite-direct-result');
+            const pass = result?.textContent?.includes('lite-direct-content');
+            section.dataset.testResult = pass ? 'pass' : 'fail';
+          }, 100);
+        })();
+      </script>
+    </section>
+
+    <!-- Test: Html.raw() for safe HTML -->
+    <section data-test="html-raw" data-test-result="pending">
+      <h2>Html.raw() for Safe HTML</h2>
+      <p>Tests that Html.raw() renders HTML without escaping.</p>
+      <div id="html-raw-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="html-raw"]');
+
+          customElements.define(
+            'html-raw-elem',
+            class extends hyperElement {
+              render(Html) {
+                const rawHtml = Html.raw('<strong>bold</strong>');
+                Html`<div id="html-raw-result">${rawHtml}</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('html-raw-elem');
+          document.getElementById('html-raw-output').appendChild(elem);
+
+          setTimeout(() => {
+            const result = document.getElementById('html-raw-result');
+            const strong = result?.querySelector('strong');
+            const pass = strong && strong.textContent === 'bold';
+            section.dataset.testResult = pass ? 'pass' : 'fail';
+          }, 100);
         })();
       </script>
     </section>

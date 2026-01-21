@@ -89,9 +89,9 @@ for (const file of htmlFiles) {
     // Collect coverage data
     if (collectCoverage) {
       const coverage = await page.coverage.stopJSCoverage();
-      // Filter to only include hyperElement.min.js
+      // Filter to only include hyperElement.bundle.js
       const hyperElementCoverage = coverage.filter((entry) =>
-        entry.url.includes('build/hyperElement.min.js')
+        entry.url.includes('build/hyperElement.bundle.js')
       );
 
       if (hyperElementCoverage.length > 0) {
@@ -133,37 +133,89 @@ test.afterAll(async () => {
     return;
   }
 
-  // Use the minified file with source map for coverage
+  // Use the unminified bundle file for accurate coverage (no source map needed)
   const sourceFile = path.join(
     __dirname,
     '..',
     'build',
-    'hyperElement.min.js'
+    'hyperElement.bundle.js'
   );
 
   try {
-    // Merge all coverage data for the same file
-    const mergedFunctions = new Map();
+    // Merge V8 coverage from all test entries
+    // V8 uses nested ranges: outer range with count > 0 contains inner ranges with count 0 for unexecuted blocks
+    // If an entry executes a block, that inner range is ABSENT from its coverage
+    // Strategy: Track all unique inner ranges across entries, remove any that were executed in any entry
 
-    for (const entry of allCoverage) {
+    // First pass: collect all functions and track which inner ranges exist in each entry
+    const functionData = new Map();
+
+    for (let entryIdx = 0; entryIdx < allCoverage.length; entryIdx++) {
+      const entry = allCoverage[entryIdx];
       for (const func of entry.functions || []) {
         const key = `${func.functionName}-${func.ranges[0]?.startOffset}-${func.ranges[0]?.endOffset}`;
-        if (!mergedFunctions.has(key)) {
-          mergedFunctions.set(key, {
-            ...func,
-            ranges: func.ranges.map((r) => ({ ...r })),
+
+        if (!functionData.has(key)) {
+          functionData.set(key, {
+            functionName: func.functionName,
+            isBlockCoverage: func.isBlockCoverage,
+            outerRange: { ...func.ranges[0] },
+            // Track which entries have each inner range (keyed by offset)
+            innerRangePresence: new Map(),
+            totalEntries: 0,
           });
-        } else {
-          // Merge counts - add counts for matching ranges, use max for coverage
-          const existing = mergedFunctions.get(key);
-          for (let i = 0; i < func.ranges.length; i++) {
-            if (existing.ranges[i]) {
-              // Sum the counts
-              existing.ranges[i].count += func.ranges[i].count;
-            }
+        }
+
+        const data = functionData.get(key);
+        data.totalEntries++;
+        data.outerRange.count += func.ranges[0].count;
+
+        // Record presence of each inner range for this entry
+        for (let i = 1; i < func.ranges.length; i++) {
+          const r = func.ranges[i];
+          const rKey = `${r.startOffset}-${r.endOffset}`;
+          if (!data.innerRangePresence.has(rKey)) {
+            data.innerRangePresence.set(rKey, {
+              range: { ...r },
+              entriesWithRange: 0,
+            });
           }
+          data.innerRangePresence.get(rKey).entriesWithRange++;
+          // Take max count for this range
+          data.innerRangePresence.get(rKey).range.count = Math.max(
+            data.innerRangePresence.get(rKey).range.count,
+            r.count
+          );
         }
       }
+    }
+
+    // Second pass: build merged functions
+    // An inner range with count 0 should be REMOVED if any entry executed that code
+    // (i.e., if the range is not present in all entries)
+    const mergedFunctions = [];
+
+    for (const [key, data] of functionData) {
+      const ranges = [data.outerRange];
+
+      for (const [rKey, presence] of data.innerRangePresence) {
+        // If this inner range was present in ALL entries, include it
+        // Otherwise, at least one entry executed this code
+        if (presence.entriesWithRange === data.totalEntries) {
+          ranges.push(presence.range);
+        }
+        // If some entries don't have this range, they executed the code
+        // So we don't include the count:0 range in the merged result
+      }
+
+      // Sort inner ranges by startOffset
+      ranges.sort((a, b) => a.startOffset - b.startOffset);
+
+      mergedFunctions.push({
+        functionName: data.functionName,
+        isBlockCoverage: data.isBlockCoverage,
+        ranges,
+      });
     }
 
     // Create merged coverage entry
@@ -171,10 +223,10 @@ test.afterAll(async () => {
       url: allCoverage[0].url,
       scriptId: allCoverage[0].scriptId,
       source: allCoverage[0].source,
-      functions: Array.from(mergedFunctions.values()),
+      functions: mergedFunctions,
     };
 
-    // Convert to Istanbul format using source maps
+    // Convert to Istanbul format
     const converter = v8toIstanbul(sourceFile, 0, {
       source: mergedEntry.source,
     });

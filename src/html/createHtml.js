@@ -6,6 +6,8 @@
 import { makeid } from '../utils/makeid.js';
 import { sharedAttrs } from '../core/manager.js';
 import { isCustomTag } from '../core/constants.js';
+import { escapeHtml, safeHtml, isSafeHtml } from '../utils/escape.js';
+import { hasEachBlocks, transformEachBlocks } from './parseEachBlocks.js';
 
 /**
  * Tagged template literal function for rendering HTML content.
@@ -33,6 +35,16 @@ export function createHtml(shadow) {
    * @returns {any} Result of hyperHTML.bind
    */
   function Html(...args) {
+    // Transform {+each}...{-each} blocks to Html.wire() calls
+    if (hasEachBlocks(args[0])) {
+      const transformed = transformEachBlocks(
+        args[0],
+        args.slice(1),
+        Html.wire
+      );
+      args = [transformed.strings, ...transformed.values];
+    }
+
     if (
       args
         .slice(1)
@@ -86,7 +98,34 @@ export function createHtml(shadow) {
       });
     }
 
-    return hyperHTMLbind(...args);
+    // Process values - handle safeHtml markers and escape array strings
+    // hyperHTML escapes single strings, but renders array items as HTML fragments
+    const processedArgs = [args[0]];
+    for (let i = 1; i < args.length; i++) {
+      const val = args[i];
+      if (isSafeHtml(val)) {
+        // Safe HTML (Html.raw()) - wrap in hyperHTML's raw HTML marker
+        processedArgs.push({ html: val.value });
+      } else if (Array.isArray(val)) {
+        // Arrays of strings are rendered as HTML by hyperHTML - escape them
+        processedArgs.push(
+          val.map((item) => {
+            if (isSafeHtml(item)) {
+              return { html: item.value };
+            } else if (typeof item === 'string') {
+              // Escape string items to prevent XSS
+              return escapeHtml(item);
+            }
+            return item;
+          })
+        );
+      } else {
+        // Other values pass through unchanged (hyperHTML escapes single strings)
+        processedArgs.push(val);
+      }
+    }
+
+    return hyperHTMLbind(...processedArgs);
   }
 
   /**
@@ -105,6 +144,16 @@ export function createHtml(shadow) {
    */
   Html.lite = function lite(...args) {
     return hyperHTML(...args);
+  };
+
+  /**
+   * Marks a string as safe HTML that should not be escaped.
+   * Use with caution - only for trusted HTML content.
+   * @param {string} html - The HTML string to mark as safe
+   * @returns {Object} An object with the safe HTML and marker symbol
+   */
+  Html.raw = function raw(html) {
+    return safeHtml(html);
   };
 
   return Html;

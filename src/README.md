@@ -5,6 +5,7 @@ Source code for hyper-element, a base class for creating custom elements with hy
 ## Overview
 
 This module provides the `hyperElement` base class that extends `HTMLElement` to enable:
+
 - Reactive rendering with hyperHTML
 - Automatic attribute parsing with type coercion
 - Dataset proxy with JSON serialization

@@ -260,6 +260,97 @@ This creates a new node for every element on every render, causing:
 - **Negative impact on performance**
 - **Output will not be sanitized** - potential XSS vulnerability
 
+### Block Syntax
+
+The Html function supports block syntax for iteration and conditionals directly in tagged template literals:
+
+| Syntax                                | Description           |
+| ------------------------------------- | --------------------- |
+| `{+each ${array}}...{-each}`          | Iterate over arrays   |
+| `{+if ${condition}}...{-if}`          | Conditional rendering |
+| `{+if ${condition}}...{else}...{-if}` | Conditional with else |
+| `{+unless ${condition}}...{-unless}`  | Negated conditional   |
+
+#### {+each} - Iteration
+
+For cleaner list rendering, use the `{+each}...{-each}` syntax:
+
+```js
+Html`<ul>{+each ${users}}<li>{name}</li>{-each}</ul>`;
+```
+
+This is equivalent to:
+
+```js
+Html`<ul>${users.map((user) => Html.wire(user, ':id')`<li>${user.name}</li>`)}</ul>`;
+```
+
+The `{+each}` syntax automatically calls `Html.wire()` for each item, ensuring efficient DOM reuse.
+
+**Available variables inside {+each}:**
+
+| Syntax               | Description                               |
+| -------------------- | ----------------------------------------- |
+| `{name}`             | Access item property                      |
+| `{address.city}`     | Nested property access                    |
+| `{...}` or `{ ... }` | Current item value (see formatting below) |
+| `{@}`                | Current array index (0-based)             |
+
+**Formatting rules for `{...}` output:**
+
+| Type                                | Output                                                |
+| ----------------------------------- | ----------------------------------------------------- |
+| Primitive (string, number, boolean) | `toString()` and HTML escaped                         |
+| Array                               | `.join(",")`                                          |
+| Object                              | `JSON.stringify()`                                    |
+| Function                            | Called with no args, return value follows these rules |
+
+**Examples:**
+
+```js
+// Multiple properties
+Html`<ul>{+each ${users}}<li>{name} ({age})</li>{-each}</ul>`;
+
+// Using index
+Html`<ol>{+each ${items}}<li>{@}: {title}</li>{-each}</ol>`;
+
+// Nested arrays with {+each {property}}
+const categories = [
+  { name: 'Fruits', items: [{ title: 'Apple' }, { title: 'Banana' }] },
+  { name: 'Veggies', items: [{ title: 'Carrot' }] },
+];
+Html`
+  {+each ${categories}}
+    <section>
+      <h3>{name}</h3>
+      <ul>{+each {items}}<li>{title}</li>{-each}</ul>
+    </section>
+  {-each}
+`;
+```
+
+#### {+if} - Conditionals
+
+Render content based on a condition:
+
+```js
+Html`{+if ${isLoggedIn}}<p>Welcome back!</p>{-if}`;
+
+// With else
+Html`{+if ${isLoggedIn}}<p>Welcome back!</p>{else}<p>Please log in</p>{-if}`;
+```
+
+#### {+unless} - Negated Conditionals
+
+Render content when condition is falsy (opposite of {+if}):
+
+```js
+Html`{+unless ${hasErrors}}<p>Form is valid</p>{-unless}`;
+
+// With else
+Html`{+unless ${isValid}}Invalid input!{else}Looking good!{-unless}`;
+```
+
 ---
 
 ## Html.lite
@@ -464,12 +555,13 @@ window.customElements.define(
 
 # Templates
 
-You can declare markup to be used as a template within the custom element.
+Unlike standard Custom Elements which typically discard or replace their innerHTML, hyper-element's template system **preserves** the markup inside your element and uses it as a reusable template. This means your custom element primarily holds logic, while the template markup between the tags defines how data should be rendered.
 
 To enable templates:
 
 1. Add a `template` attribute to your custom element
 2. Define the template markup within your element
+3. Call `Html.template(data)` in your render method to populate the template
 
 **Example:**
 
@@ -511,26 +603,23 @@ Output:
 
 ## Basic Template Syntax
 
-Templates support handlebars-like syntax:
-
 | Syntax                             | Description                           |
 | ---------------------------------- | ------------------------------------- |
 | `{variable}`                       | Simple interpolation                  |
-| `{#if condition}...{/if}`          | Conditional rendering                 |
-| `{#if condition}...{else}...{/if}` | Conditional with else                 |
-| `{#unless condition}...{/unless}`  | Negative conditional (opposite of if) |
-| `{#each items}...{/each}`          | Iteration over arrays                 |
-| `{.}`                              | Current item in each loop             |
-| `{@index}`                         | Current index in each loop (0-based)  |
+| `{+if condition}...{-if}`          | Conditional rendering                 |
+| `{+if condition}...{else}...{-if}` | Conditional with else                 |
+| `{+unless condition}...{-unless}`  | Negative conditional (opposite of if) |
+| `{+each items}...{-each}`          | Iteration over arrays                 |
+| `{@}`                              | Current index in each loop (0-based)  |
 
 ---
 
-## Conditionals: {#if}
+## Conditionals: {+if}
 
 Show content based on a condition:
 
 ```html
-<status-elem template>{#if active}Online{else}Offline{/if}</status-elem>
+<status-elem template>{+if active}Online{else}Offline{-if}</status-elem>
 ```
 
 ```js
@@ -548,12 +637,12 @@ Output: `Online`
 
 ---
 
-## Negation: {#unless}
+## Negation: {+unless}
 
-Show content when condition is falsy (opposite of #if):
+Show content when condition is falsy (opposite of +if):
 
 ```html
-<warning-elem template>{#unless valid}Invalid input!{/unless}</warning-elem>
+<warning-elem template>{+unless valid}Invalid input!{-unless}</warning-elem>
 ```
 
 ```js
@@ -571,16 +660,16 @@ Output: `Invalid input!`
 
 ---
 
-## Iteration: {#each}
+## Iteration: {+each}
 
 Loop over arrays:
 
 ```html
 <list-elem template>
   <ul>
-    {#each items}
+    {+each items}
     <li>{name}</li>
-    {/each}
+    {-each}
   </ul>
 </list-elem>
 ```
@@ -605,13 +694,12 @@ Output:
 </ul>
 ```
 
-### Special Variables in {#each}
+### Special Variables in {+each}
 
-- `{.}` - The current item (useful for arrays of primitives)
-- `{@index}` - The current index (0-based)
+- `{@}` - The current index (0-based)
 
 ```html
-<nums-elem template>{#each numbers}{@index}: {.}, {/each}</nums-elem>
+<nums-elem template>{+each numbers}{@}: {number}, {-each}</nums-elem>
 ```
 
 ```js

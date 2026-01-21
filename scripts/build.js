@@ -15,11 +15,13 @@ const files = [
   'core/constants.js',
   'core/manager.js',
   'utils/makeid.js',
+  'utils/escape.js',
   'attributes/parseAttribute.js',
   'template/processAdvancedTemplate.js',
   'template/buildTemplate.js',
   'attributes/dataset.js',
   'attributes/attachAttrs.js',
+  'html/parseEachBlocks.js',
   'html/createHtml.js',
   'lifecycle/onNext.js',
   'lifecycle/observer.js',
@@ -48,6 +50,15 @@ function processFile(filePath) {
   );
   content = content.replace(/^export\s+\{[^}]*\};?\s*$/gm, '');
   content = content.replace(/^export\s+default\s+/gm, '');
+
+  // Remove JSDoc comments (they get counted as statements by v8-to-istanbul)
+  content = content.replace(/\/\*\*[\s\S]*?\*\//g, '');
+
+  // Remove single-line comments that are on their own line
+  content = content.replace(/^\s*\/\/.*$/gm, '');
+
+  // Clean up multiple blank lines
+  content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
 
   return content.trim();
 }
@@ -104,12 +115,13 @@ async function build() {
     // Create bundle content
     const bundleContent = createBundle();
 
-    // Use esbuild's stdin to minify the bundle directly
+    // Write the unminified bundle first (for source map accuracy)
+    const unminifiedPath = path.join(buildDir, 'hyperElement.bundle.js');
+    fs.writeFileSync(unminifiedPath, bundleContent);
+
+    // Minify using the file (not stdin) for better source map support
     const result = await esbuild.build({
-      stdin: {
-        contents: bundleContent,
-        loader: 'js',
-      },
+      entryPoints: [unminifiedPath],
       outfile: path.join(buildDir, 'hyperElement.min.js'),
       minify: true,
       sourcemap: true,

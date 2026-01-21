@@ -5,6 +5,7 @@ Attribute handling utilities for hyper-element.
 ## Overview
 
 This module provides functions for:
+
 - Parsing element attributes with automatic type coercion (numbers, booleans, JSON)
 - Creating proxied dataset objects with getter/setter type conversion
 - Attaching shared function/object attributes from parent elements

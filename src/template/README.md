@@ -7,8 +7,8 @@ Template compilation for hyper-element.
 This module compiles innerHTML templates into reusable template functions. Supports:
 
 - Simple `{var}` interpolation
-- Handlebars-like syntax: `{#each}`, `{#if}`, `{#unless}`
-- Special variables: `{.}` (current item), `{@index}` (loop index)
+- Block syntax: `{+each}`, `{+if}`, `{+unless}`
+- Special variable: `{@}` (loop index)
 
 ## Basic Template Syntax
 
@@ -17,11 +17,18 @@ This module compiles innerHTML templates into reusable template functions. Suppo
 <div>{name}</div>
 
 <!-- Each loop -->
-{#each items}<li>{name}</li>{/each}
+{+each items}
+<li>{name}</li>
+{-each}
 
 <!-- Conditionals -->
-{#if show}<p>Visible</p>{else}<p>Hidden</p>{/if}
-{#unless hidden}<p>Shown</p>{/unless}
+{+if show}
+<p>Visible</p>
+{else}
+<p>Hidden</p>
+{-if} {+unless hidden}
+<p>Shown</p>
+{-unless}
 ```
 
 ## Using Templates
@@ -65,12 +72,12 @@ Output:
 
 ## Advanced Template Features
 
-### Conditionals: {#if}
+### Conditionals: {+if}
 
 Show content based on a condition:
 
 ```html
-<status-elem template>{#if active}Online{else}Offline{/if}</status-elem>
+<status-elem template>{+if active}Online{else}Offline{-if}</status-elem>
 ```
 
 ```js
@@ -86,12 +93,12 @@ customElements.define(
 
 Output: `Online`
 
-### Negation: {#unless}
+### Negation: {+unless}
 
-Show content when condition is falsy (opposite of #if):
+Show content when condition is falsy (opposite of +if):
 
 ```html
-<warning-elem template>{#unless valid}Invalid input!{/unless}</warning-elem>
+<warning-elem template>{+unless valid}Invalid input!{-unless}</warning-elem>
 ```
 
 ```js
@@ -107,16 +114,16 @@ customElements.define(
 
 Output: `Invalid input!`
 
-### Iteration: {#each}
+### Iteration: {+each}
 
 Loop over arrays:
 
 ```html
 <list-elem template>
   <ul>
-    {#each items}
+    {+each items}
     <li>{name}</li>
-    {/each}
+    {-each}
   </ul>
 </list-elem>
 ```
@@ -141,13 +148,13 @@ Output:
 </ul>
 ```
 
-### Special Variables in {#each}
+### Special Variables in {+each}
 
-- `{.}` - The current item (useful for arrays of primitives)
-- `{@index}` - The current index (0-based)
+- `{...}` or `{ ... }` - Current item value (formatted: primitives escaped, arrays join(","), objects JSON, functions called)
+- `{@}` - The current index (0-based)
 
 ```html
-<nums-elem template>{#each numbers}{@index}: {.}, {/each}</nums-elem>
+<nums-elem template>{+each numbers}{@}: {number}, {-each}</nums-elem>
 ```
 
 ```js

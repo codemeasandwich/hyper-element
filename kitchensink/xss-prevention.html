@@ -1,0 +1,457 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>XSS Prevention - hyper-element Kitchen Sink</title>
+    <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/min.js"></script>
+    <script src="test-loader.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 2rem;
+      }
+      section {
+        margin: 2rem 0;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      section[data-test-result='pass'] {
+        border-color: green;
+        background: #f0fff0;
+      }
+      section[data-test-result='fail'] {
+        border-color: red;
+        background: #fff0f0;
+      }
+      h1 {
+        border-bottom: 2px solid #333;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      pre {
+        background: #f5f5f5;
+        padding: 1rem;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>XSS Prevention Tests</h1>
+    <p>Tests for HTML escaping to prevent XSS vulnerabilities.</p>
+
+    <!-- Test: Plain string interpolation is escaped -->
+    <section data-test="string-escaped" data-test-result="pending">
+      <h2>Plain String Interpolation Escaped</h2>
+      <p>Plain strings containing HTML should be escaped.</p>
+      <div id="string-escaped-output"></div>
+      <script>
+        customElements.define(
+          'xss-string-elem',
+          class extends hyperElement {
+            render(Html) {
+              // Use a variable to avoid HTML parser issues
+              const malicious = '<scr' + 'ipt>alert("XSS")<\/scr' + 'ipt>';
+              Html`<div id="xss-string-result">${malicious}</div>`;
+            }
+          }
+        );
+
+        const elem1 = document.createElement('xss-string-elem');
+        document.getElementById('string-escaped-output').appendChild(elem1);
+
+        requestAnimationFrame(() => {
+          const section = document.querySelector(
+            '[data-test="string-escaped"]'
+          );
+          const result = document.getElementById('xss-string-result');
+          // Check that the script tag was escaped (shows as text, not executed)
+          // hyperHTML escapes text interpolations by default
+          if (
+            result &&
+            result.textContent.includes('<script>') &&
+            result.innerHTML.includes('&lt;script&gt;')
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        });
+      </script>
+    </section>
+
+    <!-- Test: Html.raw() bypasses escaping -->
+    <section data-test="raw-not-escaped" data-test-result="pending">
+      <h2>Html.raw() Bypasses Escaping</h2>
+      <p>Content marked with Html.raw() should render as HTML.</p>
+      <div id="raw-not-escaped-output"></div>
+      <script>
+        customElements.define(
+          'xss-raw-elem',
+          class extends hyperElement {
+            render(Html) {
+              Html`<div id="xss-raw-result">${Html.raw('<b>bold</b>')}</div>`;
+            }
+          }
+        );
+
+        const elem2 = document.createElement('xss-raw-elem');
+        document.getElementById('raw-not-escaped-output').appendChild(elem2);
+
+        requestAnimationFrame(() => {
+          const section = document.querySelector(
+            '[data-test="raw-not-escaped"]'
+          );
+          const result = document.getElementById('xss-raw-result');
+          // Check that the HTML was rendered (not escaped)
+          if (
+            result &&
+            result.innerHTML.includes('<b>bold</b>') &&
+            result.textContent === 'bold'
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        });
+      </script>
+    </section>
+
+    <!-- Test: Array of strings is escaped -->
+    <section data-test="array-escaped" data-test-result="pending">
+      <h2>Array of Strings Escaped</h2>
+      <p>Arrays containing strings with HTML should have each item escaped.</p>
+      <div id="array-escaped-output"></div>
+      <script>
+        customElements.define(
+          'xss-array-elem',
+          class extends hyperElement {
+            render(Html) {
+              const items = ['<b>one</b>', '<i>two</i>'];
+              Html`<div id="xss-array-result">${items}</div>`;
+            }
+          }
+        );
+
+        const elem3 = document.createElement('xss-array-elem');
+        document.getElementById('array-escaped-output').appendChild(elem3);
+
+        requestAnimationFrame(() => {
+          const section = document.querySelector('[data-test="array-escaped"]');
+          const result = document.getElementById('xss-array-result');
+          // Check that both items were escaped
+          if (
+            result &&
+            result.innerHTML.includes('&lt;b&gt;one&lt;/b&gt;') &&
+            result.innerHTML.includes('&lt;i&gt;two&lt;/i&gt;')
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        });
+      </script>
+    </section>
+
+    <!-- Test: Template {var} interpolation is escaped -->
+    <section data-test="template-var-escaped" data-test-result="pending">
+      <h2>Template {var} Interpolation Escaped</h2>
+      <p>Template variables should be escaped.</p>
+      <div id="template-var-output"></div>
+      <script>
+        customElements.define(
+          'xss-template-var-elem',
+          class extends hyperElement {
+            Content(data) {
+              return {
+                template: '<span>{name}</span>',
+                values: data,
+              };
+            }
+            render(Html) {
+              // Use concatenation to avoid HTML parser issues
+              const malicious = '<scr' + 'ipt>alert(1)</scr' + 'ipt>';
+              Html`<div id="xss-template-var-result">${{
+                Content: { name: malicious },
+              }}</div>`;
+            }
+          }
+        );
+
+        const elem4 = document.createElement('xss-template-var-elem');
+        document.getElementById('template-var-output').appendChild(elem4);
+
+        setTimeout(() => {
+          const section = document.querySelector(
+            '[data-test="template-var-escaped"]'
+          );
+          const result = document.getElementById('xss-template-var-result');
+          // Check that the script tag was escaped
+          if (
+            result &&
+            result.textContent.includes('<script>') &&
+            result.innerHTML.includes('&lt;script&gt;')
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        }, 100);
+      </script>
+    </section>
+
+    <!-- Test: Template {.} in #each is escaped -->
+    <section data-test="template-each-escaped" data-test-result="pending">
+      <h2>Template {.} in #each Escaped</h2>
+      <p>Items in #each loops should be escaped.</p>
+      <div id="template-each-output"></div>
+      <script>
+        customElements.define(
+          'xss-template-each-elem',
+          class extends hyperElement {
+            List(data) {
+              return {
+                template: '{+each items}<li>{...}</li>{-each}',
+                values: data,
+              };
+            }
+            render(Html) {
+              // Use concatenation to avoid HTML parser issues
+              const malicious = '<scr' + 'ipt>xss</scr' + 'ipt>';
+              Html`<ul id="xss-template-each-result">${{
+                List: { items: ['<b>bold</b>', malicious] },
+              }}</ul>`;
+            }
+          }
+        );
+
+        const elem5 = document.createElement('xss-template-each-elem');
+        document.getElementById('template-each-output').appendChild(elem5);
+
+        setTimeout(() => {
+          const section = document.querySelector(
+            '[data-test="template-each-escaped"]'
+          );
+          const result = document.getElementById('xss-template-each-result');
+          // Check that both items were escaped
+          if (
+            result &&
+            result.innerHTML.includes('&lt;b&gt;bold&lt;/b&gt;') &&
+            result.innerHTML.includes('&lt;script&gt;xss&lt;/script&gt;')
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        }, 100);
+      </script>
+    </section>
+
+    <!-- Test: Fragment text type is escaped -->
+    <section data-test="fragment-text-escaped" data-test-result="pending">
+      <h2>Fragment text Type Escaped</h2>
+      <p>Fragments returning { text: ... } should be escaped.</p>
+      <div id="fragment-text-output"></div>
+      <script>
+        customElements.define(
+          'xss-fragment-text-elem',
+          class extends hyperElement {
+            Content() {
+              return {
+                text: '<b>should be escaped</b>',
+              };
+            }
+            render(Html) {
+              Html`<div id="xss-fragment-text-result">${{ Content: {} }}</div>`;
+            }
+          }
+        );
+
+        const elem6 = document.createElement('xss-fragment-text-elem');
+        document.getElementById('fragment-text-output').appendChild(elem6);
+
+        setTimeout(() => {
+          const section = document.querySelector(
+            '[data-test="fragment-text-escaped"]'
+          );
+          const result = document.getElementById('xss-fragment-text-result');
+          // Check that the HTML was escaped
+          if (
+            result &&
+            result.textContent.includes('<b>should be escaped</b>') &&
+            result.innerHTML.includes('&lt;b&gt;')
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        }, 100);
+      </script>
+    </section>
+
+    <!-- Test: Fragment html type is NOT escaped -->
+    <section data-test="fragment-html-not-escaped" data-test-result="pending">
+      <h2>Fragment html Type NOT Escaped</h2>
+      <p>Fragments returning { html: ... } should render as HTML.</p>
+      <div id="fragment-html-output"></div>
+      <script>
+        customElements.define(
+          'xss-fragment-html-elem',
+          class extends hyperElement {
+            Content() {
+              return {
+                html: '<b>bold text</b>',
+              };
+            }
+            render(Html) {
+              Html`<div id="xss-fragment-html-result">${{ Content: {} }}</div>`;
+            }
+          }
+        );
+
+        const elem7 = document.createElement('xss-fragment-html-elem');
+        document.getElementById('fragment-html-output').appendChild(elem7);
+
+        setTimeout(() => {
+          const section = document.querySelector(
+            '[data-test="fragment-html-not-escaped"]'
+          );
+          const result = document.getElementById('xss-fragment-html-result');
+          // Check that the HTML was rendered (not escaped)
+          if (
+            result &&
+            result.innerHTML.includes('<b>bold text</b>') &&
+            result.textContent === 'bold text'
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        }, 100);
+      </script>
+    </section>
+
+    <!-- Test: Html.wire still works for lists -->
+    <section data-test="wire-still-works" data-test-result="pending">
+      <h2>Html.wire Still Works</h2>
+      <p>Html.wire should continue to render list items correctly.</p>
+      <div id="wire-output"></div>
+      <script>
+        customElements.define(
+          'xss-wire-elem',
+          class extends hyperElement {
+            render(Html) {
+              const items = [
+                { id: 1, name: 'Alice' },
+                { id: 2, name: 'Bob' },
+              ];
+              Html`<ul id="xss-wire-result">${items.map(
+                (item) => Html.wire(item, ':item')`<li>${item.name}</li>`
+              )}</ul>`;
+            }
+          }
+        );
+
+        const elem8 = document.createElement('xss-wire-elem');
+        document.getElementById('wire-output').appendChild(elem8);
+
+        requestAnimationFrame(() => {
+          const section = document.querySelector(
+            '[data-test="wire-still-works"]'
+          );
+          const result = document.getElementById('xss-wire-result');
+          const lis = result ? result.querySelectorAll('li') : [];
+          // Check that wire worked and items rendered
+          if (
+            lis.length === 2 &&
+            lis[0].textContent === 'Alice' &&
+            lis[1].textContent === 'Bob'
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        });
+      </script>
+    </section>
+
+    <!-- Test: Ampersand and other characters escaped correctly -->
+    <section data-test="special-chars-escaped" data-test-result="pending">
+      <h2>Special Characters Escaped</h2>
+      <p>All HTML special characters should be escaped.</p>
+      <div id="special-chars-output"></div>
+      <script>
+        customElements.define(
+          'xss-special-chars-elem',
+          class extends hyperElement {
+            render(Html) {
+              Html`<div id="xss-special-chars-result">${'<>&"\''}</div>`;
+            }
+          }
+        );
+
+        const elem9 = document.createElement('xss-special-chars-elem');
+        document.getElementById('special-chars-output').appendChild(elem9);
+
+        requestAnimationFrame(() => {
+          const section = document.querySelector(
+            '[data-test="special-chars-escaped"]'
+          );
+          const result = document.getElementById('xss-special-chars-result');
+          // Check that HTML-significant chars were escaped
+          // Note: quotes don't need escaping in text content, only in attributes
+          if (
+            result &&
+            result.innerHTML.includes('&lt;') &&
+            result.innerHTML.includes('&gt;') &&
+            result.innerHTML.includes('&amp;')
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        });
+      </script>
+    </section>
+
+    <!-- Test: Numbers and booleans pass through unchanged -->
+    <section data-test="non-strings-unchanged" data-test-result="pending">
+      <h2>Non-Strings Unchanged</h2>
+      <p>Numbers and booleans should pass through without modification.</p>
+      <div id="non-strings-output"></div>
+      <script>
+        customElements.define(
+          'xss-non-strings-elem',
+          class extends hyperElement {
+            render(Html) {
+              Html`<div id="xss-non-strings-result">${42} ${true} ${null}</div>`;
+            }
+          }
+        );
+
+        const elem10 = document.createElement('xss-non-strings-elem');
+        document.getElementById('non-strings-output').appendChild(elem10);
+
+        requestAnimationFrame(() => {
+          const section = document.querySelector(
+            '[data-test="non-strings-unchanged"]'
+          );
+          const result = document.getElementById('xss-non-strings-result');
+          // Check that numbers and booleans rendered correctly
+          if (
+            result &&
+            result.textContent.includes('42') &&
+            result.textContent.includes('true')
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        });
+      </script>
+    </section>
+
+    <a href="index.html">&larr; Back to Kitchen Sink</a>
+  </body>
+</html>

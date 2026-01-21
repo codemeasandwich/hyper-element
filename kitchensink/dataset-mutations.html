@@ -174,6 +174,60 @@ this.dataset.aBC = {zxy: 123}
       </script>
     </section>
 
+    <section data-test="dataset-remove-camelcase" data-test-result="pending">
+      <h2>Removing CamelCase Dataset Properties</h2>
+      <p>
+        Removing a data attribute with hyphen (e.g., data-my-key) via
+        removeAttribute should clean up this.dataset.myKey when
+        observedAttributes includes it.
+      </p>
+      <pre><code>// Initial: data-my-key="value" maps to this.dataset.myKey
+elem.removeAttribute('data-my-key')
+// After: this.dataset.myKey is undefined</code></pre>
+      <dataset-remove-elem data-my-key="initial-value"></dataset-remove-elem>
+      <script>
+        customElements.define(
+          'dataset-remove-elem',
+          class extends hyperElement {
+            static get observedAttributes() {
+              return ['data-my-key'];
+            }
+            render(Html) {
+              Html`Value: ${this.dataset.myKey || 'removed'}`;
+            }
+          }
+        );
+
+        requestAnimationFrame(() => {
+          const section = document.querySelector(
+            '[data-test="dataset-remove-camelcase"]'
+          );
+          const elem = document.querySelector('dataset-remove-elem');
+
+          // Verify initial state
+          if (!elem || elem.dataset.myKey !== 'initial-value') {
+            section.dataset.testResult = 'fail';
+            console.error('Initial state wrong:', elem?.dataset?.myKey);
+            return;
+          }
+
+          // Remove the attribute - triggers attributeChangedCallback
+          elem.removeAttribute('data-my-key');
+
+          // Wait for the callback and re-render
+          setTimeout(() => {
+            // Verify content changed to 'removed'
+            if (elem.textContent.includes('removed')) {
+              section.dataset.testResult = 'pass';
+            } else {
+              section.dataset.testResult = 'fail';
+              console.error('Content did not update:', elem.textContent);
+            }
+          }, 100);
+        });
+      </script>
+    </section>
+
     <a href="index.html">&larr; Back to Kitchen Sink</a>
   </body>
 </html>

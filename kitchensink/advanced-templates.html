@@ -77,7 +77,7 @@
         {#if condition}...{/if} should render content when condition is truthy.
       </p>
       <if-truthy-elem template
-        >{#if show}Message: {message}{/if}</if-truthy-elem
+        >{+if show}Message: {message}{-if}</if-truthy-elem
       >
       <script>
         customElements.define(
@@ -112,7 +112,7 @@
         falsy.
       </p>
       <if-falsy-elem template
-        >Before{#if show}SHOULD_NOT_APPEAR{/if}After</if-falsy-elem
+        >Before{+if show}SHOULD_NOT_APPEAR{-if}After</if-falsy-elem
       >
       <script>
         customElements.define(
@@ -147,7 +147,7 @@
         condition is falsy.
       </p>
       <if-else-elem template
-        >{#if active}ACTIVE{else}INACTIVE{/if}</if-else-elem
+        >{+if active}ACTIVE{else}INACTIVE{-if}</if-else-elem
       >
       <script>
         customElements.define(
@@ -181,7 +181,7 @@
         {#each items}{.}{/each} should iterate over arrays. Use {.} for current
         item.
       </p>
-      <each-elem template>{#each items}{.},{/each}</each-elem>
+      <each-elem template>{+each items}{...},{-each}</each-elem>
       <script>
         customElements.define(
           'each-elem',
@@ -210,7 +210,7 @@
       <p>
         {#each items}{name}{/each} should access object properties in the loop.
       </p>
-      <each-obj-elem template>{#each users}{name} {/each}</each-obj-elem>
+      <each-obj-elem template>{+each users}{name} {-each}</each-obj-elem>
       <script>
         customElements.define(
           'each-obj-elem',
@@ -243,7 +243,7 @@
         {#unless condition}...{/unless} should render when condition is falsy
         (opposite of #if).
       </p>
-      <unless-elem template>{#unless hidden}SHOWN{/unless}</unless-elem>
+      <unless-elem template>{+unless hidden}SHOWN{-unless}</unless-elem>
       <script>
         customElements.define(
           'unless-elem',
