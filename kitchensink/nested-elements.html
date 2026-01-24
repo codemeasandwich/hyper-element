@@ -151,6 +151,65 @@ class extends hyperElement {
       </script>
     </section>
 
+    <section data-test="different-element-types" data-test-result="pending">
+      <h2>Different Element Type Composition</h2>
+      <p>
+        Parent elements can render child elements of a completely different
+        semantic type, enabling realistic component composition.
+      </p>
+      <pre><code>// Child element: status-badge
+class extends hyperElement {
+  render(Html) {
+    const status = this.attrs.active ? 'online' : 'offline'
+    Html`[${status}]`
+  }
+}
+
+// Parent element: user-card
+class extends hyperElement {
+  render(Html) {
+    Html`${this.attrs.name}: &lt;status-badge active=${false}&gt;&lt;/status-badge&gt;`
+  }
+}</code></pre>
+      <user-card name="Alice"></user-card>
+      <script>
+        customElements.define(
+          'status-badge',
+          class extends hyperElement {
+            render(Html) {
+              const status = this.attrs.active ? 'online' : 'offline';
+              Html`[${status}]`;
+            }
+          }
+        );
+
+        customElements.define(
+          'user-card',
+          class extends hyperElement {
+            render(Html) {
+              Html`${this.attrs.name}: <status-badge active=${false}></status-badge>`;
+            }
+          }
+        );
+
+        requestAnimationFrame(() => {
+          const section = document.querySelector(
+            '[data-test="different-element-types"]'
+          );
+          const card = document.querySelector('user-card');
+          if (
+            card &&
+            card.textContent.includes('Alice') &&
+            card.textContent.includes('offline')
+          ) {
+            section.dataset.testResult = 'pass';
+          } else {
+            section.dataset.testResult = 'fail';
+          }
+        });
+      </script>
+    </section>
+
     <a href="index.html">&larr; Back to Kitchen Sink</a>
   </body>
 </html>
