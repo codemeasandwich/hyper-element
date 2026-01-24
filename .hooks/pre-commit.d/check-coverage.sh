@@ -1,30 +1,33 @@
 #!/usr/bin/env bash
 #
 # Coverage Check for hyper-element
-# Runs Playwright tests with coverage enforcement
+# Runs Playwright tests twice:
+#   1. Coverage check on unminified bundle (100% required)
+#   2. All tests pass on minified bundle
 #
-# Target: 100% coverage
+# Target: 100% coverage on source, all tests pass on minified
 
 set -e
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Tests + Coverage"
+echo "  Tests + Coverage (dual run)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-echo "  Running Playwright tests with coverage..."
+echo "  Phase 1: Coverage on unminified bundle"
+echo "  Phase 2: Tests on minified bundle"
 echo ""
 
-# Run tests (coverage is collected by Playwright config)
+# Run tests (npm test runs both phases)
 npm test 2>&1
 
 RESULT=$?
 
 if [ $RESULT -eq 0 ]; then
     echo ""
-    echo "  ✓ Tests + coverage check passed"
+    echo "  ✓ Both test phases passed"
 else
     echo ""
-    echo "  ✗ Tests + coverage check failed"
+    echo "  ✗ Tests failed"
     exit 1
 fi
 

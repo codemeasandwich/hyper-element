@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "hyper-element",
   "author": "Brian Shannon (github.com/codemeasandwich)",
   "description": "hyperHTML + WebComponents",
@@ -12,7 +12,9 @@
   ],
   "scripts": {
     "build": "node scripts/build.js",
-    "test": "npm run build && playwright test; rm -rf build",
+    "test": "npm run build && npm run test:coverage && npm run test:minified; rm -rf build",
+    "test:coverage": "playwright test",
+    "test:minified": "TEST_BUNDLE=min playwright test",
     "test:ui": "npm run build && playwright test --ui; rm -rf build",
     "test:headed": "npm run build && playwright test --headed; rm -rf build",
     "kitchensink": "npx serve .",

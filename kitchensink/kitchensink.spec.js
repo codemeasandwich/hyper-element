@@ -14,6 +14,9 @@ const {
 const path = require('path');
 const v8toIstanbul = require('v8-to-istanbul');
 
+// Check if testing minified bundle (skip coverage collection)
+const isMinifiedRun = process.env.TEST_BUNDLE === 'min';
+
 // Auto-discover all HTML files in kitchensink directory (except index.html)
 const htmlFiles = readdirSync(__dirname).filter(
   (f) => f.endsWith('.html') && f !== 'index.html'
@@ -25,8 +28,8 @@ const coverageFile = path.join(coverageDir, 'v8-coverage.json');
 
 for (const file of htmlFiles) {
   test(`kitchensink/${file}`, async ({ page, browserName }) => {
-    // Start coverage collection for chromium only
-    const collectCoverage = browserName === 'chromium';
+    // Start coverage collection for chromium only (skip for minified bundle)
+    const collectCoverage = browserName === 'chromium' && !isMinifiedRun;
     if (collectCoverage) {
       await page.coverage.startJSCoverage({ reportAnonymousScripts: true });
     }
@@ -40,8 +43,9 @@ for (const file of htmlFiles) {
       logs.push(`[pageerror] ${err.message}`);
     });
 
-    // Navigate to page via web server
-    await page.goto(`/kitchensink/${file}`);
+    // Navigate to page via web server (add bundle param for minified tests)
+    const bundleParam = isMinifiedRun ? '?bundle=min' : '';
+    await page.goto(`/kitchensink/${file}${bundleParam}`);
 
     // Wait for all test sections to complete (no more 'pending' results)
     try {
@@ -122,6 +126,12 @@ for (const file of htmlFiles) {
 
 // Final coverage report - runs after all tests in this file
 test.afterAll(async () => {
+  // Skip coverage report for minified bundle tests
+  if (isMinifiedRun) {
+    console.log('\nSkipping coverage report for minified bundle run');
+    return;
+  }
+
   if (!existsSync(coverageFile)) {
     console.log('No coverage data collected');
     return;
