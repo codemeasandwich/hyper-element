@@ -17,7 +17,7 @@
     "test:minified": "TEST_BUNDLE=min playwright test",
     "test:ui": "npm run build && playwright test --ui; rm -rf build",
     "test:headed": "npm run build && playwright test --headed; rm -rf build",
-    "kitchensink": "npx serve .",
+    "kitchensink": "npm run build && cp -r build kitchensink/ && (sleep 1 && open http://localhost:3000) & npx serve ./kitchensink",
     "release": "bash scripts/publish.sh",
     "hooks:install": "cp .hooks/pre-commit .git/hooks/ && cp .hooks/commit-msg .git/hooks/ && cp -r .hooks/pre-commit.d .git/hooks/ && chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/pre-commit.d/*.sh",
     "prepare": "npm run hooks:install",

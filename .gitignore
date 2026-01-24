@@ -2,6 +2,7 @@
 node_modules
 bower_components
 build/
+kitchensink/build/
 coverage/
 playwright-report/
 test-results/

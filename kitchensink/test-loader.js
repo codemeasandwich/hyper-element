@@ -9,5 +9,9 @@
     params.get('bundle') === 'min'
       ? 'hyperElement.min.js'
       : 'hyperElement.bundle.js';
-  document.write('<script src="../build/' + bundle + '"><\/script>');
+  // Detect if served from project root (/kitchensink/...) or kitchensink root (/)
+  var basePath = window.location.pathname.startsWith('/kitchensink/')
+    ? '../build/'
+    : './build/';
+  document.write('<script src="' + basePath + bundle + '"><\/script>');
 })();
