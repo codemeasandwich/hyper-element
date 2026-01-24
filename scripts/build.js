@@ -70,12 +70,21 @@ function processFile(filePath) {
 function createBundle() {
   const parts = [];
 
-  // UMD wrapper start
-  parts.push(`// Browser-only build - UMD wrapper simplified for E2E testing
-// CommonJS/AMD paths exist in full build but are not covered by browser tests
-(function (factory) {
-  window.hyperElement = factory(window.hyperHTML);
-})(function (hyperHTML) {`);
+  // Read hyperHTML minified source
+  const hyperHTMLPath = path.join(
+    __dirname,
+    '..',
+    'node_modules',
+    'hyperhtml',
+    'min.js'
+  );
+  const hyperHTMLCode = fs.readFileSync(hyperHTMLPath, 'utf8');
+
+  // IIFE wrapper start - hyperHTML bundled inline
+  parts.push(`// hyper-element with hyperHTML bundled - zero runtime dependencies
+(function () {
+  // hyperHTML (c) Andrea Giammarchi (ISC)
+  ${hyperHTMLCode}`);
 
   // Add each file's content
   for (const file of files) {
@@ -91,10 +100,10 @@ function createBundle() {
     );
   }
 
-  // UMD wrapper end
+  // IIFE wrapper end
   parts.push(`
-  return hyperElement;
-});
+  window.hyperElement = hyperElement;
+})();
 `);
 
   return parts.join('\n');

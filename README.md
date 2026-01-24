@@ -51,14 +51,13 @@ customElements.define(
 
 ## CDN (Browser)
 
-For browser environments without a bundler, include both hyperHTML and hyper-element via CDN:
+For browser environments without a bundler:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/build/hyperElement.min.js"></script>
 ```
 
-The `hyperElement` class will be available globally on `window.hyperElement`.
+The `hyperElement` class will be available globally on `window.hyperElement`. hyperHTML is bundled automatically.
 
 ## Browser Support
 
@@ -133,7 +132,6 @@ For older browsers, a [Custom Elements polyfill](https://github.com/webcomponent
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://cdn.jsdelivr.net/npm/hyperhtml@latest/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/build/hyperElement.min.js"></script>
   </head>
   <body>
