@@ -19,7 +19,7 @@ import { hasEachBlocks, transformEachBlocks } from './parseEachBlocks.js';
 
 /**
  * Creates the Html tagged template function for an element.
- * Handles passing functions and objects to child custom elements via shared attributes.
+ * Handles passing non-string values to child custom elements via shared attributes.
  *
  * @param {HTMLElement} shadow - The element's shadow/content root
  * @returns {HtmlFunction} The Html template function
@@ -29,7 +29,7 @@ export function createHtml(shadow) {
 
   /**
    * Html tagged template function for rendering content.
-   * Intercepts function/object values passed to custom elements and stores them for retrieval.
+   * Intercepts non-string values passed to custom elements and stores them for retrieval.
    *
    * @param {...any} args - Tagged template arguments (strings array + values)
    * @returns {any} Result of hyperHTML.bind
@@ -45,16 +45,12 @@ export function createHtml(shadow) {
       args = [transformed.strings, ...transformed.values];
     }
 
-    const hasFnOrObj = args
+    const hasNonString = args
       .slice(1)
-      .some(
-        (item) =>
-          'function' === typeof item ||
-          (item !== null && 'object' === typeof item)
-      );
+      .some((item) => item != null && typeof item !== 'string');
     const hasCustomTag = args[0].some((t) => isCustomTag.test(t));
 
-    if (hasFnOrObj && hasCustomTag) {
+    if (hasNonString && hasCustomTag) {
       let inCustomTag = false;
       let localName = '';
       args[0].forEach((item, index, _items) => {
@@ -77,10 +73,7 @@ export function createHtml(shadow) {
         }
         const val = args[index + 1];
 
-        if (
-          'function' === typeof val ||
-          (val !== null && 'object' === typeof val)
-        ) {
+        if (val != null && typeof val !== 'string') {
           const attrName = item.split(' ').pop().slice(0, -1);
           if ('on' === attrName.substring(0, 2)) {
             throw new Error(

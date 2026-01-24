@@ -521,7 +521,7 @@ Being able to set attributes at run-time should be the same for dealing with a n
 
 **⚠ To support dynamic attributes on custom elements YOU MUST USE `customElements.define` which requires native ES6 support! Use `/build/hyperElement.min.js`.**
 
-This is what allows for the passing any dynamic attributes from parent to child custom element! You can also pass a `function` to a child element (that extends hyperElement).
+This is what allows for the passing any dynamic attributes from parent to child custom element! You can also pass a `function`, `boolean`, `number`, or `object` to a child element (that extends hyperElement).
 
 **Example:**
 

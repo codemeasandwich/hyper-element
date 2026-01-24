@@ -39,7 +39,7 @@
   </head>
   <body>
     <h1>Complex Type Attributes</h1>
-    <p>Tests passing objects and functions to custom child elements.</p>
+    <p>Tests passing objects, functions, and booleans to custom child elements.</p>
 
     <!-- Issue #9: Bug passing complex type without function -->
     <section data-test="object-only-attr" data-test-result="pending">
@@ -179,6 +179,98 @@ Html\`&lt;span&gt;text&lt;/span&gt;&lt;child-elem fn=${this.fn} data=${{a:2}}/&g
               '[data-test="object-only-with-preceding"]'
             );
             const result = document.querySelector('#combo-result');
+            if (result && result.textContent === 'PASS') {
+              section.dataset.testResult = 'pass';
+            } else {
+              section.dataset.testResult = 'fail';
+            }
+          }, 100);
+        });
+      </script>
+    </section>
+
+    <!-- Boolean attribute passing -->
+    <section data-test="boolean-attr" data-test-result="pending">
+      <h2>Boolean Attribute Passing</h2>
+      <p>Boolean values passed to custom elements should remain as booleans.</p>
+      <pre><code>Html\`&lt;child-elem enabled=${true} disabled=${false}/&gt;\`
+// Child receives: this.attrs.enabled === true (boolean)
+// Child receives: this.attrs.disabled === false (boolean)</code></pre>
+      <parent-bool-elem></parent-bool-elem>
+      <script>
+        customElements.define(
+          'child-bool-elem',
+          class extends hyperElement {
+            render(Html) {
+              const enabled = this.attrs.enabled;
+              const disabled = this.attrs.disabled;
+              const enabledIsBool = enabled === true;
+              const disabledIsBool = disabled === false;
+              const pass = enabledIsBool && disabledIsBool;
+              Html`<span id="bool-result">${pass ? 'PASS' : 'FAIL: enabled=' + JSON.stringify(enabled) + '(' + typeof enabled + ') disabled=' + JSON.stringify(disabled) + '(' + typeof disabled + ')'}</span>`;
+            }
+          }
+        );
+
+        customElements.define(
+          'parent-bool-elem',
+          class extends hyperElement {
+            render(Html) {
+              Html`<child-bool-elem enabled=${true} disabled=${false}></child-bool-elem>`;
+            }
+          }
+        );
+
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const section = document.querySelector('[data-test="boolean-attr"]');
+            const result = document.querySelector('#bool-result');
+            if (result && result.textContent === 'PASS') {
+              section.dataset.testResult = 'pass';
+            } else {
+              section.dataset.testResult = 'fail';
+            }
+          }, 100);
+        });
+      </script>
+    </section>
+
+    <!-- Number attribute passing -->
+    <section data-test="number-attr" data-test-result="pending">
+      <h2>Number Attribute Passing</h2>
+      <p>Number values passed to custom elements should remain as numbers.</p>
+      <pre><code>Html\`&lt;child-elem count=${42} pi=${3.14}/&gt;\`
+// Child receives: this.attrs.count === 42 (number)
+// Child receives: this.attrs.pi === 3.14 (number)</code></pre>
+      <parent-num-elem></parent-num-elem>
+      <script>
+        customElements.define(
+          'child-num-elem',
+          class extends hyperElement {
+            render(Html) {
+              const count = this.attrs.count;
+              const pi = this.attrs.pi;
+              const countIsNum = count === 42 && typeof count === 'number';
+              const piIsNum = pi === 3.14 && typeof pi === 'number';
+              const pass = countIsNum && piIsNum;
+              Html`<span id="num-result">${pass ? 'PASS' : 'FAIL: count=' + count + '(' + typeof count + ') pi=' + pi + '(' + typeof pi + ')'}</span>`;
+            }
+          }
+        );
+
+        customElements.define(
+          'parent-num-elem',
+          class extends hyperElement {
+            render(Html) {
+              Html`<child-num-elem count=${42} pi=${3.14}></child-num-elem>`;
+            }
+          }
+        );
+
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const section = document.querySelector('[data-test="number-attr"]');
+            const result = document.querySelector('#num-result');
             if (result && result.textContent === 'PASS') {
               section.dataset.testResult = 'pass';
             } else {
