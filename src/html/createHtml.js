@@ -61,7 +61,7 @@ export function createHtml(shadow) {
             inCustomTag &&
             item
               .substring(item.indexOf(item.match(isCustomTag)))
-              .split(' ')[0]
+              .split(/\s/)[0]
               .substr(1);
         } else if (0 <= item.indexOf('>')) {
           inCustomTag = false;
@@ -74,7 +74,7 @@ export function createHtml(shadow) {
         const val = args[index + 1];
 
         if (val != null && typeof val !== 'string') {
-          const attrName = item.split(' ').pop().slice(0, -1);
+          const attrName = item.split(/\s/).pop().slice(0, -1);
           if ('on' === attrName.substring(0, 2)) {
             throw new Error(
               `'on' is reserve for native elements. Change: "${attrName}" for "${localName}" to something else`

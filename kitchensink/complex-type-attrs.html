@@ -280,6 +280,61 @@ Html\`&lt;span&gt;text&lt;/span&gt;&lt;child-elem fn=${this.fn} data=${{a:2}}/&g
       </script>
     </section>
 
+    <!-- Multiline template with newline after tag name -->
+    <section data-test="multiline-attr" data-test-result="pending">
+      <h2>Multiline Template: Newline After Tag Name</h2>
+      <p>Boolean values should work when tag name is followed by newline.</p>
+      <pre><code>// Tag name followed by newline (not space):
+Html\`&lt;child-elem
+  expanded=${true}
+  config=${{ a: 1 }}
+&gt;\`</code></pre>
+      <parent-multiline-elem></parent-multiline-elem>
+      <script>
+        customElements.define(
+          'child-multiline-elem',
+          class extends hyperElement {
+            render(Html) {
+              const expanded = this.attrs.expanded;
+              const config = this.attrs.config;
+              const expandedIsBool = expanded === true;
+              const configIsObj =
+                config && typeof config === 'object' && config.a === 1;
+              const pass = expandedIsBool && configIsObj;
+              Html`<span id="multiline-result">${pass ? 'PASS' : 'FAIL: expanded=' + JSON.stringify(expanded) + '(' + typeof expanded + ') config=' + JSON.stringify(config)}</span>`;
+            }
+          }
+        );
+
+        customElements.define(
+          'parent-multiline-elem',
+          class extends hyperElement {
+            render(Html) {
+              // Critical: tag name followed by NEWLINE, not space
+              Html`<child-multiline-elem
+                expanded=${true}
+                config=${{ a: 1 }}
+              ></child-multiline-elem>`;
+            }
+          }
+        );
+
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const section = document.querySelector(
+              '[data-test="multiline-attr"]'
+            );
+            const result = document.querySelector('#multiline-result');
+            if (result && result.textContent === 'PASS') {
+              section.dataset.testResult = 'pass';
+            } else {
+              section.dataset.testResult = 'fail';
+            }
+          }, 100);
+        });
+      </script>
+    </section>
+
     <a href="index.html">&larr; Back to Kitchen Sink</a>
   </body>
 </html>
