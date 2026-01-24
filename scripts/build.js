@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const pkg = require('../package.json');
 
 const srcDir = path.join(__dirname, '..', 'src');
 const buildDir = path.join(__dirname, '..', 'build');
@@ -102,6 +103,7 @@ function createBundle() {
 
   // IIFE wrapper end
   parts.push(`
+  console.info('hyper-element v${pkg.version} by ${pkg.author}');
   window.hyperElement = hyperElement;
 })();
 `);
