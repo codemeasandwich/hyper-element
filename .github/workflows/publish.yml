@@ -38,6 +38,9 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Rebuild for publish
+        run: npm run build
+
       - name: Publish to npm with provenance
         run: npm publish --provenance --access public
         env:
