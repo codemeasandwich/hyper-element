@@ -1,5 +1,5 @@
 {
-  "version": "0.13.0",
+  "version": "1.0.0",
   "name": "hyper-element",
   "author": "Brian Shannon (github.com/codemeasandwich)",
   "description": "hyperHTML + WebComponents",
