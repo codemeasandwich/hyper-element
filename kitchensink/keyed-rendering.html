@@ -197,13 +197,15 @@
         (function () {
           const section = document.querySelector('[data-test="wire-add"]');
 
-          const items = [{ id: 1, name: 'Original' }];
+          // Shared array reference - component will use this directly
+          const sharedItems = [{ id: 1, name: 'Original' }];
 
           customElements.define(
             'wire-add-elem',
             class extends hyperElement {
               setup(onNext) {
-                this.items = [...items];
+                // Store reference to shared array (not a copy)
+                this.items = sharedItems;
                 onNext();
               }
               render(Html) {
@@ -218,12 +220,11 @@
           document.getElementById('wire-add-output').appendChild(elem);
 
           setTimeout(() => {
-            // Add more items
-            elem.items = [
-              items[0],
+            // Add items by mutating the shared array
+            sharedItems.push(
               { id: 2, name: 'Added' },
-              { id: 3, name: 'Also Added' },
-            ];
+              { id: 3, name: 'Also Added' }
+            );
             elem.render();
 
             setTimeout(() => {

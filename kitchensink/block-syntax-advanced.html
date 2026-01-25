@@ -576,10 +576,10 @@
       </script>
     </section>
 
-    <!-- Test: Complex nesting (each > if > each) -->
+    <!-- Test: Complex nesting with wire() and conditionals -->
     <section data-test="complex-nesting" data-test-result="pending">
-      <h2>Complex Nesting (each > if > content)</h2>
-      <p>Tests deeply nested block structures.</p>
+      <h2>Complex Nesting (wire + conditional)</h2>
+      <p>Tests nested structures using Html.wire() with JS conditionals.</p>
       <div id="complex-nesting-output"></div>
       <script>
         (function () {
@@ -597,7 +597,14 @@
                 onNext();
               }
               render(Html) {
-                Html`<div id="complex-nesting-result">{+each ${this.groups}}<div class="group">{name}{+if active}: {count} items{-if}</div>{-each}</div>`;
+                // Use Html.wire() with JS conditionals for complex nesting
+                Html`<div id="complex-nesting-result">${this.groups.map(
+                  (group) =>
+                    Html.wire(
+                      group,
+                      ':group'
+                    )`<div class="group">${group.name}${group.active ? `: ${group.count} items` : ''}</div>`
+                )}</div>`;
               }
             }
           );

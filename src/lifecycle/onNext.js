@@ -29,7 +29,9 @@
 export function onNext(that, store) {
   const storeFn = 'function' == typeof store ? store : () => store;
 
-  const render = this.render;
+  // Get the base render function (unwrapped if previously wrapped)
+  const baseRender = this._baseRender || this.render;
+  this._baseRender = baseRender;
 
   /**
    * Wrapped render function that injects store state.
@@ -39,13 +41,20 @@ export function onNext(that, store) {
   const render2 = (...data) => {
     if (undefined === store) {
       that.store = undefined;
-      render(...data);
+      baseRender(...data);
     } else {
       that.store = storeFn();
-      render(that.store, ...data);
+      baseRender(that.store, ...data);
     }
   };
   this.render = render2;
+
+  // Trigger re-render if called after initial setup
+  if (this._onNextInitialized) {
+    render2();
+  } else {
+    this._onNextInitialized = true;
+  }
 
   return render2;
 }

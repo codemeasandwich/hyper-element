@@ -7,13 +7,16 @@ import { createFragment } from './creator.js';
 import { createParser } from './parser.js';
 import { update, isKeyed } from './update.js';
 import { Hole, dom } from './hole.js';
-import { Keyed, keyedHoles } from './keyed.js';
+import { Keyed } from './keyed.js';
 
 // Create parser with update handler
 const _parseTemplate = createParser(update);
 
 // WeakMap for caching bound render functions
 const rendered = new WeakMap();
+
+// WeakMap for wire() caching - maps objects to Map<id, {hole, template}>
+const wireCache = new WeakMap();
 
 /**
  * Creates a tagged template function for HTML or SVG.
@@ -81,19 +84,24 @@ export function bind(element) {
  * @returns {Function} Tagged template function
  */
 export function wire(obj, id = '') {
-  const cache = keyedHoles.get(obj) || new Map();
-  if (!keyedHoles.has(obj)) keyedHoles.set(obj, cache);
+  let cache = wireCache.get(obj);
+  if (!cache) {
+    cache = new Map();
+    wireCache.set(obj, cache);
+  }
 
   return (template, ...values) => {
     let entry = cache.get(id);
-    if (!entry || entry.t !== template) {
-      // Create new hole
-      entry = html(template, ...values);
+    // Compare template strings array identity (not parsed template)
+    if (!entry || entry.tpl !== template) {
+      // Create new hole and store both the hole and raw template
+      const hole = html(template, ...values);
+      entry = { hole, tpl: template };
       cache.set(id, entry);
-      return entry;
+      return hole;
     }
-    // Update existing
-    return new Hole(entry.t, values);
+    // Update existing - create new hole with same parsed template
+    return new Hole(entry.hole.t, values);
   };
 }
 

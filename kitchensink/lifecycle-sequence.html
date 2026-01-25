@@ -327,16 +327,20 @@
           const section = document.querySelector('[data-test="manual-render"]');
           let renderCount = 0;
 
+          // Shared state object that can be mutated
+          const state = { message: 'initial' };
+
           customElements.define(
             'manual-render-elem',
             class extends hyperElement {
               setup(onNext) {
-                this.message = 'initial';
+                // Store reference to shared state
+                this.state = state;
                 onNext();
               }
               render(Html) {
                 renderCount++;
-                Html`<div id="manual-render-result">${this.message} (${renderCount})</div>`;
+                Html`<div id="manual-render-result">${this.state.message} (${renderCount})</div>`;
               }
             }
           );
@@ -345,7 +349,8 @@
           document.getElementById('manual-render-output').appendChild(elem);
 
           requestAnimationFrame(() => {
-            elem.message = 'updated';
+            // Update shared state and re-render
+            state.message = 'updated';
             elem.render();
 
             requestAnimationFrame(() => {

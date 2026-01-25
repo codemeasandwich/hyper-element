@@ -26,6 +26,7 @@ const files = [
   'render/diff.js',
   'render/persistent-fragment.js',
   'render/keyed.js',
+  'render/nodes.js',
   'render/parser.js',
   'render/update.js',
   'render/hole.js',

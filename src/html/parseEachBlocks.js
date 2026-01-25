@@ -273,12 +273,18 @@ export function transformEachBlocks(strings, values, wireFunction) {
       }
     }
     let blockResult;
+    /**
+     * Trims leading whitespace only, preserving trailing for spacing.
+     * @param {string} s - String to trim
+     * @returns {string} String with leading whitespace removed
+     */
+    const trimLeading = (s) => s.replace(/^\s+/, '');
     if (type === 'each') {
       if (!Array.isArray(blockValue) && blockValue != null)
         throw new Error(`{+each} expects an array, got ${typeof blockValue}`);
       blockResult = (blockValue || []).map((item, idx) =>
         processInnerContent(
-          innerContent.trim(),
+          trimLeading(innerContent),
           item,
           idx,
           blockValue || [],
@@ -287,12 +293,12 @@ export function transformEachBlocks(strings, values, wireFunction) {
       );
     } else if (type === 'if')
       blockResult = blockValue
-        ? { html: innerContent.trim() }
-        : { html: elseContent.trim() };
+        ? { html: trimLeading(innerContent) }
+        : { html: trimLeading(elseContent) };
     else if (type === 'unless')
       blockResult = blockValue
-        ? { html: elseContent.trim() }
-        : { html: innerContent.trim() };
+        ? { html: trimLeading(elseContent) }
+        : { html: trimLeading(innerContent) };
     resultValues.push(blockResult);
     const afterBlock = strings[endIdx].substring(endPos + closeTag.length);
     i = endIdx;

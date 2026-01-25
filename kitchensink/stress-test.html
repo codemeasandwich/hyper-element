@@ -103,15 +103,18 @@
         (function () {
           const section = document.querySelector('[data-test="rapid-rerender"]');
 
+          // Shared state that can be mutated externally
+          const state = { count: 0 };
+
           customElements.define(
             'rapid-rerender-elem',
             class extends hyperElement {
               setup(onNext) {
-                this.count = 0;
+                this.state = state;
                 onNext();
               }
               render(Html) {
-                Html`<div id="rapid-rerender-result">count=${this.count}</div>`;
+                Html`<div id="rapid-rerender-result">count=${this.state.count}</div>`;
               }
             }
           );
@@ -120,9 +123,9 @@
           document.getElementById('rapid-rerender-output').appendChild(elem);
 
           setTimeout(() => {
-            // Rapid updates
+            // Rapid updates via shared state
             for (let i = 1; i <= 50; i++) {
-              elem.count = i;
+              state.count = i;
               elem.render();
             }
 
@@ -195,21 +198,25 @@
         (function () {
           const section = document.querySelector('[data-test="list-updates"]');
 
-          const items = [
-            { id: 1, name: 'A' },
-            { id: 2, name: 'B' },
-            { id: 3, name: 'C' },
-          ];
+          // Shared state object that can be mutated
+          const state = {
+            items: [
+              { id: 1, name: 'A' },
+              { id: 2, name: 'B' },
+              { id: 3, name: 'C' },
+            ],
+          };
 
           customElements.define(
             'list-updates-elem',
             class extends hyperElement {
               setup(onNext) {
-                this.items = [...items];
+                // Store reference to shared state
+                this.state = state;
                 onNext();
               }
               render(Html) {
-                Html`<ul id="list-updates-result">${this.items.map(
+                Html`<ul id="list-updates-result">${this.state.items.map(
                   (item) => Html.wire(item, ':item')`<li>${item.name}</li>`
                 )}</ul>`;
               }
@@ -222,8 +229,8 @@
           let passed = true;
 
           setTimeout(() => {
-            // Test: Add item
-            elem.items.push({ id: 4, name: 'D' });
+            // Test: Add item by mutating shared state
+            state.items.push({ id: 4, name: 'D' });
             elem.render();
 
             setTimeout(() => {
@@ -232,8 +239,8 @@
                 passed = false;
               }
 
-              // Test: Remove item
-              elem.items = elem.items.filter((i) => i.id !== 2);
+              // Test: Remove item by mutating shared state
+              state.items = state.items.filter((i) => i.id !== 2);
               elem.render();
 
               setTimeout(() => {
