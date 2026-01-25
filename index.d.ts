@@ -108,17 +108,114 @@ export type OnNextCallback = (
 ) => (...data: any[]) => void;
 
 /**
+ * Render function for functional components.
+ * Receives Html template function, context, and optional store data.
+ */
+export type RenderFunction = (
+  Html: HtmlFunction,
+  ctx: ElementContext,
+  ...data: any[]
+) => void;
+
+/**
+ * Setup function for functional components.
+ * Receives context and onNext callback.
+ * @returns Optional teardown function.
+ */
+export type SetupFunction = (
+  ctx: ElementContext,
+  onNext: OnNextCallback
+) => void | (() => void);
+
+/**
+ * Method function for functional components.
+ * Context is passed as first argument.
+ */
+export type MethodFunction = (ctx: ElementContext, ...args: any[]) => any;
+
+/**
+ * Functional component definition object.
+ */
+export interface FunctionalDefinition {
+  /** Attributes to observe for changes */
+  observedAttributes?: string[];
+  /** Setup lifecycle function */
+  setup?: SetupFunction;
+  /** Render function (required) */
+  render: RenderFunction;
+  /** Additional methods */
+  [key: string]:
+    | string[]
+    | SetupFunction
+    | RenderFunction
+    | MethodFunction
+    | undefined;
+}
+
+/**
+ * Interface for the hyperElement function/class.
+ * Can be used as a class base or called as a factory function.
+ */
+export interface HyperElementFactory {
+  /**
+   * Create and register a custom element with a definition object.
+   * @param tagName - Custom element tag name (must contain a hyphen)
+   * @param definition - Component definition object
+   * @returns The generated class
+   */
+  (tagName: string, definition: FunctionalDefinition): typeof hyperElement;
+
+  /**
+   * Create and register a custom element with a render function.
+   * @param tagName - Custom element tag name (must contain a hyphen)
+   * @param render - Render function
+   * @returns The generated class
+   */
+  (tagName: string, render: RenderFunction): typeof hyperElement;
+
+  /**
+   * Create a custom element class without registering.
+   * @param definition - Component definition object
+   * @returns The generated class (call customElements.define to register)
+   */
+  (definition: FunctionalDefinition): typeof hyperElement;
+
+  /**
+   * Create a custom element class without registering.
+   * @param render - Render function
+   * @returns The generated class (call customElements.define to register)
+   */
+  (render: RenderFunction): typeof hyperElement;
+
+  /** Prototype for class inheritance */
+  prototype: hyperElement;
+}
+
+/**
  * Base class for creating custom elements with hyperHTML templating.
  * Extend this class and implement the render() method to create a custom element.
  *
+ * Can also be called as a factory function:
+ * - `hyperElement('tag-name', { render: ... })` - with auto-registration
+ * - `hyperElement({ render: ... })` - returns class for manual registration
+ *
  * @example
  * ```javascript
+ * // Class-based usage
  * class MyElement extends hyperElement {
  *   render(Html) {
  *     Html`<div>Hello ${this.attrs.name}!</div>`;
  *   }
  * }
  * customElements.define('my-element', MyElement);
+ *
+ * // Functional usage with auto-registration
+ * hyperElement('my-element', {
+ *   render: (Html, ctx) => Html`<div>Hello ${ctx.attrs.name}!</div>`
+ * });
+ *
+ * // Functional shorthand
+ * hyperElement('simple-elem', (Html, ctx) => Html`<div>Simple</div>`);
  * ```
  */
 export class hyperElement extends HTMLElement {
@@ -178,11 +275,22 @@ export class hyperElement extends HTMLElement {
   render(Html: HtmlFunction, ...data: any[]): void;
 }
 
+/**
+ * The exported hyperElement is typed as an intersection:
+ * - HyperElementFactory: callable function signatures
+ * - typeof HyperElementBase: class for extension
+ */
+type HyperElementType = HyperElementFactory &
+  (new () => hyperElement) & { prototype: hyperElement };
+
+declare const hyperElement: HyperElementType;
+
 declare global {
   interface Window {
-    hyperElement: typeof hyperElement;
+    hyperElement: HyperElementType;
     hyperHTML: any;
   }
 }
 
+export { hyperElement };
 export default hyperElement;

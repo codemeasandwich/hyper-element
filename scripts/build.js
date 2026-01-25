@@ -53,6 +53,9 @@ const files = [
 
   // Main class
   'hyperElement.js',
+
+  // Functional API
+  'functional.js',
 ];
 
 /**
@@ -64,7 +67,10 @@ function processFile(filePath) {
   let content = fs.readFileSync(filePath, 'utf8');
 
   // Remove multi-line import statements (import { ... } from '...')
-  content = content.replace(/^import\s+\{[\s\S]*?\}\s+from\s+['"].*?['"];?\s*$/gm, '');
+  content = content.replace(
+    /^import\s+\{[\s\S]*?\}\s+from\s+['"].*?['"];?\s*$/gm,
+    ''
+  );
 
   // Remove single-line import statements
   content = content.replace(/^import\s+.*?from\s+['"].*?['"];?\s*$/gm, '');
@@ -118,10 +124,27 @@ function createBundle() {
     );
   }
 
-  // IIFE wrapper end
+  // IIFE wrapper end - wrap hyperElement in Proxy for functional API
   parts.push(`
   console.info('hyper-element v${pkg.version} by ${pkg.author}');
-  window.hyperElement = hyperElement;
+
+  // Wrap hyperElement in Proxy for dual-purpose (class and function) API
+  const hyperElementProxy = new Proxy(hyperElement, {
+    apply(target, thisArg, args) {
+      if (args.length === 0) {
+        throw new Error('hyperElement requires a definition object or render function');
+      }
+      return createFunctionalElement(...args);
+    },
+    construct(target, args, newTarget) {
+      if (newTarget !== hyperElementProxy) {
+        return Reflect.construct(target, args, newTarget);
+      }
+      throw new Error('hyperElement cannot be instantiated directly. Use class extension or functional API.');
+    }
+  });
+
+  window.hyperElement = hyperElementProxy;
 })();
 `);
 

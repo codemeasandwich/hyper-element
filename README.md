@@ -101,6 +101,7 @@ For older browsers, a [Custom Elements polyfill](https://github.com/webcomponent
 
 - [Browser Support](#browser-support)
 - [Define a Custom Element](#define-a-custom-element)
+- [Functional API](#functional-api)
 - [Lifecycle](#lifecycle)
 - [Interface](#interface)
   - [render](#render)
@@ -157,6 +158,108 @@ Output
 ```
 
 **Live Example of [helloworld](https://codepen.io/codemeasandwich/pen/VOQpqz)**
+
+---
+
+# Functional API
+
+In addition to class-based components, hyper-element supports a functional API that hides the class internals. This is useful for simpler components or if you prefer a more functional programming style.
+
+## Signatures
+
+```js
+// 1. Full definition with tag (auto-registers)
+hyperElement('my-counter', {
+  observedAttributes: ['count'],
+  setup: (ctx, onNext) => {
+    /* ... */
+  },
+  render: (Html, ctx, store) => Html`Count: ${ctx.attrs.count}`,
+});
+
+// 2. Shorthand with tag (auto-registers)
+hyperElement('hello-world', (Html, ctx) => Html`Hello, ${ctx.attrs.name}!`);
+
+// 3. Definition without tag (returns class for manual registration)
+const MyElement = hyperElement({
+  render: (Html, ctx) => Html`...`,
+});
+customElements.define('my-element', MyElement);
+
+// 4. Shorthand without tag (returns class for manual registration)
+const Simple = hyperElement((Html, ctx) => Html`Simple!`);
+customElements.define('simple-elem', Simple);
+```
+
+## Context Object
+
+In the functional API, instead of using `this`, a context object (`ctx`) is passed explicitly to all functions:
+
+| Property             | Description                                    |
+| -------------------- | ---------------------------------------------- |
+| `ctx.element`        | The DOM element                                |
+| `ctx.attrs`          | Parsed attributes with automatic type coercion |
+| `ctx.dataset`        | Dataset proxy with automatic type coercion     |
+| `ctx.store`          | Store value from setup                         |
+| `ctx.wrappedContent` | Text content between the tags                  |
+
+## Example: Counter with Setup
+
+```js
+hyperElement('my-counter', {
+  setup: (ctx, onNext) => {
+    const store = { count: 0 };
+    const render = onNext(() => store);
+
+    ctx.increment = () => {
+      store.count++;
+      render();
+    };
+  },
+
+  handleClick: (ctx, event) => ctx.increment(),
+
+  render: (Html, ctx, store) => Html`
+    <button onclick=${ctx.handleClick}>
+      Count: ${store?.count || 0}
+    </button>
+  `,
+});
+```
+
+## Example: Timer with Teardown
+
+```js
+hyperElement('my-timer', {
+  setup: (ctx, onNext) => {
+    let seconds = 0;
+    const render = onNext(() => ({ seconds }));
+
+    const interval = setInterval(() => {
+      seconds++;
+      render();
+    }, 1000);
+
+    // Return cleanup function
+    return () => clearInterval(interval);
+  },
+
+  render: (Html, ctx, store) => Html`Elapsed: ${store?.seconds || 0}s`,
+});
+```
+
+## Backward Compatibility
+
+The functional API is fully backward compatible. Class-based components still work:
+
+```js
+class MyElement extends hyperElement {
+  render(Html) {
+    Html`Hello ${this.attrs.name}!`;
+  }
+}
+customElements.define('my-element', MyElement);
+```
 
 ---
 
