@@ -7,7 +7,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/codemeasandwich/hyper-element)
 [![ES6+](https://img.shields.io/badge/ES6+-supported-blue.svg)](https://caniuse.com/es6)
 
-Combining the best of [hyperHTML] and [Custom Elements]! Your new custom-element will be rendered with the super fast **hyperHTML** and will react to tag attribute and store changes.
+A lightweight [Custom Elements] library with a fast, built-in render core. Your custom-element will react to tag attribute and store changes with efficient DOM updates.
 
 ### If you like it, please [★ it on github](https://github.com/codemeasandwich/hyper-element)
 
@@ -57,7 +57,7 @@ For browser environments without a bundler:
 <script src="https://cdn.jsdelivr.net/npm/hyper-element@latest/build/hyperElement.min.js"></script>
 ```
 
-The `hyperElement` class will be available globally on `window.hyperElement`. hyperHTML is bundled automatically.
+The `hyperElement` class will be available globally on `window.hyperElement`.
 
 ## Browser Support
 
@@ -75,7 +75,7 @@ For older browsers, a [Custom Elements polyfill](https://github.com/webcomponent
 ## Why hyper-element
 
 - hyper-element is fast & small
-  - With only 1 dependency: [hyperHTML]
+  - Zero runtime dependencies - everything is built-in
 - With a completely stateless approach, setting and reseting the view is trivial
 - Simple yet powerful [Interface](#interface)
 - Built in [template](#templates) system to customise the rendered output
@@ -1048,12 +1048,15 @@ setup(attachStore) {
 ```
 hyper-element/
 ├── src/                     # Source files (ES modules)
-│   ├── core/                # Core utilities
 │   ├── attributes/          # Attribute handling
-│   ├── template/            # Template processing
-│   ├── html/                # HTML rendering
+│   ├── core/                # Core utilities
+│   ├── html/                # HTML tag functions
 │   ├── lifecycle/           # Lifecycle hooks
-│   └── hyperElement.js      # Main export
+│   ├── render/              # Custom render core (uhtml-inspired)
+│   ├── signals/             # Reactive primitives (signal, computed, effect)
+│   ├── template/            # Template processing
+│   ├── utils/               # Shared utilities
+│   └── index.js             # Main export
 ├── build/
 │   ├── hyperElement.min.js  # Minified production build
 │   └── hyperElement.min.js.map
@@ -1118,7 +1121,7 @@ npm run format:fix
 
 ## Testing
 
-See [kitchensink/README.md](kitchensink/README.md) for the full testing guide.
+Tests are located in `kitchensink/` and run via Playwright. See `kitchensink/kitchensink.spec.js` for the test suite.
 
 ## Contributing
 
@@ -1128,7 +1131,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 [shadow-dom]: https://developers.google.com/web/fundamentals/web-components/shadowdom
 [innerHTML]: https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML
-[hyperHTML]: https://viperhtml.js.org/hyper.html
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
 [Test system]: https://jsfiddle.net/codemeasandwich/k25e6ufv/36/
 [promise]: https://scotch.io/tutorials/javascript-promises-for-dummies#understanding-promises
