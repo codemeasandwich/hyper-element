@@ -221,6 +221,8 @@
             '[data-test="async-fragment-array"]'
           );
           const content = elem8.textContent;
+          console.log('async-fragment-array innerHTML:', elem8.innerHTML);
+          console.log('async-fragment-array textContent:', content);
           if (
             content.includes('Item A') &&
             content.includes('Item B') &&

@@ -13,20 +13,44 @@ const buildDir = path.join(__dirname, '..', 'build');
 
 // Files in dependency order (no circular deps)
 const files = [
+  // Core constants and manager
   'core/constants.js',
   'core/manager.js',
   'utils/makeid.js',
   'utils/escape.js',
+
+  // Render core (uhtml-inspired)
+  'render/constants.js',
+  'render/creator.js',
+  'render/resolve.js',
+  'render/diff.js',
+  'render/persistent-fragment.js',
+  'render/keyed.js',
+  'render/parser.js',
+  'render/update.js',
+  'render/hole.js',
+  'render/index.js',
+
+  // Signals (reactivity)
+  'signals/index.js',
+
+  // Attributes and templates
   'attributes/parseAttribute.js',
   'template/processAdvancedTemplate.js',
   'template/buildTemplate.js',
   'attributes/dataset.js',
   'attributes/attachAttrs.js',
+
+  // HTML processing
   'html/parseEachBlocks.js',
   'html/createHtml.js',
+
+  // Lifecycle
   'lifecycle/onNext.js',
   'lifecycle/observer.js',
   'lifecycle/connectedCallback.js',
+
+  // Main class
   'hyperElement.js',
 ];
 
@@ -38,7 +62,10 @@ const files = [
 function processFile(filePath) {
   let content = fs.readFileSync(filePath, 'utf8');
 
-  // Remove import statements
+  // Remove multi-line import statements (import { ... } from '...')
+  content = content.replace(/^import\s+\{[\s\S]*?\}\s+from\s+['"].*?['"];?\s*$/gm, '');
+
+  // Remove single-line import statements
   content = content.replace(/^import\s+.*?from\s+['"].*?['"];?\s*$/gm, '');
   content = content.replace(/^import\s+['"].*?['"];?\s*$/gm, '');
 
@@ -49,7 +76,8 @@ function processFile(filePath) {
       return match.replace('export ', '');
     }
   );
-  content = content.replace(/^export\s+\{[^}]*\};?\s*$/gm, '');
+  // Remove multi-line export { ... } statements
+  content = content.replace(/^export\s+\{[\s\S]*?\};?\s*$/gm, '');
   content = content.replace(/^export\s+default\s+/gm, '');
 
   // Remove JSDoc comments (they get counted as statements by v8-to-istanbul)
@@ -71,21 +99,9 @@ function processFile(filePath) {
 function createBundle() {
   const parts = [];
 
-  // Read hyperHTML minified source
-  const hyperHTMLPath = path.join(
-    __dirname,
-    '..',
-    'node_modules',
-    'hyperhtml',
-    'min.js'
-  );
-  const hyperHTMLCode = fs.readFileSync(hyperHTMLPath, 'utf8');
-
-  // IIFE wrapper start - hyperHTML bundled inline
-  parts.push(`// hyper-element with hyperHTML bundled - zero runtime dependencies
-(function () {
-  // hyperHTML (c) Andrea Giammarchi (ISC)
-  ${hyperHTMLCode}`);
+  // IIFE wrapper start - self-contained, no external dependencies
+  parts.push(`// hyper-element v${pkg.version} - zero runtime dependencies
+(function () {`);
 
   // Add each file's content
   for (const file of files) {

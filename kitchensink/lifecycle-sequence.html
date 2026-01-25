@@ -1,0 +1,531 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Lifecycle Sequence - hyper-element Kitchen Sink</title>
+    <script src="test-loader.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 2rem;
+      }
+      section {
+        margin: 2rem 0;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      section[data-test-result='pass'] {
+        border-color: green;
+        background: #f0fff0;
+      }
+      section[data-test-result='fail'] {
+        border-color: red;
+        background: #fff0f0;
+      }
+      h1 {
+        border-bottom: 2px solid #333;
+      }
+      h2 {
+        margin-top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lifecycle Sequence Tests</h1>
+    <p>Tests for lifecycle method ordering and behavior.</p>
+
+    <!-- Test: setup() called before render() -->
+    <section data-test="setup-before-render" data-test-result="pending">
+      <h2>setup() Called Before render()</h2>
+      <p>Tests that setup() executes before the first render().</p>
+      <div id="setup-order-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector(
+            '[data-test="setup-before-render"]'
+          );
+          const callOrder = [];
+
+          customElements.define(
+            'setup-order-elem',
+            class extends hyperElement {
+              setup(onNext) {
+                callOrder.push('setup');
+                this.value = 'from-setup';
+                onNext();
+              }
+              render(Html) {
+                callOrder.push('render');
+                Html`<div id="setup-order-result">${this.value}</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('setup-order-elem');
+          document.getElementById('setup-order-output').appendChild(elem);
+
+          requestAnimationFrame(() => {
+            const result = document.getElementById('setup-order-result');
+            if (
+              callOrder[0] === 'setup' &&
+              callOrder[1] === 'render' &&
+              result?.textContent === 'from-setup'
+            ) {
+              section.dataset.testResult = 'pass';
+            } else {
+              section.dataset.testResult = 'fail';
+            }
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: render() called once on init -->
+    <section data-test="render-once-init" data-test-result="pending">
+      <h2>render() Called Once on Init</h2>
+      <p>Tests that render() is called exactly once during initialization.</p>
+      <div id="render-once-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="render-once-init"]');
+          let renderCount = 0;
+
+          customElements.define(
+            'render-once-elem',
+            class extends hyperElement {
+              render(Html) {
+                renderCount++;
+                Html`<div id="render-once-result">renders: ${renderCount}</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('render-once-elem');
+          document.getElementById('render-once-output').appendChild(elem);
+
+          requestAnimationFrame(() => {
+            const result = document.getElementById('render-once-result');
+            if (renderCount === 1 && result?.textContent === 'renders: 1') {
+              section.dataset.testResult = 'pass';
+            } else {
+              section.dataset.testResult = 'fail';
+            }
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: teardown() called on disconnect -->
+    <section data-test="teardown-disconnect" data-test-result="pending">
+      <h2>Teardown Called on Disconnect</h2>
+      <p>Tests that teardown function is called when element is removed.</p>
+      <div id="teardown-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector(
+            '[data-test="teardown-disconnect"]'
+          );
+          let teardownCalled = false;
+
+          customElements.define(
+            'teardown-elem',
+            class extends hyperElement {
+              setup(onNext) {
+                onNext();
+                return () => {
+                  teardownCalled = true;
+                };
+              }
+              render(Html) {
+                Html`<div>teardown test</div>`;
+              }
+            }
+          );
+
+          const container = document.getElementById('teardown-output');
+          const elem = document.createElement('teardown-elem');
+          container.appendChild(elem);
+
+          requestAnimationFrame(() => {
+            // Remove element
+            container.removeChild(elem);
+
+            requestAnimationFrame(() => {
+              if (teardownCalled) {
+                section.dataset.testResult = 'pass';
+                container.innerHTML =
+                  '<div id="teardown-result">Teardown was called</div>';
+              } else {
+                section.dataset.testResult = 'fail';
+                container.innerHTML =
+                  '<div id="teardown-result">Teardown NOT called</div>';
+              }
+            });
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: Re-render on attribute change -->
+    <section data-test="rerender-attr-change" data-test-result="pending">
+      <h2>Re-render on Attribute Change</h2>
+      <p>Tests that changing an observed attribute triggers re-render.</p>
+      <div id="attr-change-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector(
+            '[data-test="rerender-attr-change"]'
+          );
+          let renderCount = 0;
+
+          customElements.define(
+            'attr-change-elem',
+            class extends hyperElement {
+              static get observedAttributes() {
+                return ['message'];
+              }
+              render(Html) {
+                renderCount++;
+                Html`<div id="attr-change-result">${this.attrs.message} (renders: ${renderCount})</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('attr-change-elem');
+          elem.setAttribute('message', 'initial');
+          document.getElementById('attr-change-output').appendChild(elem);
+
+          requestAnimationFrame(() => {
+            // Change attribute
+            elem.setAttribute('message', 'updated');
+
+            requestAnimationFrame(() => {
+              const result = document.getElementById('attr-change-result');
+              if (
+                renderCount === 2 &&
+                result?.textContent === 'updated (renders: 2)'
+              ) {
+                section.dataset.testResult = 'pass';
+              } else {
+                section.dataset.testResult = 'fail';
+              }
+            });
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: Different attribute value triggers re-render -->
+    <section data-test="same-attr-no-render" data-test-result="pending">
+      <h2>Different Attribute Value Triggers Re-render</h2>
+      <p>Tests that setting a different value triggers re-render.</p>
+      <div id="same-attr-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector(
+            '[data-test="same-attr-no-render"]'
+          );
+          let renderCount = 0;
+
+          customElements.define(
+            'same-attr-elem',
+            class extends hyperElement {
+              static get observedAttributes() {
+                return ['value'];
+              }
+              render(Html) {
+                renderCount++;
+                Html`<div id="same-attr-result">value=${this.attrs.value} renders=${renderCount}</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('same-attr-elem');
+          elem.setAttribute('value', 'initial');
+          document.getElementById('same-attr-output').appendChild(elem);
+
+          requestAnimationFrame(() => {
+            const countBefore = renderCount;
+            // Set different value - should trigger re-render
+            elem.setAttribute('value', 'changed');
+
+            requestAnimationFrame(() => {
+              const result = document.getElementById('same-attr-result');
+              // Should have re-rendered with new value
+              if (
+                renderCount > countBefore &&
+                result?.textContent.includes('value=changed')
+              ) {
+                section.dataset.testResult = 'pass';
+              } else {
+                section.dataset.testResult = 'fail';
+              }
+            });
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: onNext triggers re-render with data -->
+    <section data-test="onnext-rerender" data-test-result="pending">
+      <h2>onNext() Triggers Re-render</h2>
+      <p>Tests that calling onNext() triggers a new render with store data.</p>
+      <div id="onnext-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="onnext-rerender"]');
+          let onNextRef;
+          let renderCount = 0;
+
+          customElements.define(
+            'onnext-elem',
+            class extends hyperElement {
+              setup(onNext) {
+                onNextRef = onNext;
+                this.count = 0;
+                onNext(() => this.count);
+              }
+              render(Html, count) {
+                renderCount++;
+                Html`<div id="onnext-result">count=${count} renders=${renderCount}</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('onnext-elem');
+          document.getElementById('onnext-output').appendChild(elem);
+
+          requestAnimationFrame(() => {
+            // Update count and trigger re-render
+            elem.count = 5;
+            onNextRef(() => elem.count);
+
+            requestAnimationFrame(() => {
+              const result = document.getElementById('onnext-result');
+              if (
+                renderCount === 2 &&
+                result?.textContent.includes('count=5')
+              ) {
+                section.dataset.testResult = 'pass';
+              } else {
+                section.dataset.testResult = 'fail';
+              }
+            });
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: Manual render() call -->
+    <section data-test="manual-render" data-test-result="pending">
+      <h2>Manual render() Call</h2>
+      <p>Tests that manually calling render() updates the DOM.</p>
+      <div id="manual-render-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="manual-render"]');
+          let renderCount = 0;
+
+          customElements.define(
+            'manual-render-elem',
+            class extends hyperElement {
+              setup(onNext) {
+                this.message = 'initial';
+                onNext();
+              }
+              render(Html) {
+                renderCount++;
+                Html`<div id="manual-render-result">${this.message} (${renderCount})</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('manual-render-elem');
+          document.getElementById('manual-render-output').appendChild(elem);
+
+          requestAnimationFrame(() => {
+            elem.message = 'updated';
+            elem.render();
+
+            requestAnimationFrame(() => {
+              const result = document.getElementById('manual-render-result');
+              if (
+                renderCount === 2 &&
+                result?.textContent === 'updated (2)'
+              ) {
+                section.dataset.testResult = 'pass';
+              } else {
+                section.dataset.testResult = 'fail';
+              }
+            });
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: Reconnection after disconnect -->
+    <section data-test="reconnection" data-test-result="pending">
+      <h2>Reconnection After Disconnect</h2>
+      <p>Tests that element works correctly after being removed and re-added.</p>
+      <div id="reconnect-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="reconnection"]');
+          let setupCount = 0;
+          let teardownCount = 0;
+
+          customElements.define(
+            'reconnect-elem',
+            class extends hyperElement {
+              setup(onNext) {
+                setupCount++;
+                this.id = setupCount;
+                onNext();
+                return () => {
+                  teardownCount++;
+                };
+              }
+              render(Html) {
+                Html`<div id="reconnect-result">setup=${setupCount} teardown=${teardownCount}</div>`;
+              }
+            }
+          );
+
+          const container = document.getElementById('reconnect-output');
+          const elem = document.createElement('reconnect-elem');
+          container.appendChild(elem);
+
+          requestAnimationFrame(() => {
+            // Remove
+            container.removeChild(elem);
+
+            requestAnimationFrame(() => {
+              // Re-add
+              container.appendChild(elem);
+
+              requestAnimationFrame(() => {
+                const result = document.getElementById('reconnect-result');
+                // setup called twice (once per connect), teardown once
+                if (
+                  setupCount === 2 &&
+                  teardownCount === 1 &&
+                  result?.textContent === 'setup=2 teardown=1'
+                ) {
+                  section.dataset.testResult = 'pass';
+                } else {
+                  section.dataset.testResult = 'fail';
+                }
+              });
+            });
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: Element with innerHTML present before connect -->
+    <section data-test="initial-content" data-test-result="pending">
+      <h2>Initial innerHTML Available</h2>
+      <p>Tests that this.wrappedContent has initial innerHTML.</p>
+      <div id="initial-content-output">
+        <initial-content-elem>Original Content</initial-content-elem>
+      </div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="initial-content"]');
+
+          customElements.define(
+            'initial-content-elem',
+            class extends hyperElement {
+              render(Html) {
+                Html`<div id="initial-content-result">wrapped: ${this.wrappedContent}</div>`;
+              }
+            }
+          );
+
+          requestAnimationFrame(() => {
+            const result = document.getElementById('initial-content-result');
+            if (result?.textContent === 'wrapped: Original Content') {
+              section.dataset.testResult = 'pass';
+            } else {
+              section.dataset.testResult = 'fail';
+            }
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: this.element reference -->
+    <section data-test="element-ref" data-test-result="pending">
+      <h2>this.element Reference</h2>
+      <p>Tests that this.element refers to the DOM element.</p>
+      <div id="element-ref-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="element-ref"]');
+
+          customElements.define(
+            'element-ref-elem',
+            class extends hyperElement {
+              setup(onNext) {
+                this.tagName = this.element.tagName.toLowerCase();
+                onNext();
+              }
+              render(Html) {
+                Html`<div id="element-ref-result">tag: ${this.tagName}</div>`;
+              }
+            }
+          );
+
+          const elem = document.createElement('element-ref-elem');
+          document.getElementById('element-ref-output').appendChild(elem);
+
+          requestAnimationFrame(() => {
+            const result = document.getElementById('element-ref-result');
+            if (result?.textContent === 'tag: element-ref-elem') {
+              section.dataset.testResult = 'pass';
+            } else {
+              section.dataset.testResult = 'fail';
+            }
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- Test: innerShadow getter -->
+    <section data-test="inner-shadow" data-test-result="pending">
+      <h2>innerShadow Getter</h2>
+      <p>Tests that innerShadow returns rendered HTML.</p>
+      <div id="inner-shadow-output"></div>
+      <script>
+        (function () {
+          const section = document.querySelector('[data-test="inner-shadow"]');
+          let elemRef;
+
+          customElements.define(
+            'inner-shadow-elem',
+            class extends hyperElement {
+              render(Html) {
+                Html`<span class="test">content</span>`;
+              }
+            }
+          );
+
+          elemRef = document.createElement('inner-shadow-elem');
+          document.getElementById('inner-shadow-output').appendChild(elemRef);
+
+          requestAnimationFrame(() => {
+            const shadow = elemRef.innerShadow;
+            if (shadow.includes('<span class="test">content</span>')) {
+              section.dataset.testResult = 'pass';
+            } else {
+              section.dataset.testResult = 'fail';
+            }
+          });
+        })();
+      </script>
+    </section>
+
+    <a href="index.html">&larr; Back to Kitchen Sink</a>
+  </body>
+</html>

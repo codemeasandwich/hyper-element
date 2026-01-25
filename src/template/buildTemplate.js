@@ -5,6 +5,7 @@
 
 import { processAdvancedTemplate } from './processAdvancedTemplate.js';
 import { escapeHtml } from '../utils/escape.js';
+import { wire } from '../render/index.js';
 
 /**
  * Builds a template function from an innerHTML string.
@@ -15,7 +16,7 @@ import { escapeHtml } from '../utils/escape.js';
  * @throws {Error} If template function is called with non-object data
  * @example
  * const template = buildTemplate('<div>{name}</div>');
- * template({ name: 'World' }); // Returns hyperHTML wire result
+ * template({ name: 'World' }); // Returns wire result
  */
 export function buildTemplate(innerHTML) {
   // Check if template has advanced features
@@ -59,14 +60,15 @@ export function buildTemplate(innerHTML) {
   templateVals.id = ':' + templateVals.markup.join().trim();
 
   /**
-   * Creates the template output array for hyperHTML.wire.
+   * Creates the template strings array for wire.
    * @param {Object} data - Data object for interpolation
    * @returns {Array} Tagged template array with raw property
    */
   function fragment(data) {
     const output = [
       templateVals.markup,
-      ...templateVals.keys.map((key) => data[key]),
+      // Convert undefined/null values to empty strings
+      ...templateVals.keys.map((key) => (data[key] != null ? data[key] : '')),
     ];
     output.raw = { value: templateVals.markup };
     return output;
@@ -81,6 +83,6 @@ export function buildTemplate(innerHTML) {
           templateVals.id
       );
     }
-    return hyperHTML.wire(data, templateVals.id)(...fragment(data));
+    return wire(data, templateVals.id)(...fragment(data));
   };
 }

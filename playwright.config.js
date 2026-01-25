@@ -24,6 +24,7 @@ module.exports = defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        channel: 'chrome', // Use system Chrome instead of headless shell
       },
     },
   ],

@@ -7,7 +7,7 @@ import { manager } from '../core/manager.js';
 import { observer } from './observer.js';
 import { onNext } from './onNext.js';
 import { buildTemplate } from '../template/buildTemplate.js';
-import { createHtml } from '../html/createHtml.js';
+import { createHtml, Hole, dom } from '../html/createHtml.js';
 import { addDataset } from '../attributes/dataset.js';
 
 /**
@@ -21,6 +21,142 @@ import { addDataset } from '../attributes/dataset.js';
  * @property {string} [html] - HTML content
  * @property {any} [placeholder] - Placeholder content
  */
+
+/**
+ * Processes a fragment result object and returns renderable content.
+ * @param {FragmentResult} result - The fragment result
+ * @param {Object} data - Data passed to the fragment
+ * @param {Object} templatestrings - Template cache
+ * @param {Function} [onResolve] - Callback when async content resolves
+ * @returns {any} Renderable content
+ */
+function processFragmentResult(result, data, templatestrings, onResolve) {
+  // Handle text type - can be string or Promise
+  // Note: Don't escape here - the render core creates text nodes which the
+  // browser automatically escapes in innerHTML
+  if (result.text !== undefined) {
+    if (typeof result.text === 'string') {
+      return result.text;
+    }
+    // Handle Promise
+    if (result.text && typeof result.text.then === 'function') {
+      result.text.then((resolved) => {
+        result.text = resolved;
+        if (onResolve) onResolve();
+      });
+      return result.placeholder !== undefined ? result.placeholder : '';
+    }
+  }
+
+  // Handle html type (raw) - can be string or Promise
+  if (result.html !== undefined) {
+    if (typeof result.html === 'string') {
+      return { __unsafe: true, value: result.html };
+    }
+    // Handle Promise
+    if (result.html && typeof result.html.then === 'function') {
+      result.html.then((resolved) => {
+        result.html = resolved;
+        if (onResolve) onResolve();
+      });
+      return result.placeholder !== undefined ? result.placeholder : '';
+    }
+  }
+
+  // Handle template
+  if (result.template) {
+    if ('string' === typeof result.template) {
+      if (!templatestrings[result.template]) {
+        templatestrings[result.template] = buildTemplate(result.template);
+      }
+      const values = result.values || data;
+      // If values is an array, map each item through the template and combine
+      if (Array.isArray(values)) {
+        const mapped = values.map(templatestrings[result.template]);
+        // Each result may be:
+        // - {html: string} for advanced templates
+        // - Hole object for simple templates
+        // Combine into single HTML string for rendering
+        const combined = mapped
+          .map((item) => {
+            if (item && item.html) {
+              return item.html;
+            }
+            if (item instanceof Hole) {
+              // Render Hole to DOM and extract HTML
+              const node = dom(item);
+              // Handle both single nodes and fragments
+              if (node.nodeType === 11) {
+                // DocumentFragment - create temp container
+                const div = document.createElement('div');
+                div.appendChild(node.cloneNode(true));
+                return div.innerHTML;
+              }
+              return node.outerHTML || node.textContent;
+            }
+            return String(item);
+          })
+          .join('');
+        return { __unsafe: true, value: combined };
+      }
+      const templateResult = templatestrings[result.template](values);
+      // Handle both DOM nodes (from wire) and {html: string} (from advanced)
+      if (templateResult && templateResult.html) {
+        return { __unsafe: true, value: templateResult.html };
+      }
+      // Handle Hole objects from simple templates
+      if (templateResult instanceof Hole) {
+        const node = dom(templateResult);
+        if (node.nodeType === 11) {
+          const div = document.createElement('div');
+          div.appendChild(node.cloneNode(true));
+          return { __unsafe: true, value: div.innerHTML };
+        }
+        return { __unsafe: true, value: node.outerHTML || node.textContent };
+      }
+      return templateResult;
+    } else if (
+      'object' === typeof result.template &&
+      'function' === typeof result.template.then
+    ) {
+      // Handle template promise - show placeholder, update when resolved
+      result.template.then((args) => {
+        let { template, values } = args;
+        if (!template && 'string' === typeof args) {
+          template = args;
+          values = {};
+        }
+        // Store resolved template and values on result object
+        result.template = template;
+        result.values = values;
+        if (onResolve) onResolve();
+      });
+      return result.placeholder !== undefined ? result.placeholder : '';
+    } else {
+      throw new Error(
+        'unknow template type:' +
+          typeof result.template +
+          ' | ' +
+          JSON.stringify(result.template)
+      );
+    }
+  }
+
+  // Handle any type - can be any value or Promise
+  if (result.any !== undefined) {
+    // Handle Promise
+    if (result.any && typeof result.any.then === 'function') {
+      result.any.then((resolved) => {
+        result.any = resolved;
+        if (onResolve) onResolve();
+      });
+      return result.placeholder !== undefined ? result.placeholder : '';
+    }
+    return result.any;
+  }
+
+  return result;
+}
 
 /**
  * Core initialization callback, called when element is connected to DOM.
@@ -37,6 +173,9 @@ export function createdCallback() {
   const that = (ref.this = { element: this });
   that.wrappedContent = this.textContent;
 
+  // Fragment method cache
+  const fragmentCache = {};
+
   observer.call(this, ref); // observer change to innerHTML
 
   Object.getOwnPropertyNames(this.__proto__)
@@ -46,97 +185,76 @@ export function createdCallback() {
     )
     .forEach((name) => {
       if (/^[A-Z]/.test(name)) {
-        let result;
         const templatestrings = {};
         /**
          * Wraps a fragment method to handle template processing and caching.
          * @param {Object} data - Data passed to the fragment
-         * @returns {FragmentResult} The fragment result
+         * @returns {any} Renderable content
          */
-        const wrapFragment = (data) => {
-          if (undefined !== result && result.once) return result;
-
-          result = this[name](data);
-
-          // Handle text type (escaped by hyperHTML) and html type (raw)
-          // Only handle synchronous string values, not Promises
-          if (result.text !== undefined && typeof result.text === 'string') {
-            // Pass text directly - hyperHTML escapes strings in 'any' mode
-            result = { any: result.text, once: result.once };
-          } else if (
-            result.html !== undefined &&
-            typeof result.html === 'string'
-          ) {
-            // Use hyperHTML's html mode for raw HTML fragments
-            result = { any: { html: result.html }, once: result.once };
+        fragmentCache[name] = (data) => {
+          // Check cache for once: true results
+          if (fragmentCache[name]._cached !== undefined) {
+            return fragmentCache[name]._cached;
           }
 
-          if (result.template) {
-            if ('string' === typeof result.template) {
-              if (!templatestrings[result.template]) {
-                templatestrings[result.template] = buildTemplate(
-                  result.template
-                );
-              }
-              const templateResult = templatestrings[result.template](
-                result.values || data
-              );
-              // Handle both DOM nodes (from wire) and {html: string} (from advanced)
-              if (templateResult && templateResult.html) {
-                // Advanced templates return {html: string} - use hyperHTML's html mode
-                result = {
-                  any: { html: templateResult.html },
-                  once: result.once,
-                };
-              } else {
-                result = { any: templateResult, once: result.once };
-              }
-            } else if (
-              'object' === typeof result.template &&
-              'function' === typeof result.template.then
-            ) {
-              result = Object.assign({}, result, {
-                any: result.template.then((args) => {
-                  let { template, values } = args;
-                  if (!template && 'string' === typeof args) {
-                    template = args;
-                    values = {};
-                  }
-
-                  if (!templatestrings[template]) {
-                    templatestrings[template] = buildTemplate(template);
-                  }
-                  if (Array.isArray(values)) {
-                    result = {
-                      any: values.map(templatestrings[template]),
-                      once: result.once,
-                    };
-                  } else {
-                    result = {
-                      any: templatestrings[template](values || data),
-                      once: result.once,
-                    };
-                  }
-                  return result.any;
-                }),
-              });
-            } else {
-              throw new Error(
-                'unknow template type:' +
-                  typeof result.template +
-                  ' | ' +
-                  JSON.stringify(result.template)
-              );
-            }
+          // Check if we have a pending async result
+          let result;
+          if (fragmentCache[name]._asyncResult) {
+            result = fragmentCache[name]._asyncResult;
+          } else {
+            result = this[name](data);
           }
-          return result;
+
+          // Check if result has async content
+          const hasAsync =
+            (result.text && typeof result.text.then === 'function') ||
+            (result.html && typeof result.html.then === 'function') ||
+            (result.any && typeof result.any.then === 'function') ||
+            (result.template && typeof result.template.then === 'function');
+
+          // Store async result for re-processing after resolve (prevents infinite loop)
+          // We need to store it even without once: true to prevent calling the fragment
+          // method again which would create a new Promise
+          if (hasAsync) {
+            fragmentCache[name]._asyncResult = result;
+          }
+
+          /**
+           * Callback for when async content resolves.
+           * Triggers a re-render of the element.
+           */
+          const onResolve = () => {
+            // Re-render the element
+            this.render();
+          };
+
+          // Process the fragment result
+          const processed = processFragmentResult(
+            result,
+            data,
+            templatestrings,
+            onResolve
+          );
+
+          // Cache if once: true and no async content pending
+          if (result.once && !hasAsync) {
+            fragmentCache[name]._cached = processed;
+          }
+          // Clear async result after it's been processed (content resolved)
+          if (!hasAsync && fragmentCache[name]._asyncResult) {
+            delete fragmentCache[name]._asyncResult;
+          }
+
+          return processed;
         };
-        hyperHTML.define(name, wrapFragment);
       } else {
         that[name] = this[name].bind(that);
       }
       delete this[name];
     });
+
+  // Store fragments on ref for access
+  ref.fragments = fragmentCache;
 
   /**
    * Custom toString for element context.
@@ -155,6 +273,9 @@ export function createdCallback() {
 
   // Create the Html function and attach to ref
   ref.Html = createHtml(ref.shadow);
+
+  // Attach fragments to Html function for fragment call processing
+  ref.Html._fragments = fragmentCache;
 
   // Guard removed: this.attrs is set by the library, cannot be pre-defined by user
   that.attrs = this.attachAttrs(this.attributes);

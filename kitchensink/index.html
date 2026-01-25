@@ -70,6 +70,12 @@
           >Using setup() for async data initialization</span
         >
       </li>
+      <li>
+        <a href="lifecycle-sequence.html">Lifecycle Sequence</a>
+        <span class="description"
+          >Order of setup(), render(), teardown() calls</span
+        >
+      </li>
     </ul>
 
     <h2>Attributes &amp; Data</h2>
@@ -81,6 +87,12 @@
         >
       </li>
       <li>
+        <a href="observed-attributes.html">Observed Attributes</a>
+        <span class="description"
+          >Using static observedAttributes for reactive updates</span
+        >
+      </li>
+      <li>
         <a href="dataset.html">Dataset</a>
         <span class="description"
           >Using data-* attributes with JSON parsing</span
@@ -89,6 +101,12 @@
       <li>
         <a href="dataset-mutations.html">Dataset Mutations</a>
         <span class="description">Modifying dataset and re-rendering</span>
+      </li>
+      <li>
+        <a href="type-coercion.html">Type Coercion</a>
+        <span class="description"
+          >Automatic parsing of numbers, booleans, JSON</span
+        >
       </li>
     </ul>
 
@@ -111,6 +129,24 @@
         <span class="description">Using Html.template() with variables</span>
       </li>
       <li>
+        <a href="advanced-templates.html">Advanced Templates</a>
+        <span class="description"
+          >Using {+if}, {+each}, {+unless} block syntax</span
+        >
+      </li>
+      <li>
+        <a href="block-syntax-advanced.html">Block Syntax Advanced</a>
+        <span class="description"
+          >Nested blocks, edge cases, null/undefined handling</span
+        >
+      </li>
+      <li>
+        <a href="auto-wire-each.html">Auto-Wire Each</a>
+        <span class="description"
+          >Using {+each ${'{array}'}}...{-each} in templates</span
+        >
+      </li>
+      <li>
         <a href="fragments-async.html">Async Fragments</a>
         <span class="description"
           >Fragments with promises and placeholders</span
@@ -122,6 +158,28 @@
           >Fragments with template strings and values</span
         >
       </li>
+      <li>
+        <a href="fragment-combinations.html">Fragment Combinations</a>
+        <span class="description"
+          >All fragment result types: text, html, any, template</span
+        >
+      </li>
+    </ul>
+
+    <h2>Rendering</h2>
+    <ul>
+      <li>
+        <a href="keyed-rendering.html">Keyed Rendering</a>
+        <span class="description"
+          >Html.wire() for efficient keyed list updates</span
+        >
+      </li>
+      <li>
+        <a href="xss-prevention.html">XSS Prevention</a>
+        <span class="description"
+          >HTML escaping and Html.raw() for safe rendering</span
+        >
+      </li>
     </ul>
 
     <h2>Composition</h2>
@@ -130,6 +188,30 @@
         <a href="nested-elements.html">Nested Elements</a>
         <span class="description">Parent-child custom element composition</span>
       </li>
+      <li>
+        <a href="child-redraw.html">Child Redraw</a>
+        <span class="description"
+          >Parent-child attribute passing and re-renders</span
+        >
+      </li>
+      <li>
+        <a href="child-styles.html">Child Styles</a>
+        <span class="description">Passing style objects to children</span>
+      </li>
+      <li>
+        <a href="complex-type-attrs.html">Complex Type Attributes</a>
+        <span class="description"
+          >Passing objects and functions to child elements</span
+        >
+      </li>
+    </ul>
+
+    <h2>Events</h2>
+    <ul>
+      <li>
+        <a href="event-callbacks.html">Event Callbacks</a>
+        <span class="description">Using setup() for external event handling</span>
+      </li>
     </ul>
 
     <h2>Edge Cases</h2>
@@ -137,6 +219,22 @@
       <li>
         <a href="corner-cases.html">Corner Cases</a>
         <span class="description">Edge cases and unusual scenarios</span>
+      </li>
+      <li>
+        <a href="coverage-edge-cases.html">Coverage Edge Cases</a>
+        <span class="description"
+          >Additional edge cases for code coverage</span
+        >
+      </li>
+    </ul>
+
+    <h2>Performance</h2>
+    <ul>
+      <li>
+        <a href="stress-test.html">Stress Test</a>
+        <span class="description"
+          >Large lists, rapid updates, deep nesting</span
+        >
       </li>
     </ul>
 
