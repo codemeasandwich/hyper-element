@@ -101,7 +101,9 @@
       <div id="rapid-rerender-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="rapid-rerender"]');
+          const section = document.querySelector(
+            '[data-test="rapid-rerender"]'
+          );
 
           // Shared state that can be mutated externally
           const state = { count: 0 };
@@ -284,7 +286,9 @@
           );
 
           const elem = document.createElement('many-interp-elem');
-          document.getElementById('many-interpolations-output').appendChild(elem);
+          document
+            .getElementById('many-interpolations-output')
+            .appendChild(elem);
 
           setTimeout(() => {
             const spans = document.querySelectorAll('#many-interp-result .v');

@@ -38,7 +38,9 @@
   </head>
   <body>
     <h1>Complex Type Attributes</h1>
-    <p>Tests passing objects, functions, and booleans to custom child elements.</p>
+    <p>
+      Tests passing objects, functions, and booleans to custom child elements.
+    </p>
 
     <!-- Issue #9: Bug passing complex type without function -->
     <section data-test="object-only-attr" data-test-result="pending">
@@ -222,7 +224,9 @@ Html\`&lt;span&gt;text&lt;/span&gt;&lt;child-elem fn=${this.fn} data=${{a:2}}/&g
 
         requestAnimationFrame(() => {
           setTimeout(() => {
-            const section = document.querySelector('[data-test="boolean-attr"]');
+            const section = document.querySelector(
+              '[data-test="boolean-attr"]'
+            );
             const result = document.querySelector('#bool-result');
             if (result && result.textContent === 'PASS') {
               section.dataset.testResult = 'pass';

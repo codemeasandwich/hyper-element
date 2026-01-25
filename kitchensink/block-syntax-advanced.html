@@ -42,7 +42,9 @@
       <div id="nested-if-each-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="nested-if-each"]');
+          const section = document.querySelector(
+            '[data-test="nested-if-each"]'
+          );
 
           customElements.define(
             'nested-if-each-elem',
@@ -58,7 +60,11 @@
               render(Html) {
                 // Use wire with conditional inside
                 Html`<ul id="nested-if-each-result">${this.users.map(
-                  (user) => Html.wire(user, ':user')`<li>${user.name}${user.admin ? ' (admin)' : ''}</li>`
+                  (user) =>
+                    Html.wire(
+                      user,
+                      ':user'
+                    )`<li>${user.name}${user.admin ? ' (admin)' : ''}</li>`
                 )}</ul>`;
               }
             }
@@ -214,7 +220,9 @@
       <div id="each-undefined-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="each-undefined"]');
+          const section = document.querySelector(
+            '[data-test="each-undefined"]'
+          );
 
           customElements.define(
             'each-undefined-elem',
@@ -251,7 +259,9 @@
       <div id="if-else-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="if-else-branch"]');
+          const section = document.querySelector(
+            '[data-test="if-else-branch"]'
+          );
 
           customElements.define(
             'if-else-elem',
@@ -316,9 +326,16 @@
           document.getElementById('unless-truthy-output').appendChild(elem);
 
           requestAnimationFrame(() => {
-            const hidden = document.querySelector('#unless-truthy-result .hidden');
-            const shown = document.querySelector('#unless-truthy-result .shown');
-            if (hidden?.textContent === '[]' && shown?.textContent === '[SHOWN]') {
+            const hidden = document.querySelector(
+              '#unless-truthy-result .hidden'
+            );
+            const shown = document.querySelector(
+              '#unless-truthy-result .shown'
+            );
+            if (
+              hidden?.textContent === '[]' &&
+              shown?.textContent === '[SHOWN]'
+            ) {
               section.dataset.testResult = 'pass';
             } else {
               section.dataset.testResult = 'fail';
@@ -335,7 +352,9 @@
       <div id="each-nested-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="each-nested-prop"]');
+          const section = document.querySelector(
+            '[data-test="each-nested-prop"]'
+          );
 
           customElements.define(
             'each-nested-elem',
@@ -416,7 +435,9 @@
       <div id="each-spread-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="each-spread-obj"]');
+          const section = document.querySelector(
+            '[data-test="each-spread-obj"]'
+          );
 
           customElements.define(
             'each-spread-elem',
@@ -538,7 +559,9 @@
       <div id="each-primitives-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="each-primitives"]');
+          const section = document.querySelector(
+            '[data-test="each-primitives"]'
+          );
 
           customElements.define(
             'each-primitives-elem',
@@ -583,7 +606,9 @@
       <div id="complex-nesting-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="complex-nesting"]');
+          const section = document.querySelector(
+            '[data-test="complex-nesting"]'
+          );
 
           customElements.define(
             'complex-nesting-elem',
@@ -638,7 +663,9 @@
       <div id="block-whitespace-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="block-whitespace"]');
+          const section = document.querySelector(
+            '[data-test="block-whitespace"]'
+          );
 
           customElements.define(
             'block-whitespace-elem',

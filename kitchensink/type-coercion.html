@@ -196,11 +196,16 @@
     <!-- Test: Boolean true (via dataset) -->
     <section data-test="type-bool-true" data-test-result="pending">
       <h2>Boolean True (Dataset)</h2>
-      <p>Tests that <code>data-active="true"</code> becomes <code>true</code> (boolean).</p>
+      <p>
+        Tests that <code>data-active="true"</code> becomes
+        <code>true</code> (boolean).
+      </p>
       <div id="type-bool-true-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-bool-true"]');
+          const section = document.querySelector(
+            '[data-test="type-bool-true"]'
+          );
 
           customElements.define(
             'type-bool-true-elem',
@@ -231,11 +236,16 @@
     <!-- Test: Boolean false (via dataset) -->
     <section data-test="type-bool-false" data-test-result="pending">
       <h2>Boolean False (Dataset)</h2>
-      <p>Tests that <code>data-active="false"</code> becomes <code>false</code> (boolean).</p>
+      <p>
+        Tests that <code>data-active="false"</code> becomes
+        <code>false</code> (boolean).
+      </p>
       <div id="type-bool-false-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-bool-false"]');
+          const section = document.querySelector(
+            '[data-test="type-bool-false"]'
+          );
 
           customElements.define(
             'type-bool-false-elem',
@@ -270,7 +280,9 @@
       <div id="type-json-array-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-json-array"]');
+          const section = document.querySelector(
+            '[data-test="type-json-array"]'
+          );
 
           customElements.define(
             'type-json-array-elem',
@@ -306,14 +318,17 @@
       <div id="type-json-object-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-json-object"]');
+          const section = document.querySelector(
+            '[data-test="type-json-object"]'
+          );
 
           customElements.define(
             'type-json-object-elem',
             class extends hyperElement {
               render(Html) {
                 const val = this.dataset.config;
-                const isObj = val && typeof val === 'object' && !Array.isArray(val);
+                const isObj =
+                  val && typeof val === 'object' && !Array.isArray(val);
                 Html`<div id="type-json-object-result">isObject=${isObj} a=${val?.a} b=${val?.b}</div>`;
               }
             }
@@ -380,7 +395,9 @@
       <div id="type-whitespace-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-whitespace"]');
+          const section = document.querySelector(
+            '[data-test="type-whitespace"]'
+          );
 
           customElements.define(
             'type-whitespace-elem',
@@ -418,7 +435,9 @@
       <div id="type-non-numeric-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-non-numeric"]');
+          const section = document.querySelector(
+            '[data-test="type-non-numeric"]'
+          );
 
           customElements.define(
             'type-non-numeric-elem',
@@ -456,7 +475,9 @@
       <div id="type-template-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-template-attr"]');
+          const section = document.querySelector(
+            '[data-test="type-template-attr"]'
+          );
 
           customElements.define(
             'type-template-elem',
@@ -488,11 +509,16 @@
     <!-- Test: CamelCase conversion -->
     <section data-test="type-camelcase" data-test-result="pending">
       <h2>Dataset CamelCase Conversion</h2>
-      <p>Tests that <code>data-my-value</code> becomes <code>this.dataset.myValue</code>.</p>
+      <p>
+        Tests that <code>data-my-value</code> becomes
+        <code>this.dataset.myValue</code>.
+      </p>
       <div id="type-camelcase-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-camelcase"]');
+          const section = document.querySelector(
+            '[data-test="type-camelcase"]'
+          );
 
           customElements.define(
             'type-camelcase-elem',
@@ -527,7 +553,9 @@
       <div id="type-invalid-json-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-invalid-json"]');
+          const section = document.querySelector(
+            '[data-test="type-invalid-json"]'
+          );
 
           customElements.define(
             'type-invalid-json-elem',
@@ -563,7 +591,9 @@
       <div id="type-dataset-setter-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="type-dataset-setter"]');
+          const section = document.querySelector(
+            '[data-test="type-dataset-setter"]'
+          );
 
           customElements.define(
             'type-dataset-setter-elem',
@@ -581,10 +611,14 @@
           );
 
           const elem = document.createElement('type-dataset-setter-elem');
-          document.getElementById('type-dataset-setter-output').appendChild(elem);
+          document
+            .getElementById('type-dataset-setter-output')
+            .appendChild(elem);
 
           requestAnimationFrame(() => {
-            const result = document.getElementById('type-dataset-setter-result');
+            const result = document.getElementById(
+              'type-dataset-setter-result'
+            );
             // Check that the DOM attribute was also set
             const attrVal = elem.getAttribute('data-config');
             if (

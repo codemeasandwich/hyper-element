@@ -47,7 +47,9 @@
       <div id="basic-observed-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="basic-observed"]');
+          const section = document.querySelector(
+            '[data-test="basic-observed"]'
+          );
           let callbackCount = 0;
 
           customElements.define(
@@ -93,7 +95,10 @@
     <!-- Test: Non-observed attribute doesn't trigger callback -->
     <section data-test="non-observed" data-test-result="pending">
       <h2>Non-Observed Attribute</h2>
-      <p>Tests that non-observed attributes don't trigger attributeChangedCallback.</p>
+      <p>
+        Tests that non-observed attributes don't trigger
+        attributeChangedCallback.
+      </p>
       <div id="non-observed-output"></div>
       <script>
         (function () {
@@ -399,7 +404,9 @@
       <div id="empty-observed-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="empty-observed"]');
+          const section = document.querySelector(
+            '[data-test="empty-observed"]'
+          );
           let callbackCount = 0;
 
           customElements.define(

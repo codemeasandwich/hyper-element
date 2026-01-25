@@ -31,7 +31,7 @@ Templates are cached by TemplateStringsArray identity. All calls to `html` with 
 
 ```javascript
 // These share the same cached template
-items.map(item => html`<li>${item.name}</li>`);
+items.map((item) => html`<li>${item.name}</li>`);
 ```
 
 ### Update Types

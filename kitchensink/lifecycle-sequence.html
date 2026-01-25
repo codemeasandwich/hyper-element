@@ -88,7 +88,9 @@
       <div id="render-once-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="render-once-init"]');
+          const section = document.querySelector(
+            '[data-test="render-once-init"]'
+          );
           let renderCount = 0;
 
           customElements.define(
@@ -274,7 +276,9 @@
       <div id="onnext-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="onnext-rerender"]');
+          const section = document.querySelector(
+            '[data-test="onnext-rerender"]'
+          );
           let onNextRef;
           let renderCount = 0;
 
@@ -355,10 +359,7 @@
 
             requestAnimationFrame(() => {
               const result = document.getElementById('manual-render-result');
-              if (
-                renderCount === 2 &&
-                result?.textContent === 'updated (2)'
-              ) {
+              if (renderCount === 2 && result?.textContent === 'updated (2)') {
                 section.dataset.testResult = 'pass';
               } else {
                 section.dataset.testResult = 'fail';
@@ -372,7 +373,9 @@
     <!-- Test: Reconnection after disconnect -->
     <section data-test="reconnection" data-test-result="pending">
       <h2>Reconnection After Disconnect</h2>
-      <p>Tests that element works correctly after being removed and re-added.</p>
+      <p>
+        Tests that element works correctly after being removed and re-added.
+      </p>
       <div id="reconnect-output"></div>
       <script>
         (function () {
@@ -437,7 +440,9 @@
       </div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="initial-content"]');
+          const section = document.querySelector(
+            '[data-test="initial-content"]'
+          );
 
           customElements.define(
             'initial-content-elem',

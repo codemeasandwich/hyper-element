@@ -42,7 +42,9 @@
       <div id="frag-text-string-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-text-string"]');
+          const section = document.querySelector(
+            '[data-test="frag-text-string"]'
+          );
 
           customElements.define(
             'frag-text-string-elem',
@@ -78,7 +80,9 @@
       <div id="frag-text-escaped-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-text-escaped"]');
+          const section = document.querySelector(
+            '[data-test="frag-text-escaped"]'
+          );
 
           customElements.define(
             'frag-text-escaped-elem',
@@ -140,7 +144,12 @@
             const result = document.getElementById('frag-html-raw-result');
             const strong = result?.querySelector('strong');
             const em = result?.querySelector('em');
-            if (strong && em && strong.textContent === 'bold' && em.textContent === 'italic') {
+            if (
+              strong &&
+              em &&
+              strong.textContent === 'bold' &&
+              em.textContent === 'italic'
+            ) {
               section.dataset.testResult = 'pass';
             } else {
               section.dataset.testResult = 'fail';
@@ -157,7 +166,9 @@
       <div id="frag-any-string-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-any-string"]');
+          const section = document.querySelector(
+            '[data-test="frag-any-string"]'
+          );
 
           customElements.define(
             'frag-any-string-elem',
@@ -193,7 +204,9 @@
       <div id="frag-any-number-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-any-number"]');
+          const section = document.querySelector(
+            '[data-test="frag-any-number"]'
+          );
 
           customElements.define(
             'frag-any-number-elem',
@@ -287,10 +300,14 @@
           );
 
           const elem = document.createElement('frag-template-simple-elem');
-          document.getElementById('frag-template-simple-output').appendChild(elem);
+          document
+            .getElementById('frag-template-simple-output')
+            .appendChild(elem);
 
           setTimeout(() => {
-            const result = document.getElementById('frag-template-simple-result');
+            const result = document.getElementById(
+              'frag-template-simple-result'
+            );
             if (result && result.textContent.includes('Hello, World!')) {
               section.dataset.testResult = 'pass';
             } else {
@@ -324,7 +341,11 @@
               render(Html) {
                 Html`<ul id="frag-template-array-result">${{
                   Items: {
-                    items: [{ name: 'One' }, { name: 'Two' }, { name: 'Three' }],
+                    items: [
+                      { name: 'One' },
+                      { name: 'Two' },
+                      { name: 'Three' },
+                    ],
                   },
                 }}</ul>`;
               }
@@ -332,10 +353,14 @@
           );
 
           const elem = document.createElement('frag-template-array-elem');
-          document.getElementById('frag-template-array-output').appendChild(elem);
+          document
+            .getElementById('frag-template-array-output')
+            .appendChild(elem);
 
           setTimeout(() => {
-            const result = document.getElementById('frag-template-array-result');
+            const result = document.getElementById(
+              'frag-template-array-result'
+            );
             const lis = result?.querySelectorAll('li');
             if (
               lis?.length === 3 &&
@@ -359,7 +384,9 @@
       <div id="frag-once-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-once-true"]');
+          const section = document.querySelector(
+            '[data-test="frag-once-true"]'
+          );
           let callCount = 0;
 
           customElements.define(
@@ -412,7 +439,9 @@
       <div id="frag-placeholder-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-placeholder"]');
+          const section = document.querySelector(
+            '[data-test="frag-placeholder"]'
+          );
           let sawPlaceholder = false;
 
           customElements.define(
@@ -463,7 +492,9 @@
       <div id="frag-async-html-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-async-html"]');
+          const section = document.querySelector(
+            '[data-test="frag-async-html"]'
+          );
 
           customElements.define(
             'frag-async-html-elem',
@@ -505,7 +536,9 @@
       <div id="frag-async-any-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-async-any"]');
+          const section = document.querySelector(
+            '[data-test="frag-async-any"]'
+          );
 
           customElements.define(
             'frag-async-any-elem',
@@ -546,7 +579,9 @@
       <div id="frag-data-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-with-data"]');
+          const section = document.querySelector(
+            '[data-test="frag-with-data"]'
+          );
 
           customElements.define(
             'frag-data-elem',
@@ -638,7 +673,9 @@
       <div id="frag-empty-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="frag-empty-obj"]');
+          const section = document.querySelector(
+            '[data-test="frag-empty-obj"]'
+          );
 
           customElements.define(
             'frag-empty-elem',
@@ -704,7 +741,10 @@
           setTimeout(() => {
             const on = document.querySelector('#frag-advanced-result .on');
             const off = document.querySelector('#frag-advanced-result .off');
-            if (on?.textContent === 'Active' && off?.textContent === 'Inactive') {
+            if (
+              on?.textContent === 'Active' &&
+              off?.textContent === 'Inactive'
+            ) {
               section.dataset.testResult = 'pass';
             } else {
               section.dataset.testResult = 'fail';

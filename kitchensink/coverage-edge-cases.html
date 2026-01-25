@@ -1851,7 +1851,9 @@
       <div id="each-undefined-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="each-undefined"]');
+          const section = document.querySelector(
+            '[data-test="each-undefined"]'
+          );
 
           customElements.define(
             'each-undefined-elem',
@@ -1871,7 +1873,8 @@
             // Should render 'beforeafter' with no items
             const pass = result && result.textContent === 'beforeafter';
             section.dataset.testResult = pass ? 'pass' : 'fail';
-            if (!pass) console.log('each-undefined actual:', result?.textContent);
+            if (!pass)
+              console.log('each-undefined actual:', result?.textContent);
           }, 100);
         })();
       </script>
@@ -1880,11 +1883,16 @@
     <!-- Test: Object/function to regular element (no custom tag interception) -->
     <section data-test="obj-to-regular-elem" data-test-result="pending">
       <h2>Object to Regular Element</h2>
-      <p>Tests passing an object to a regular HTML element (not a custom element).</p>
+      <p>
+        Tests passing an object to a regular HTML element (not a custom
+        element).
+      </p>
       <div id="obj-to-regular-output"></div>
       <script>
         (function () {
-          const section = document.querySelector('[data-test="obj-to-regular-elem"]');
+          const section = document.querySelector(
+            '[data-test="obj-to-regular-elem"]'
+          );
 
           customElements.define(
             'obj-to-regular-elem',
